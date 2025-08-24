@@ -195,7 +195,27 @@ def voice_verify():
     # Check verbal verification
     if speech:
         said = norm_speech(speech)
-        if (said == accepted_verbal) or (is_caller_whitelisted_verbal(tenant, from_digits) and said == accepted_verbal):
+        print(f"DEBUG Speech: received='{speech}', normalized='{said}', expected='{accepted_verbal}'")
+        
+        # More flexible speech matching - check if the words are contained
+        speech_words = said.split()
+        expected_words = accepted_verbal.split()
+        
+        # Check exact match first
+        if said == accepted_verbal:
+            print(f"DEBUG: Exact verbal match!")
+            clear_failures(tenant, from_digits)
+            return on_verified(tenant)
+        
+        # Check if all expected words are present (flexible matching)
+        if len(expected_words) > 0 and all(word in speech_words for word in expected_words):
+            print(f"DEBUG: Flexible verbal match!")
+            clear_failures(tenant, from_digits)
+            return on_verified(tenant)
+        
+        # Check whitelist verbal authentication
+        if is_caller_whitelisted_verbal(tenant, from_digits) and said == accepted_verbal:
+            print(f"DEBUG: Whitelist verbal match!")
             clear_failures(tenant, from_digits)
             return on_verified(tenant)
     

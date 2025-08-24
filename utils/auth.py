@@ -10,7 +10,12 @@ def norm_digits(s: str) -> str:
 
 def norm_speech(s: str) -> str:
     """Normalize speech input for comparison"""
-    return (s or "").strip().lower()
+    if not s:
+        return ""
+    # Remove extra punctuation and normalize spaces
+    import re
+    normalized = re.sub(r'[^\w\s]', '', s.strip().lower())
+    return re.sub(r'\s+', ' ', normalized).strip()
 
 def parse_annotated_number(s: str) -> Tuple[Optional[str], Optional[str]]:
     """
