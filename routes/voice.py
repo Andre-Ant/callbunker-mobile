@@ -144,7 +144,9 @@ def voice_retry():
     )
     gather.say("Incorrect code. Please try again with your four digit pin, or say your verbal code.", voice="polly.Joanna")
     vr.append(gather)
-    vr.redirect(f"/voice/retry?attempts={next_attempts}&to={to_number}")
+    # Fallback if no input received
+    vr.say("No input received. Goodbye.", voice="polly.Joanna")
+    vr.hangup()
     return xml_response(vr)
 
 @voice_bp.route('/verify', methods=['POST'])
