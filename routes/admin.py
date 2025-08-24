@@ -1,0 +1,177 @@
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
+from datetime import datetime
+from app import db
+from models import Tenant, Whitelist, FailLog, Blocklist
+from utils.auth import require_admin_web, parse_annotated_number
+from utils.sendgrid_helper import send_notification_email
+import re
+
+admin_bp = Blueprint('admin', __name__)
+
+@admin_bp.route('/')
+@require_admin_web
+def admin_home():
+    """Admin dashboard"""
+    tenants = Tenant.query.all()
+    return render_template('index.html', tenants=tenants)
+
+@admin_bp.route('/tenant/<screening_number>')
+@require_admin_web
+def tenant_detail(screening_number):
+    """View tenant details"""
+    tenant = Tenant.query.get_or_404(screening_number)
+    whitelists = Whitelist.query.filter_by(screening_number=screening_number).all()
+    recent_fails = FailLog.query.filter_by(screening_number=screening_number).order_by(FailLog.ts.desc()).limit(20).all()
+    active_blocks = Blocklist.query.filter(
+        Blocklist.screening_number == screening_number,
+        Blocklist.unblock_at > datetime.utcnow()
+    ).all()
+    
+    return render_template('tenant_detail.html', 
+                         tenant=tenant, 
+                         whitelists=whitelists, 
+                         recent_fails=recent_fails,
+                         active_blocks=active_blocks)
+
+@admin_bp.route('/tenant/<screening_number>/edit', methods=['GET', 'POST'])
+@require_admin_web
+def edit_tenant(screening_number):
+    """Edit tenant configuration"""
+    tenant = Tenant.query.get_or_404(screening_number)
+    
+    if request.method == 'POST':
+        tenant.owner_label = request.form.get('owner_label', '').strip()
+        tenant.forward_to = request.form.get('forward_to', '').strip()
+        tenant.current_pin = request.form.get('current_pin', '1122').strip()
+        tenant.verbal_code = request.form.get('verbal_code', 'open sesame').strip()
+        tenant.retry_limit = int(request.form.get('retry_limit', 3))
+        tenant.forward_mode = request.form.get('forward_mode', 'bridge').strip()
+        tenant.rl_window_sec = int(request.form.get('rl_window_sec', 3600))
+        tenant.rl_max_attempts = int(request.form.get('rl_max_attempts', 5))
+        tenant.rl_block_minutes = int(request.form.get('rl_block_minutes', 60))
+        tenant.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        flash('Tenant updated successfully!', 'success')
+        return redirect(url_for('admin.tenant_detail', screening_number=screening_number))
+    
+    return render_template('tenant_form.html', tenant=tenant, action='Edit')
+
+@admin_bp.route('/tenant/new', methods=['GET', 'POST'])
+@require_admin_web
+def new_tenant():
+    """Create new tenant"""
+    if request.method == 'POST':
+        screening_number = request.form.get('screening_number', '').strip()
+        
+        # Check if tenant already exists
+        if Tenant.query.get(screening_number):
+            flash('A tenant with this screening number already exists!', 'error')
+            return render_template('tenant_form.html', action='New')
+        
+        tenant = Tenant(
+            screening_number=screening_number,
+            owner_label=request.form.get('owner_label', '').strip(),
+            forward_to=request.form.get('forward_to', '').strip(),
+            current_pin=request.form.get('current_pin', '1122').strip(),
+            verbal_code=request.form.get('verbal_code', 'open sesame').strip(),
+            retry_limit=int(request.form.get('retry_limit', 3)),
+            forward_mode=request.form.get('forward_mode', 'bridge').strip(),
+            rl_window_sec=int(request.form.get('rl_window_sec', 3600)),
+            rl_max_attempts=int(request.form.get('rl_max_attempts', 5)),
+            rl_block_minutes=int(request.form.get('rl_block_minutes', 60))
+        )
+        
+        db.session.add(tenant)
+        db.session.commit()
+        flash('Tenant created successfully!', 'success')
+        return redirect(url_for('admin.tenant_detail', screening_number=screening_number))
+    
+    return render_template('tenant_form.html', action='New')
+
+@admin_bp.route('/tenant/<screening_number>/whitelist')
+@require_admin_web
+def whitelist_manage(screening_number):
+    """Manage whitelist for tenant"""
+    tenant = Tenant.query.get_or_404(screening_number)
+    whitelists = Whitelist.query.filter_by(screening_number=screening_number).all()
+    return render_template('whitelist.html', tenant=tenant, whitelists=whitelists)
+
+@admin_bp.route('/tenant/<screening_number>/whitelist/add', methods=['POST'])
+@require_admin_web
+def whitelist_add(screening_number):
+    """Add entry to whitelist"""
+    tenant = Tenant.query.get_or_404(screening_number)
+    
+    number_input = request.form.get('number', '').strip()
+    number, custom_pin = parse_annotated_number(number_input)
+    
+    if not number:
+        flash('Invalid number format!', 'error')
+        return redirect(url_for('admin.whitelist_manage', screening_number=screening_number))
+    
+    # Check if entry already exists
+    existing = Whitelist.query.filter_by(screening_number=screening_number, number=number).first()
+    if existing:
+        flash('This number is already in the whitelist!', 'error')
+        return redirect(url_for('admin.whitelist_manage', screening_number=screening_number))
+    
+    whitelist_entry = Whitelist(
+        screening_number=screening_number,
+        number=number,
+        pin=custom_pin,
+        verbal=bool(request.form.get('verbal'))
+    )
+    
+    db.session.add(whitelist_entry)
+    db.session.commit()
+    flash('Number added to whitelist!', 'success')
+    return redirect(url_for('admin.whitelist_manage', screening_number=screening_number))
+
+@admin_bp.route('/whitelist/<int:whitelist_id>/delete', methods=['POST'])
+@require_admin_web
+def whitelist_delete(whitelist_id):
+    """Remove entry from whitelist"""
+    whitelist_entry = Whitelist.query.get_or_404(whitelist_id)
+    screening_number = whitelist_entry.screening_number
+    
+    db.session.delete(whitelist_entry)
+    db.session.commit()
+    flash('Number removed from whitelist!', 'success')
+    return redirect(url_for('admin.whitelist_manage', screening_number=screening_number))
+
+@admin_bp.route('/tenant/<screening_number>/unblock', methods=['POST'])
+@require_admin_web
+def unblock_number():
+    """Manually unblock a number"""
+    screening_number = request.form.get('screening_number')
+    caller_digits = request.form.get('caller_digits')
+    
+    if not screening_number or not caller_digits:
+        flash('Missing required parameters!', 'error')
+        return redirect(url_for('admin.admin_home'))
+    
+    # Remove from blocklist
+    blocked_entries = Blocklist.query.filter_by(
+        screening_number=screening_number,
+        caller_digits=caller_digits
+    ).all()
+    
+    for entry in blocked_entries:
+        db.session.delete(entry)
+    
+    db.session.commit()
+    flash(f'Number {caller_digits} has been unblocked!', 'success')
+    return redirect(url_for('admin.tenant_detail', screening_number=screening_number))
+
+@admin_bp.route('/tenant/<screening_number>/clear_logs', methods=['POST'])
+@require_admin_web
+def clear_logs(screening_number):
+    """Clear failure logs for a tenant"""
+    tenant = Tenant.query.get_or_404(screening_number)
+    
+    FailLog.query.filter_by(screening_number=screening_number).delete()
+    db.session.commit()
+    
+    flash('Failure logs cleared!', 'success')
+    return redirect(url_for('admin.tenant_detail', screening_number=screening_number))

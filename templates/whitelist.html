@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Whitelist - {{ tenant.screening_number }} - CallShield AI{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-list me-2"></i>Whitelist Management
+                <small class="text-muted">{{ tenant.screening_number }}</small>
+            </h1>
+            <a href="{{ url_for('admin.tenant_detail', screening_number=tenant.screening_number) }}" 
+               class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Tenant
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card bg-secondary mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Add to Whitelist</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('admin.whitelist_add', screening_number=tenant.screening_number) }}">
+                    <div class="mb-3">
+                        <label for="number" class="form-label">Phone Number *</label>
+                        <input type="text" class="form-control" name="number" 
+                               placeholder="+15551234567 * 9999" required>
+                        <div class="form-text">
+                            Format: +15551234567 (standard) or +15551234567 * 9999 (with custom PIN)
+                        </div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="verbal" id="verbal">
+                        <label class="form-check-label" for="verbal">
+                            Allow verbal authentication
+                        </label>
+                        <div class="form-text">
+                            Caller can use verbal code instead of PIN
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Number
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card bg-info text-dark">
+            <div class="card-header bg-info text-dark">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Usage Guide</h5>
+            </div>
+            <div class="card-body">
+                <h6>Number Formats:</h6>
+                <ul class="mb-3">
+                    <li><code>+15551234567</code> - Uses default PIN</li>
+                    <li><code>+15551234567 * 9999</code> - Custom PIN: 9999</li>
+                    <li><code>617-555-1234 # 1122</code> - Custom PIN: 1122</li>
+                </ul>
+                
+                <h6>Authentication Options:</h6>
+                <ul class="mb-0">
+                    <li><strong>PIN Only:</strong> Caller must enter correct PIN</li>
+                    <li><strong>Verbal Enabled:</strong> Caller can use verbal code OR PIN</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if whitelists %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-secondary">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-users me-2"></i>Whitelisted Numbers ({{ whitelists|length }})
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>Phone Number</th>
+                                <th>Custom PIN</th>
+                                <th>Verbal Auth</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for wl in whitelists %}
+                            <tr>
+                                <td>
+                                    <i class="fas fa-phone me-2"></i>{{ wl.number }}
+                                </td>
+                                <td>
+                                    {% if wl.pin %}
+                                        <code>{{ wl.pin }}</code>
+                                    {% else %}
+                                        <span class="text-muted">Uses default ({{ tenant.current_pin }})</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if wl.verbal %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-microphone me-1"></i>Enabled
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-microphone-slash me-1"></i>Disabled
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form method="post" action="{{ url_for('admin.whitelist_delete', whitelist_id=wl.id) }}" 
+                                          class="d-inline" onsubmit="return confirm('Remove this number from whitelist?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash me-1"></i>Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="fas fa-users-slash fa-5x text-muted mb-3"></i>
+            <h3 class="text-muted">No Whitelisted Numbers</h3>
+            <p class="text-muted">All callers will use the default PIN and verbal code.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

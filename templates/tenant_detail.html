@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tenant.screening_number }} - CallShield AI{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-phone me-2"></i>{{ tenant.screening_number }}
+                {% if tenant.owner_label %}
+                <small class="text-muted">({{ tenant.owner_label }})</small>
+                {% endif %}
+            </h1>
+            <div class="btn-group">
+                <a href="{{ url_for('admin.edit_tenant', screening_number=tenant.screening_number) }}" 
+                   class="btn btn-secondary">
+                    <i class="fas fa-edit me-2"></i>Edit
+                </a>
+                <a href="{{ url_for('admin.whitelist_manage', screening_number=tenant.screening_number) }}" 
+                   class="btn btn-info">
+                    <i class="fas fa-list me-2"></i>Manage Whitelist
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card bg-secondary mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Configuration</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless table-dark">
+                    <tr>
+                        <td><strong>Forward To:</strong></td>
+                        <td>{{ tenant.forward_to }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Current PIN:</strong></td>
+                        <td><code>{{ tenant.current_pin }}</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Verbal Code:</strong></td>
+                        <td><code>{{ tenant.verbal_code }}</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Forward Mode:</strong></td>
+                        <td><span class="badge bg-info">{{ tenant.forward_mode.title() }}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Retry Limit:</strong></td>
+                        <td>{{ tenant.retry_limit }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card bg-secondary mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Rate Limiting</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless table-dark">
+                    <tr>
+                        <td><strong>Window:</strong></td>
+                        <td>{{ tenant.rl_window_sec }} seconds</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Max Attempts:</strong></td>
+                        <td>{{ tenant.rl_max_attempts }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Block Duration:</strong></td>
+                        <td>{{ tenant.rl_block_minutes }} minutes</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if whitelists %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-secondary mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Whitelist ({{ whitelists|length }} entries)</h5>
+                <a href="{{ url_for('admin.whitelist_manage', screening_number=tenant.screening_number) }}" 
+                   class="btn btn-sm btn-info">
+                    <i class="fas fa-plus me-1"></i>Manage
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>Number</th>
+                                <th>Custom PIN</th>
+                                <th>Verbal Auth</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for wl in whitelists %}
+                            <tr>
+                                <td>{{ wl.number }}</td>
+                                <td>
+                                    {% if wl.pin %}
+                                        <code>{{ wl.pin }}</code>
+                                    {% else %}
+                                        <span class="text-muted">Default</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if wl.verbal %}
+                                        <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if active_blocks %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-warning mb-4">
+            <div class="card-header">
+                <h5 class="mb-0 text-dark"><i class="fas fa-ban me-2"></i>Active Blocks</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>Number</th>
+                                <th>Unblock At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for block in active_blocks %}
+                            <tr>
+                                <td>{{ block.caller_digits }}</td>
+                                <td>{{ block.unblock_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td>
+                                    <form method="post" action="{{ url_for('admin.unblock_number') }}" class="d-inline">
+                                        <input type="hidden" name="screening_number" value="{{ tenant.screening_number }}">
+                                        <input type="hidden" name="caller_digits" value="{{ block.caller_digits }}">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-unlock me-1"></i>Unblock
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if recent_fails %}
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-secondary mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Recent Failed Attempts</h5>
+                <form method="post" action="{{ url_for('admin.clear_logs', screening_number=tenant.screening_number) }}" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash me-1"></i>Clear Logs
+                    </button>
+                </form>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>Number</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fail in recent_fails %}
+                            <tr>
+                                <td>{{ fail.caller_digits }}</td>
+                                <td>{{ fail.ts.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
