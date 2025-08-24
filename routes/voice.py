@@ -111,6 +111,12 @@ def voice_retry():
         to_number = request.args.get("to")
         from_digits = ""
     
+    if not to_number:
+        vr = VoiceResponse()
+        vr.say("Invalid request. Goodbye.", voice="polly.Joanna")
+        vr.hangup()
+        return xml_response(vr)
+    
     tenant = get_tenant_or_404(to_number)
     
     # Check if caller is blocked
@@ -149,6 +155,12 @@ def voice_verify():
     attempts = int(request.args.get("attempts", request.form.get("attempts", 0)))
     pressed = request.form.get("Digits")
     speech = request.form.get("SpeechResult")
+    
+    if not to_number:
+        vr = VoiceResponse()
+        vr.say("Invalid request. Goodbye.", voice="polly.Joanna")
+        vr.hangup()
+        return xml_response(vr)
     
     tenant = get_tenant_or_404(to_number)
     
