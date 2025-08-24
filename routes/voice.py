@@ -48,7 +48,12 @@ def on_verified(tenant):
         )
     else:  # bridge mode
         vr.say("Connecting your call now.", voice="polly.Joanna")
-        vr.dial(tenant.forward_to, timeout=30)
+        dial = vr.dial(
+            tenant.forward_to,
+            timeout=30,
+            hangup_on_star=True,
+            action="/voice/call_complete"
+        )
     
     return xml_response(vr)
 
@@ -229,6 +234,21 @@ def voice_verify():
     # Fallback if no input received
     vr.say("No input received. Goodbye.", voice="polly.Joanna")
     vr.hangup()
+    return xml_response(vr)
+
+@voice_bp.route('/call_complete', methods=['POST'])
+def call_complete():
+    """Handle call completion or hangup"""
+    call_status = request.form.get('DialCallStatus')
+    
+    vr = VoiceResponse()
+    if call_status in ['completed', 'busy', 'no-answer', 'failed', 'canceled']:
+        # Call ended normally, just hang up
+        vr.hangup()
+    else:
+        # Unexpected status, hang up safely
+        vr.hangup()
+    
     return xml_response(vr)
 
 @voice_bp.route('/voicemail_complete', methods=['POST'])
