@@ -192,8 +192,11 @@ def voice_verify():
     expected_pin = caller_expected_pin(tenant, from_digits)
     accepted_verbal = tenant.verbal_code.strip().lower()
     
+    print(f"DEBUG PIN check: pressed='{pressed}', expected='{expected_pin}', match={pressed == expected_pin}")
+    
     # Check PIN verification
     if pressed and len(pressed) == 4 and pressed == expected_pin:
+        print(f"DEBUG: PIN CORRECT! Connecting call...")
         clear_failures(tenant, from_digits)
         return on_verified(tenant)
     
