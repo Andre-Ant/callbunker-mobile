@@ -205,8 +205,9 @@ def voice_verify():
             clear_failures(tenant, from_digits)
             return on_verified(tenant)
         
-        # Check if all expected words are present (flexible matching)
-        if len(expected_words) > 0 and all(word in speech_words for word in expected_words):
+        # Check if the expected phrase is contained in speech (flexible matching)
+        # This allows extra words but maintains word order
+        if len(expected_words) > 0 and accepted_verbal in said:
             clear_failures(tenant, from_digits)
             return on_verified(tenant)
         
