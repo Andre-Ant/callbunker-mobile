@@ -1,4 +1,4 @@
-// CallShield AI - Frontend JavaScript
+// CallBunker - Frontend JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
     // Auto-dismiss alerts after 5 seconds

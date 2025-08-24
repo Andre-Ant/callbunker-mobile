@@ -11,4 +11,4 @@ def index():
 @main_bp.route('/health')
 def health():
     """Health check endpoint"""
-    return {"status": "ok", "service": "CallShield AI"}, 200
+    return {"status": "ok", "service": "CallBunker"}, 200

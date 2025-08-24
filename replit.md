@@ -1,6 +1,6 @@
 # Overview
 
-CallShield AI is a multi-tenant call screening service that acts as a protective layer between callers and final destinations. The system requires callers to authenticate via PIN codes or verbal codes before connecting them to the intended recipient. It integrates with Twilio for voice services and supports multiple tenants (screening numbers) with individual configurations for rate limiting, whitelisting, and forwarding modes.
+CallBunker is a multi-tenant call screening service that acts as a protective layer between callers and final destinations. The system requires callers to authenticate via PIN codes or verbal codes before connecting them to the intended recipient. It integrates with Twilio for voice services and supports multiple tenants (screening numbers) with individual configurations for rate limiting, whitelisting, and forwarding modes.
 
 The application provides both webhook endpoints for Twilio integration and a web-based admin interface for managing tenants, whitelists, and system configuration. It includes features like rate limiting to prevent abuse, blocklisting for repeated failures, and optional email notifications via SendGrid.
 

@@ -21,7 +21,7 @@ def send_notification_email(subject: str, body: str) -> bool:
     
     api_key = os.getenv("SENDGRID_API_KEY")
     to_email = os.getenv("EMAIL_TO")
-    from_email = os.getenv("EMAIL_FROM", "noreply@callshieldai.example.com")
+    from_email = os.getenv("EMAIL_FROM", "noreply@callbunker.example.com")
     
     if not (api_key and to_email):
         logging.info("SendGrid not configured, skipping email notification")
