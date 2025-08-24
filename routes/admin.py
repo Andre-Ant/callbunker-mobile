@@ -142,9 +142,8 @@ def whitelist_delete(whitelist_id):
 
 @admin_bp.route('/tenant/<screening_number>/unblock', methods=['POST'])
 @require_admin_web
-def unblock_number():
+def unblock_number(screening_number):
     """Manually unblock a number"""
-    screening_number = request.form.get('screening_number')
     caller_digits = request.form.get('caller_digits')
     
     if not screening_number or not caller_digits:

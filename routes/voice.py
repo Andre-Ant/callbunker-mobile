@@ -158,9 +158,6 @@ def voice_retry():
 @voice_bp.route('/verify', methods=['POST'])
 def voice_verify():
     """Handle PIN and verbal code verification"""
-    # Debug logging
-    print(f"DEBUG verify: args={dict(request.args)}, form={dict(request.form)}")
-    
     to_number = request.args.get("to") or request.form.get("To")
     # Fix phone number formatting for tenant lookup
     if to_number and not to_number.startswith('+'):
@@ -170,8 +167,6 @@ def voice_verify():
     attempts = int(request.args.get("attempts", request.form.get("attempts", 0)))
     pressed = request.form.get("Digits")
     speech = request.form.get("SpeechResult")
-    
-    print(f"DEBUG verify: to={to_number}, from={from_digits}, attempts={attempts}, pressed={pressed}, speech={speech}")
     
     if not to_number:
         vr = VoiceResponse()
@@ -192,11 +187,8 @@ def voice_verify():
     expected_pin = caller_expected_pin(tenant, from_digits)
     accepted_verbal = tenant.verbal_code.strip().lower()
     
-    print(f"DEBUG PIN check: pressed='{pressed}', expected='{expected_pin}', match={pressed == expected_pin}")
-    
     # Check PIN verification
     if pressed and len(pressed) == 4 and pressed == expected_pin:
-        print(f"DEBUG: PIN CORRECT! Connecting call...")
         clear_failures(tenant, from_digits)
         return on_verified(tenant)
     

@@ -157,7 +157,7 @@
                                 <td>{{ block.caller_digits }}</td>
                                 <td>{{ block.unblock_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                                 <td>
-                                    <form method="post" action="{{ url_for('admin.unblock_number') }}" class="d-inline">
+                                    <form method="post" action="{{ url_for('admin.unblock_number', screening_number=tenant.screening_number) }}" class="d-inline">
                                         <input type="hidden" name="screening_number" value="{{ tenant.screening_number }}">
                                         <input type="hidden" name="caller_digits" value="{{ block.caller_digits }}">
                                         <button type="submit" class="btn btn-sm btn-danger">
