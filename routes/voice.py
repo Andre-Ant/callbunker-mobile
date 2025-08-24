@@ -190,13 +190,13 @@ def voice_verify():
     # Verification failed
     note_failure_and_maybe_block(tenant, from_digits)
     
-    # Redirect to retry with proper parameters
+    # Check if max attempts reached
     next_attempts = attempts + 1
-    vr = VoiceResponse()
-    
     if next_attempts >= tenant.retry_limit:
         return voicemail_prompt(to_number)
     
+    # Create retry response directly
+    vr = VoiceResponse()
     gather = Gather(
         input="speech dtmf",
         num_digits=4,
