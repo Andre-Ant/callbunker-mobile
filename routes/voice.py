@@ -100,8 +100,8 @@ def voice_incoming():
     )
     gather.say("Please enter your four digit pin, or say your verbal code.", voice="polly.Joanna")
     vr.append(gather)
-    # Fallback if no input received
-    vr.say("No input received. Goodbye.", voice="polly.Joanna")
+    # Fallback if no input received - terminate call completely
+    vr.say("No input received. This call will now end.", voice="polly.Joanna")
     vr.hangup()
     return xml_response(vr)
 
