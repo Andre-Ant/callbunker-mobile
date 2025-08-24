@@ -1,0 +1,927 @@
+import os
+import re
+from math import ceil
+from datetime import datetime, timedelta
+from typing import Optional, List
+
+from fastapi import FastAPI, Request, Response, HTTPException, Header
+from fastapi.responses import JSONResponse, PlainTextResponse
+from twilio.twiml.voice_response import VoiceResponse, Gather
+from twilio.rest import Client
+from sqlmodel import SQLModel, Field, Session, create_engine, select, Column, String, Boolean, Integer, DateTime
+
+# ---------- Optional email (SendGrid) ----------
+SENDGRID_AVAILABLE = False
+try:
+    from sendgrid import SendGridAPIClient
+    from sendgrid.helpers.mail import Mail
+    SENDGRID_AVAILABLE = True
+except Exception:
+    SENDGRID_AVAILABLE = False
+
+# ---------- App / DB ----------
+DB_URL = "sqlite:///spamguard.db"
+engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
+app = FastAPI(title="CheckPoint Spam Guard (SQLite, Multi-tenant)")
+
+# ---------- Models ----------
+class Tenant(SQLModel, table=True):
+    screening_number: str = Field(primary_key=True)          # Twilio E.164
+    owner_label: Optional[str] = None
+    forward_to: str                                            # E.164
+    current_pin: str = Field(default="1122", sa_column=Column(String(4)))
+    verbal_code: str = Field(default="open sesame")
+    retry_limit: int = 3
+    forward_mode: str = Field(default="bridge")               # "bridge" | "voicemail"
+    rl_window_sec: int = 3600
+    rl_max_attempts: int = 5
+    rl_block_minutes: int = 60
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    # Test-call verification markers
+    test_verified_at: Optional[datetime] = Field(default=None, index=True)
+    last_test_call_sid: Optional[str] = Field(default=None, index=True)
+    last_test_result: Optional[str] = Field(default=None)     # "confirmed"|"failed"|"no_input"
+
+class Whitelist(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    screening_number: str = Field(foreign_key="tenant.screening_number", index=True)
+    number: str = Field(index=True)                 # caller digits/e164-ish
+    pin: Optional[str] = Field(default=None, sa_column=Column(String(4)))
+    verbal: bool = Field(default=False)
+
+class FailLog(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    screening_number: str = Field(index=True)
+    caller_digits: str = Field(index=True)
+    ts: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+class Blocklist(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    screening_number: str = Field(index=True)
+    caller_digits: str = Field(index=True)
+    unblock_at: datetime = Field(index=True)
+
+def init_db():
+    SQLModel.metadata.create_all(engine)
+
+def ensure_column(table: str, column: str, coltype: str):
+    with engine.connect() as conn:
+        res = conn.exec_driver_sql(f"PRAGMA table_info({table})").fetchall()
+        existing = {row[1] for row in res}
+        if column not in existing:
+            conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {column} {coltype}")
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
+    # make upgrades painless on existing DBs
+    ensure_column("tenant", "test_verified_at", "TIMESTAMP")
+    ensure_column("tenant", "last_test_call_sid", "TEXT")
+    ensure_column("tenant", "last_test_result", "TEXT")
+
+# ---------- Helpers ----------
+def norm_digits(s: str) -> str:
+    return re.sub(r"\D", "", s or "")
+
+def norm_speech(s: str) -> str:
+    return (s or "").strip().lower()
+
+def parse_annotated_number(s: str):
+    """
+    Accepts "617-123-1213 * 1122" or "# 4455"
+    Returns (clean_number, pin|None)
+    """
+    if not s:
+        return None, None
+    m = re.match(r"\s*([\+\d][\d\-\s\(\)]*?)\s*[*#]\s*(\d{4})\s*$", s)
+    if not m:
+        num = re.sub(r"[^\d+]", "", s)
+        return num, None
+    number_raw, pin = m.group(1), m.group(2)
+    number_clean = re.sub(r"[^\d+]", "", number_raw)
+    return number_clean, pin
+
+def xml_response(vr: VoiceResponse) -> Response:
+    return Response(content=str(vr), media_type="application/xml")
+
+def _email_if_configured(subject: str, body: str):
+    api_key = os.getenv("SENDGRID_API_KEY")
+    to_email = os.getenv("EMAIL_TO")
+    from_email = os.getenv("EMAIL_FROM", "noreply@example.com")
+    if not (api_key and to_email and SENDGRID_AVAILABLE):
+        return
+    try:
+        sg = SendGridAPIClient(api_key)
+        msg = Mail(from_email=from_email, to_emails=to_email, subject=subject, plain_text_content=body)
+        sg.send(msg)
+    except Exception as e:
+        print("SendGrid error:", e)
+
+def _require_admin(auth_header: Optional[str]):
+    token = os.getenv("ADMIN_TOKEN")
+    if not token:
+        return True
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+    provided = auth_header.split(" ", 1)[1].strip()
+    if provided != token:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+def get_tenant(session: Session, screening_number: str) -> Tenant:
+    t = session.get(Tenant, screening_number)
+    if not t:
+        raise HTTPException(status_code=404, detail=f"Unknown screening number: {screening_number}")
+    return t
+
+def caller_expected_pin(session: Session, tenant: Tenant, caller_digits: str) -> str:
+    wl = session.exec(
+        select(Whitelist).where(
+            (Whitelist.screening_number == tenant.screening_number) &
+            (Whitelist.number == caller_digits) &
+            (Whitelist.pin.is_not(None))
+        )
+    ).first()
+    return wl.pin if wl else tenant.current_pin
+
+def is_caller_whitelisted_verbal(session: Session, tenant: Tenant, caller_digits: str) -> bool:
+    wl = session.exec(
+        select(Whitelist).where(
+            (Whitelist.screening_number == tenant.screening_number) &
+            (Whitelist.number == caller_digits) &
+            (Whitelist.verbal == True)
+        )
+    ).first()
+    return bool(wl)
+
+def tenant_forward_mode(tenant: Tenant) -> str:
+    return (tenant.forward_mode or "bridge").strip().lower()
+
+# Twilio helpers
+def twilio_client() -> Client:
+    sid = os.environ["TWILIO_ACCOUNT_SID"]
+    token = os.environ["TWILIO_AUTH_TOKEN"]
+    return Client(sid, token)
+
+def public_app_url() -> str:
+    url = os.getenv("PUBLIC_APP_URL")
+    if not url:
+        raise HTTPException(status_code=500, detail="PUBLIC_APP_URL env var not set")
+    return url.rstrip("/")
+
+# ---------- Rate limit ----------
+def is_blocked(session: Session, tenant: Tenant, caller_digits: str) -> Optional[int]:
+    rec = session.exec(
+        select(Blocklist).where(
+            (Blocklist.screening_number == tenant.screening_number) &
+            (Blocklist.caller_digits == caller_digits)
+        )
+    ).first()
+    if not rec:
+        return None
+    remaining = int((rec.unblock_at - datetime.utcnow()).total_seconds())
+    if remaining <= 0:
+        session.delete(rec); session.commit()
+        return None
+    return remaining
+
+def note_failure_and_maybe_block(session: Session, tenant: Tenant, caller_digits: str):
+    cutoff = datetime.utcnow() - timedelta(seconds=tenant.rl_window_sec)
+    # count recent fails
+    recent_count = session.exec(
+        select(FailLog).where(
+            (FailLog.screening_number == tenant.screening_number) &
+            (FailLog.caller_digits == caller_digits) &
+            (FailLog.ts >= cutoff)
+        )
+    ).count()
+    session.add(FailLog(screening_number=tenant.screening_number, caller_digits=caller_digits))
+    recent_count += 1
+    if recent_count >= tenant.rl_max_attempts:
+        unblock_at = datetime.utcnow() + timedelta(minutes=tenant.rl_block_minutes)
+        existing = session.exec(
+            select(Blocklist).where(
+                (Blocklist.screening_number == tenant.screening_number) &
+                (Blocklist.caller_digits == caller_digits)
+            )
+        ).first()
+        if existing:
+            existing.unblock_at = unblock_at
+        else:
+            session.add(Blocklist(
+                screening_number=tenant.screening_number,
+                caller_digits=caller_digits,
+                unblock_at=unblock_at
+            ))
+    session.commit()
+
+def clear_failures(session: Session, tenant: Tenant, caller_digits: str):
+    # more efficient bulk delete
+    with engine.connect() as conn:
+        conn.exec_driver_sql(
+            "DELETE FROM faillog WHERE screening_number = :sn AND caller_digits = :cd",
+            {"sn": tenant.screening_number, "cd": caller_digits}
+        )
+
+# ---------- Voice webhooks ----------
+@app.post("/voice/incoming")
+async def voice_incoming(request: Request):
+    """
+    Twilio posts here when a call hits ANY screening number.
+    We identify tenant by the 'To' number.
+    """
+    form = await request.form()
+    to_number = (form.get("To") or "").strip()
+    from_digits = norm_digits(form.get("From", ""))
+
+    with Session(engine) as session:
+        tenant = get_tenant(session, to_number)
+        remaining = is_blocked(session, tenant, from_digits)
+        if remaining is not None:
+            vr = VoiceResponse()
+            vr.say("Sorry, this number is temporarily blocked due to repeated failed attempts. Goodbye.", voice="polly.Joanna")
+            vr.hangup()
+            return xml_response(vr)
+
+        vr = VoiceResponse()
+        gather = Gather(
+            input="speech dtmf",
+            num_digits=4,
+            action="/voice/verify",
+            method="POST",
+            timeout=6,
+            speech_timeout="auto",
+        )
+        gather.say("Please enter your four digit pin, or say your verbal code.", voice="polly.Joanna")
+        vr.append(gather)
+        vr.redirect(f"/voice/retry?attempts=0&to={to_number}")
+        return xml_response(vr)
+
+@app.api_route("/voice/retry", methods=["GET", "POST"])
+async def voice_retry(request: Request):
+    params = dict(request.query_params)
+    form = {}
+    if request.method == "POST":
+        form = {k: v for k, v in (await request.form()).items()}
+    attempts = int(params.get("attempts", form.get("attempts", 0)))
+    to_number = params.get("to") or form.get("To") or form.get("to")
+    from_digits = norm_digits(form.get("From", ""))
+
+    with Session(engine) as session:
+        tenant = get_tenant(session, to_number)
+        remaining = is_blocked(session, tenant, from_digits)
+        if remaining is not None:
+            vr = VoiceResponse()
+            vr.say("Sorry, this number is temporarily blocked due to repeated failed attempts. Goodbye.", voice="polly.Joanna")
+            vr.hangup()
+            return xml_response(vr)
+
+        if attempts >= tenant.retry_limit:
+            return voicemail_prompt(to_number)
+
+        next_attempts = attempts + 1
+        vr = VoiceResponse()
+        gather = Gather(
+            input="speech dtmf",
+            num_digits=4,
+            action=f"/voice/verify?attempts={next_attempts}&to={to_number}",
+            method="POST",
+            timeout=6,
+            speech_timeout="auto",
+        )
+        gather.say("Incorrect code. Please try again with your four digit pin, or say your verbal code.", voice="polly.Joanna")
+        vr.append(gather)
+        vr.redirect(f"/voice/retry?attempts={next_attempts}&to={to_number}")
+        return xml_response(vr)
+
+@app.post("/voice/verify")
+async def voice_verify(request: Request):
+    form = await request.form()
+    params = dict(request.query_params)
+
+    to_number = params.get("to") or form.get("To")
+    from_digits = norm_digits(form.get("From", ""))
+    attempts = int(params.get("attempts", form.get("attempts", 0)))
+    pressed = form.get("Digits")
+    speech = form.get("SpeechResult")
+
+    with Session(engine) as session:
+        tenant = get_tenant(session, to_number)
+        remaining = is_blocked(session, tenant, from_digits)
+        if remaining is not None:
+            vr = VoiceResponse()
+            vr.say("Sorry, this number is temporarily blocked due to repeated failed attempts. Goodbye.", voice="polly.Joanna")
+            vr.hangup()
+            return xml_response(vr)
+
+        expected_pin = caller_expected_pin(session, tenant, from_digits)
+        accepted_verbal = tenant.verbal_code.strip().lower()
+
+        if pressed and len(pressed) == 4 and pressed == expected_pin:
+            clear_failures(session, tenant, from_digits)
+            return on_verified(tenant)
+
+        if speech:
+            said = norm_speech(speech)
+            if (said == accepted_verbal) or (is_caller_whitelisted_verbal(session, tenant, from_digits) and said == accepted_verbal):
+                clear_failures(session, tenant, from_digits)
+                return on_verified(tenant)
+
+        # failed this round
+        note_failure_and_maybe_block(session, tenant, from_digits)
+
+        if attempts >= tenant.retry_limit:
+            return voicemail_prompt(to_number)
+
+        vr = VoiceResponse()
+        gather = Gather(
+            input="speech dtmf",
+            num_digits=4,
+            action=f"/voice/verify?attempts={attempts+1}&to={to_number}",
+            method="POST",
+            timeout=6,
+            speech_timeout="auto",
+        )
+        gather.say("That did not match our records. Please enter your four digit pin, or say your verbal code now.", voice="polly.Joanna")
+        vr.append(gather)
+        vr.redirect(f"/voice/retry?attempts={attempts+1}&to={to_number}")
+        return xml_response(vr)
+
+def on_verified(tenant: Tenant):
+    if tenant_forward_mode(tenant) == "voicemail":
+        return voicemail_prompt(tenant.screening_number)
+    return bridge_call(tenant)
+
+def bridge_call(tenant: Tenant):
+    vr = VoiceResponse()
+    if tenant.forward_to:
+        vr.say("Thanks. Connecting you now.", voice="polly.Joanna")
+        dial = vr.dial(caller_id=os.getenv("TWILIO_CALLER_ID") or None)
+        dial.number(tenant.forward_to)
+    else:
+        vr.say("Configuration error: no forward number set for this account.", voice="polly.Joanna")
+        vr.hangup()
+    return xml_response(vr)
+
+def voicemail_prompt(to_number: str):
+    vr = VoiceResponse()
+    vr.say("Please leave a message after the tone. Press any key to finish.", voice="polly.Joanna")
+    vr.record(
+        action=f"/voice/voicemail_complete?to={to_number}",
+        method="POST",
+        transcribe=True,
+        transcribe_callback=f"/voice/voicemail_transcribed?to={to_number}",
+        max_length=120,
+        play_beep=True,
+        finish_on_key="1234567890*#",
+    )
+    vr.say("No message recorded. Goodbye.", voice="polly.Joanna")
+    vr.hangup()
+    return xml_response(vr)
+
+@app.post("/voice/voicemail_complete")
+async def voicemail_complete(request: Request):
+    form = await request.form()
+    params = dict(request.query_params)
+    to_number = params.get("to")
+    recording_url = form.get("RecordingUrl")
+    duration = form.get("RecordingDuration")
+    from_num = form.get("From")
+    _email_if_configured(
+        subject=f"New voicemail (no transcript yet) for {to_number}",
+        body=f"From: {from_num}\nDuration: {duration}s\nAudio: {recording_url}.mp3"
+    )
+    vr = VoiceResponse()
+    vr.say("Thank you. Your message has been saved. Goodbye.", voice="polly.Joanna")
+    vr.hangup()
+    return xml_response(vr)
+
+@app.post("/voice/voicemail_transcribed")
+async def voicemail_transcribed(request: Request):
+    form = await request.form()
+    params = dict(request.query_params)
+    to_number = params.get("to")
+    recording_url = form.get("RecordingUrl")
+    transcript = form.get("TranscriptionText") or "(no transcription)"
+    from_num = form.get("From")
+    _email_if_configured(
+        subject=f"New voicemail with transcript for {to_number}",
+        body=f"From: {from_num}\nTranscript:\n{transcript}\n\nAudio: {recording_url}.mp3"
+    )
+    return Response(status_code=204)
+
+# ---------- Test call (simple + interactive) ----------
+@app.get("/voice/test_message")
+def voice_test_message():
+    vr = VoiceResponse()
+    vr.say("This is a CheckPoint Spam Guard test call. Your screening number is correctly configured. Goodbye.", voice="polly.Joanna")
+    vr.hangup()
+    return xml_response(vr)
+
+@app.get("/voice/test_interactive")
+def voice_test_interactive(sn: str):
+    vr = VoiceResponse()
+    gather = Gather(
+        input="dtmf",
+        num_digits=1,
+        action=f"/voice/test_ack?sn={sn}",
+        method="POST",
+        timeout=6
+    )
+    gather.say("This is a CheckPoint Spam Guard test. To confirm your setup, press 1 now.", voice="polly.Joanna")
+    vr.append(gather)
+    vr.say("No input received. Goodbye.", voice="polly.Joanna")
+    vr.hangup()
+    return xml_response(vr)
+
+@app.post("/voice/test_ack")
+async def voice_test_ack(request: Request):
+    params = dict(request.query_params)
+    sn = params.get("sn")
+    form = await request.form()
+    digits = (form.get("Digits") or "").strip()
+
+    with Session(engine) as session:
+        tenant = get_tenant(session, sn)
+        vr = VoiceResponse()
+        if digits == "1":
+            tenant.test_verified_at = datetime.utcnow()
+            tenant.last_test_result = "confirmed"
+            tenant.updated_at = datetime.utcnow()
+            session.add(tenant); session.commit()
+            vr.say("Thank you. Your setup is confirmed. Goodbye.", voice="polly.Joanna")
+            vr.hangup()
+            return xml_response(vr)
+
+        tenant.last_test_result = "failed" if digits else "no_input"
+        tenant.updated_at = datetime.utcnow()
+        session.add(tenant); session.commit()
+        vr.say("We did not receive the expected input. You can try again later. Goodbye.", voice="polly.Joanna")
+        vr.hangup()
+        return xml_response(vr)
+
+# ---------- Admin: tenants ----------
+def _admin_required(auth: Optional[str] = Header(None)):
+    _require_admin(auth)
+
+@app.post("/admin/tenant/provision")
+async def provision_tenant(payload: dict, authorization: Optional[str] = Header(None)):
+    """
+    Manually create tenant using an already-owned Twilio number.
+    Body: {"screening_number":"+1415...","forward_to":"+1617...","owner_label":"Andre", ...}
+    """
+    _require_admin(authorization)
+    required = ("screening_number", "forward_to")
+    for r in required:
+        if r not in payload:
+            raise HTTPException(status_code=400, detail=f"Missing {r}")
+    with Session(engine) as session:
+        sn = payload["screening_number"].strip()
+        if session.get(Tenant, sn):
+            raise HTTPException(status_code=409, detail="Tenant already exists for this screening number")
+        t = Tenant(
+            screening_number=sn,
+            forward_to=payload["forward_to"].strip(),
+            owner_label=payload.get("owner_label"),
+            current_pin=(payload.get("current_pin") or "1122")[:4],
+            verbal_code=payload.get("verbal_code") or "open sesame",
+            forward_mode=(payload.get("forward_mode") or "bridge"),
+        )
+        session.add(t); session.commit()
+        return {"ok": True, "tenant": sn}
+
+@app.post("/admin/tenant/update")
+async def update_tenant(payload: dict, authorization: Optional[str] = Header(None)):
+    _require_admin(authorization)
+    sn = payload.get("screening_number")
+    if not sn:
+        raise HTTPException(status_code=400, detail="screening_number required")
+    with Session(engine) as session:
+        t = get_tenant(session, sn)
+        for key in ("forward_to", "current_pin", "verbal_code", "forward_mode", "retry_limit",
+                    "rl_window_sec", "rl_max_attempts", "rl_block_minutes"):
+            if key in payload and payload[key] is not None:
+                setattr(t, key, payload[key])
+        t.updated_at = datetime.utcnow()
+        session.add(t); session.commit()
+        return {"ok": True}
+
+@app.post("/admin/tenant/delete")
+async def delete_tenant(payload: dict, authorization: Optional[str] = Header(None)):
+    _require_admin(authorization)
+    sn = payload.get("screening_number")
+    if not sn:
+        raise HTTPException(status_code=400, detail="screening_number required")
+    with Session(engine) as session:
+        t = session.get(Tenant, sn)
+        if t:
+            session.delete(t)
+            with engine.connect() as conn:
+                conn.exec_driver_sql("DELETE FROM whitelist WHERE screening_number = :sn", {"sn": sn})
+                conn.exec_driver_sql("DELETE FROM faillog   WHERE screening_number = :sn", {"sn": sn})
+                conn.exec_driver_sql("DELETE FROM blocklist WHERE screening_number = :sn", {"sn": sn})
+            session.commit()
+        return {"ok": True}
+
+@app.get("/admin/tenants")
+async def admin_list_tenants(authorization: Optional[str] = Header(None)):
+    _require_admin(authorization)
+    with Session(engine) as session:
+        rows = session.exec(select(Tenant)).all()
+        return {
+            "tenants": [
+                {
+                    "screening_number": t.screening_number,
+                    "owner_label": t.owner_label,
+                    "forward_to": t.forward_to,
+                    "forward_mode": t.forward_mode,
+                    "retry_limit": t.retry_limit,
+                    "rate_limit": {
+                        "window_sec": t.rl_window_sec,
+                        "max_attempts": t.rl_max_attempts,
+                        "block_minutes": t.rl_block_minutes
+                    },
+                    "verified": bool(t.test_verified_at),
+                    "last_test_result": t.last_test_result,
+                    "test_verified_at": t.test_verified_at.isoformat()+"Z" if t.test_verified_at else None,
+                    "updated_at": t.updated_at.isoformat()+"Z",
+                } for t in rows
+            ]
+        }
+
+@app.get("/admin/tenants_overview")
+async def admin_tenants_overview(
+    window_sec: int = 86400,
+    bucket_minutes: int = 60,
+    authorization: Optional[str] = Header(None)
+):
+    _require_admin(authorization)
+    if window_sec <= 0 or bucket_minutes <= 0:
+        raise HTTPException(status_code=400, detail="window_sec and bucket_minutes must be > 0")
+
+    with Session(engine) as session:
+        tenants = session.exec(select(Tenant)).all()
+
+        bucket_seconds = bucket_minutes * 60
+        max_buckets = 100
+        ideal_buckets = ceil(window_sec / bucket_seconds)
+        if ideal_buckets > max_buckets:
+            bucket_seconds = ceil(window_sec / max_buckets)
+            bucket_minutes = max(1, int(ceil(bucket_seconds / 60)))
+        num_buckets = max(1, min(max_buckets, ceil(window_sec / bucket_seconds)))
+
+        now = datetime.utcnow()
+        cutoff = now - timedelta(seconds=window_sec)
+
+        items = []
+        for t in tenants:
+            active_blocks = session.exec(
+                select(Blocklist).where(
+                    (Blocklist.screening_number == t.screening_number) &
+                    (Blocklist.unblock_at > now)
+                )
+            ).all()
+            blocked_count = len(active_blocks)
+
+            fails = session.exec(
+                select(FailLog.ts).where(
+                    (FailLog.screening_number == t.screening_number) &
+                    (FailLog.ts >= cutoff)
+                )
+            ).all()
+
+            series = [0] * num_buckets
+            for (ts,) in fails:
+                delta = (ts - cutoff).total_seconds()
+                idx = int(delta // bucket_seconds)
+                if 0 <= idx < num_buckets:
+                    series[idx] += 1
+                elif idx >= num_buckets:
+                    series[-1] += 1
+
+            recent_fail_count = len(fails)
+            verified = bool(t.test_verified_at)
+            needs_verification = (not verified) or (t.last_test_result in {"failed", "no_input"})
+
+            items.append({
+                "screening_number": t.screening_number,
+                "owner_label": t.owner_label,
+                "forward_to": t.forward_to,
+                "forward_mode": t.forward_mode,
+                "verified": verified,
+                "test_verified_at": t.test_verified_at.isoformat()+"Z" if t.test_verified_at else None,
+                "last_test_result": t.last_test_result,
+                "needs_verification": needs_verification,
+                "blocked_count": blocked_count,
+                "recent_fail_count": recent_fail_count,
+                "recent_fail_series": series,
+                "series_bucket_minutes": bucket_minutes,
+                "last_updated": t.updated_at.isoformat()+"Z",
+            })
+        return {"tenants": items, "window_sec": window_sec, "bucket_minutes": bucket_minutes}
+
+@app.get("/admin/tenants_needing_verification")
+async def admin_tenants_needing_verification(authorization: Optional[str] = Header(None)):
+    _require_admin(authorization)
+    with Session(engine) as session:
+        rows = session.exec(select(Tenant)).all()
+        result = []
+        for t in rows:
+            needs = (not t.test_verified_at) or (t.last_test_result in {"failed", "no_input"})
+            if needs:
+                result.append({
+                    "screening_number": t.screening_number,
+                    "owner_label": t.owner_label,
+                    "forward_to": t.forward_to,
+                    "forward_mode": t.forward_mode,
+                    "last_test_result": t.last_test_result,
+                    "test_verified_at": t.test_verified_at.isoformat()+"Z" if t.test_verified_at else None,
+                })
+        return {"tenants": result}
+
+# ---------- Admin: whitelist ----------
+@app.post("/admin/whitelist/add")
+async def whitelist_add(payload: dict, authorization: Optional[str] = Header(None)):
+    _require_admin(authorization)
+    sn = payload.get("screening_number")
+    if not sn:
+        raise HTTPException(status_code=400, detail="screening_number required")
+    number = payload.get("number")
+    pin = payload.get("pin")
+    verbal = bool(payload.get("verbal", False))
+    annotated = payload.get("annotated")
+    if annotated:
+        number, pin_ex = parse_annotated_number(annotated)
+        if pin_ex:
+            pin = pin_ex
+    if not number:
+        raise HTTPException(status_code=400, detail="number or annotated required")
+    number = re.sub(r"[^\d+]", "", number)
+
+    with Session(engine) as session:
+        get_tenant(session, sn)
+        existing = session.exec(select(Whitelist).where(
+            (Whitelist.screening_number == sn) & (Whitelist.number == number)
+        )).first()
+        if existing:
+            existing.pin = pin if (pin and re.fullmatch(r"\d{4}", pin)) else None
+            existing.verbal = verbal
+            existing_row = existing
+            session.add(existing_row)
+        else:
+            if not verbal and not (pin and re.fullmatch(r"\d{4}", pin)):
+                raise HTTPException(status_code=400, detail="pin must be 4 digits when verbal is false")
+            session.add(Whitelist(screening_number=sn, number=number, pin=pin if not verbal else None, verbal=verbal))
+        session.commit()
+        return {"ok": True}
+
+@app.post("/admin/whitelist/remove")
+async def whitelist_remove(payload: dict, authorization: Optional[str] = Header(None)):
+    _require_admin(authorization)
+    sn = payload.get("screening_number")
+    number = payload.get("number")
+    if not sn or not number:
+        raise HTTPException(status_code=400, detail="screening_number and number required")
+    number = re.sub(r"[^\d+]", "", number)
+    with Session(engine) as session:
+        with engine.connect() as conn:
+            conn.exec_driver_sql(
+                "DELETE FROM whitelist WHERE screening_number = :sn AND number = :num",
+                {"sn": sn, "num": number}
+            )
+        session.commit()
+        return {"ok": True}
+
+# ---------- Admin: blocks & rate limits ----------
+@app.get("/admin/blocks")
+async def list_blocks(screening_number: str, authorization: Optional[str] = Header(None)):
+    _require_admin(authorization)
+    with Session(engine) as session:
+        _ = get_tenant(session, screening_number)
+        rows = session.exec(select(Blocklist).where(Blocklist.screening_number == screening_number)).all()
+        return {"blocked": [{"number": r.caller_digits, "unblock_at": r.unblock_at.isoformat()+"Z"} for r in rows]}
+
+@app.post("/admin/unblock")
+async def unblock_number(payload: dict, authorization: Optional[str] = Header(None)):
+    _require_admin(authorization)
+    sn = payload.get("screening_number")
+    number = payload.get("number")
+    if not sn or not number:
+        raise HTTPException(status_code=400, detail="screening_number and number required")
+    digits = norm_digits(number)
+    with Session(engine) as session:
+        with engine.connect() as conn:
+            conn.exec_driver_sql("DELETE FROM blocklist WHERE screening_number = :sn AND caller_digits = :cd", {"sn": sn, "cd": digits})
+            conn.exec_driver_sql("DELETE FROM faillog   WHERE screening_number = :sn AND caller_digits = :cd", {"sn": sn, "cd": digits})
+        session.commit()
+        return {"ok": True, "unblocked": digits}
+
+# ---------- Admin: test calls ----------
+@app.get("/admin/test_status")
+async def admin_test_status(screening_number: str, authorization: Optional[str] = Header(None)):
+    _require_admin(authorization)
+    with Session(engine) as session:
+        t = get_tenant(session, screening_number)
+        return {
+            "screening_number": t.screening_number,
+            "verified": bool(t.test_verified_at),
+            "test_verified_at": (t.test_verified_at.isoformat()+"Z") if t.test_verified_at else None,
+            "last_test_result": t.last_test_result,
+            "last_test_call_sid": t.last_test_call_sid
+        }
+
+@app.post("/admin/test_reset")
+async def admin_test_reset(payload: dict, authorization: Optional[str] = Header(None)):
+    _require_admin(authorization)
+    sn = (payload.get("screening_number") or "").strip()
+    if not sn:
+        raise HTTPException(status_code=400, detail="screening_number required")
+    with Session(engine) as session:
+        t = get_tenant(session, sn)
+        t.test_verified_at = None
+        t.last_test_result = None
+        t.last_test_call_sid = None
+        t.updated_at = datetime.utcnow()
+        session.add(t); session.commit()
+    return {"ok": True}
+
+@app.post("/admin/test_call")
+async def admin_test_call(payload: dict, authorization: Optional[str] = Header(None)):
+    _require_admin(authorization)
+    sn = (payload.get("screening_number") or "").strip()
+    if not sn:
+        raise HTTPException(status_code=400, detail="screening_number required")
+    client = twilio_client()
+    with Session(engine) as session:
+        tenant = get_tenant(session, sn)
+        if not tenant.forward_to:
+            raise HTTPException(status_code=400, detail="Tenant has no forward_to configured")
+        try:
+            call = client.calls.create(
+                to=tenant.forward_to,
+                from_=tenant.screening_number,
+                url=f"{public_app_url()}/voice/test_message",
+                method="GET",
+            )
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Twilio call error: {e}")
+        tenant.last_test_call_sid = call.sid
+        tenant.updated_at = datetime.utcnow()
+        session.add(tenant); session.commit()
+    return {"ok": True, "call_sid": call.sid}
+
+@app.post("/admin/test_call_interactive")
+async def admin_test_call_interactive(payload: dict, authorization: Optional[str] = Header(None)):
+    _require_admin(authorization)
+    sn = (payload.get("screening_number") or "").strip()
+    if not sn:
+        raise HTTPException(status_code=400, detail="screening_number required")
+    client = twilio_client()
+    with Session(engine) as session:
+        tenant = get_tenant(session, sn)
+        if not tenant.forward_to:
+            raise HTTPException(status_code=400, detail="Tenant has no forward_to configured")
+        try:
+            call = client.calls.create(
+                to=tenant.forward_to,
+                from_=tenant.screening_number,
+                url=f"{public_app_url()}/voice/test_interactive?sn={sn}",
+                method="GET",
+            )
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Twilio call error: {e}")
+        tenant.last_test_call_sid = call.sid
+        tenant.updated_at = datetime.utcnow()
+        session.add(tenant); session.commit()
+    return {"ok": True, "call_sid": call.sid}
+
+# ---------- Admin: Twilio auto-provision / release ----------
+@app.post("/admin/twilio/provision_number")
+async def twilio_provision_number(payload: dict, authorization: Optional[str] = Header(None)):
+    """
+    Auto-buy & wire a Twilio number, then create the tenant.
+    Auto-picks local area code from forward_to (US/CA) unless overridden.
+    """
+    _require_admin(authorization)
+
+    country       = (payload.get("country") or "US").upper()
+    forward_to    = payload.get("forward_to")
+    owner_label   = payload.get("owner_label")
+    current_pin   = (payload.get("current_pin") or "1122")[:4]
+    verbal_code   = payload.get("verbal_code") or "open sesame"
+    forward_mode  = (payload.get("forward_mode") or "bridge").lower()
+    prefer_local  = bool(payload.get("prefer_local", True))
+    area_code     = payload.get("area_code")
+    in_region     = payload.get("in_region")  # US state / CA province code
+
+    if not forward_to:
+        raise HTTPException(status_code=400, detail="forward_to is required (E.164)")
+    client = twilio_client()
+    base_url = public_app_url()
+
+    def infer_area_code_from_forward_to(e164: str) -> Optional[str]:
+        if not e164 or not e164.startswith("+1"):
+            return None
+        digits = "".join(ch for ch in e164 if ch.isdigit())
+        if len(digits) < 11:
+            return None
+        return digits[1:4]  # NPA
+
+    def try_buy(area_code_hint=None, in_region_hint=None):
+        try:
+            # 1) area_code
+            if area_code_hint:
+                avail = client.available_phone_numbers(country).local.list(area_code=area_code_hint, limit=1)
+                if avail:
+                    purchased = client.incoming_phone_numbers.create(
+                        phone_number=avail[0].phone_number,
+                        voice_url=f"{base_url}/voice/incoming",
+                        voice_method="POST",
+                        friendly_name=f"Checkpoint Screening - {owner_label or avail[0].phone_number}"
+                    )
+                    return purchased.phone_number
+            # 2) in_region (state/province)
+            if in_region_hint:
+                avail = client.available_phone_numbers(country).local.list(in_region=in_region_hint, limit=1)
+                if avail:
+                    purchased = client.incoming_phone_numbers.create(
+                        phone_number=avail[0].phone_number,
+                        voice_url=f"{base_url}/voice/incoming",
+                        voice_method="POST",
+                        friendly_name=f"Checkpoint Screening - {owner_label or avail[0].phone_number}"
+                    )
+                    return purchased.phone_number
+            # 3) any local
+            avail = client.available_phone_numbers(country).local.list(limit=1)
+            if avail:
+                purchased = client.incoming_phone_numbers.create(
+                    phone_number=avail[0].phone_number,
+                    voice_url=f"{base_url}/voice/incoming",
+                    voice_method="POST",
+                    friendly_name=f"Checkpoint Screening - {owner_label or avail[0].phone_number}"
+                )
+                return purchased.phone_number
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Twilio purchase error: {e}")
+        return None
+
+    chosen_area_code = None
+    if area_code:
+        chosen_area_code = area_code
+    elif prefer_local and country in {"US", "CA"}:
+        inferred = infer_area_code_from_forward_to(forward_to)
+        if inferred:
+            chosen_area_code = inferred
+
+    phone_number = try_buy(area_code_hint=chosen_area_code, in_region_hint=in_region)
+    if not phone_number:
+        raise HTTPException(status_code=404, detail="No available numbers matched; try another area_code/in_region/country or disable prefer_local")
+
+    with Session(engine) as session:
+        if session.get(Tenant, phone_number):
+            raise HTTPException(status_code=409, detail="Tenant already exists for this screening number")
+        t = Tenant(
+            screening_number=phone_number,
+            owner_label=owner_label,
+            forward_to=forward_to,
+            current_pin=current_pin,
+            verbal_code=verbal_code,
+            forward_mode=forward_mode
+        )
+        session.add(t); session.commit()
+
+    return {"ok": True, "screening_number": phone_number, "country": country, "area_code_used": chosen_area_code, "in_region_used": in_region}
+
+@app.post("/admin/twilio/release_number")
+async def twilio_release_number(payload: dict, authorization: Optional[str] = Header(None)):
+    _require_admin(authorization)
+    sn = payload.get("screening_number")
+    if not sn:
+        raise HTTPException(status_code=400, detail="screening_number required")
+    client = twilio_client()
+
+    # delete tenant + rows
+    with Session(engine) as session:
+        t = session.get(Tenant, sn)
+        if t:
+            session.delete(t)
+            with engine.connect() as conn:
+                conn.exec_driver_sql("DELETE FROM whitelist WHERE screening_number = :sn", {"sn": sn})
+                conn.exec_driver_sql("DELETE FROM faillog   WHERE screening_number = :sn", {"sn": sn})
+                conn.exec_driver_sql("DELETE FROM blocklist WHERE screening_number = :sn", {"sn": sn})
+            session.commit()
+
+    # release number in Twilio
+    try:
+        matches = client.incoming_phone_numbers.list(phone_number=sn, limit=20)
+        for rec in matches:
+            client.incoming_phone_numbers(rec.sid).delete()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Twilio release error: {e}")
+
+    return {"ok": True, "released": True}
+
+# ---------- Health ----------
+@app.get("/")
+async def health():
+    return PlainTextResponse("OK")
