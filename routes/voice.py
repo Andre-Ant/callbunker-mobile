@@ -113,6 +113,10 @@ def voice_retry():
         to_number = request.args.get("to")
         from_digits = ""
     
+    # Fix phone number formatting for tenant lookup
+    if to_number and not to_number.startswith('+'):
+        to_number = '+' + to_number.strip()
+    
     if not to_number:
         vr = VoiceResponse()
         vr.say("Invalid request. Goodbye.", voice="polly.Joanna")
@@ -158,6 +162,10 @@ def voice_verify():
     print(f"DEBUG verify: args={dict(request.args)}, form={dict(request.form)}")
     
     to_number = request.args.get("to") or request.form.get("To")
+    # Fix phone number formatting for tenant lookup
+    if to_number and not to_number.startswith('+'):
+        to_number = '+' + to_number.strip()
+    
     from_digits = norm_digits(request.form.get("From", ""))
     attempts = int(request.args.get("attempts", request.form.get("attempts", 0)))
     pressed = request.form.get("Digits")
