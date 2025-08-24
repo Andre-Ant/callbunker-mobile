@@ -196,18 +196,8 @@ def voice_verify():
     if speech:
         said = norm_speech(speech)
         
-        # More flexible speech matching - check if the words are contained
-        speech_words = said.split()
-        expected_words = accepted_verbal.split()
-        
-        # Check exact match first
+        # Exact match only
         if said == accepted_verbal:
-            clear_failures(tenant, from_digits)
-            return on_verified(tenant)
-        
-        # Check if the expected phrase is contained in speech (flexible matching)
-        # This allows extra words but maintains word order
-        if len(expected_words) > 0 and accepted_verbal in said:
             clear_failures(tenant, from_digits)
             return on_verified(tenant)
         
