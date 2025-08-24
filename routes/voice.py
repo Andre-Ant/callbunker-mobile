@@ -88,14 +88,16 @@ def voice_incoming():
     gather = Gather(
         input="speech dtmf",
         num_digits=4,
-        action="/voice/verify",
+        action=f"/voice/verify?attempts=0&to={to_number}",
         method="POST",
         timeout=6,
         speech_timeout="auto",
     )
     gather.say("Please enter your four digit pin, or say your verbal code.", voice="polly.Joanna")
     vr.append(gather)
-    vr.redirect(f"/voice/retry?attempts=0&to={to_number}")
+    # Fallback if no input received
+    vr.say("No input received. Goodbye.", voice="polly.Joanna")
+    vr.hangup()
     return xml_response(vr)
 
 @voice_bp.route('/retry', methods=['GET', 'POST'])
@@ -152,11 +154,16 @@ def voice_retry():
 @voice_bp.route('/verify', methods=['POST'])
 def voice_verify():
     """Handle PIN and verbal code verification"""
+    # Debug logging
+    print(f"DEBUG verify: args={dict(request.args)}, form={dict(request.form)}")
+    
     to_number = request.args.get("to") or request.form.get("To")
     from_digits = norm_digits(request.form.get("From", ""))
     attempts = int(request.args.get("attempts", request.form.get("attempts", 0)))
     pressed = request.form.get("Digits")
     speech = request.form.get("SpeechResult")
+    
+    print(f"DEBUG verify: to={to_number}, from={from_digits}, attempts={attempts}, pressed={pressed}, speech={speech}")
     
     if not to_number:
         vr = VoiceResponse()
