@@ -97,6 +97,7 @@ def voice_incoming():
         method="POST",
         timeout=6,
         speech_timeout="auto",
+        finish_on_key=""
     )
     gather.say("Please enter your four digit pin, or say your verbal code.", voice="polly.Joanna")
     vr.append(gather)
@@ -222,12 +223,13 @@ def voice_verify():
     # Create retry response directly
     vr = VoiceResponse()
     gather = Gather(
-        input="speech dtmf",
+        input="speech dtmf", 
         num_digits=4,
         action=f"/voice/verify?attempts={next_attempts}&to={to_number}",
         method="POST",
         timeout=6,
         speech_timeout="auto",
+        finish_on_key=""
     )
     gather.say("Incorrect code. Please try again with your four digit pin, or say your verbal code.", voice="polly.Joanna")
     vr.append(gather)
