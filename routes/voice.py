@@ -177,7 +177,26 @@ def voice_verify():
     
     # Verification failed
     note_failure_and_maybe_block(tenant, from_digits)
-    return voice_retry()
+    
+    # Redirect to retry with proper parameters
+    next_attempts = attempts + 1
+    vr = VoiceResponse()
+    
+    if next_attempts >= tenant.retry_limit:
+        return voicemail_prompt(to_number)
+    
+    gather = Gather(
+        input="speech dtmf",
+        num_digits=4,
+        action=f"/voice/verify?attempts={next_attempts}&to={to_number}",
+        method="POST",
+        timeout=6,
+        speech_timeout="auto",
+    )
+    gather.say("Incorrect code. Please try again with your four digit pin, or say your verbal code.", voice="polly.Joanna")
+    vr.append(gather)
+    vr.redirect(f"/voice/retry?attempts={next_attempts}&to={to_number}")
+    return xml_response(vr)
 
 @voice_bp.route('/voicemail_complete', methods=['POST'])
 def voicemail_complete():
