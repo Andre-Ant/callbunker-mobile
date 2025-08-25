@@ -78,9 +78,14 @@ def voice_incoming():
     Twilio posts here when a call hits the shared screening number.
     We identify tenant by the 'ForwardedFrom' number (user's real number).
     """
+    # Debug logging to see what Twilio sends
+    print(f"WEBHOOK CALLED - Form data: {dict(request.form)}")
+    
     to_number = request.form.get("To", "").strip()  # Shared screening number
     forwarded_from = request.form.get("ForwardedFrom", "").strip()  # User's real number
     from_digits = norm_digits(request.form.get("From", ""))
+    
+    print(f"To: {to_number}, ForwardedFrom: {forwarded_from}, From: {from_digits}")
     
     # If no ForwardedFrom, this is a direct call to screening number
     if not forwarded_from:
