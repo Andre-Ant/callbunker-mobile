@@ -87,14 +87,24 @@ def voice_incoming():
     
     print(f"To: {to_number}, ForwardedFrom: {forwarded_from}, From: {from_digits}")
     
-    # If no ForwardedFrom, this is a direct call to screening number
+    # If no ForwardedFrom, check if the caller (From) is a registered tenant
+    # This handles carrier call forwarding which doesn't set ForwardedFrom
     if not forwarded_from:
-        vr = VoiceResponse()
-        vr.say("This is a call screening service. To use this service, please set up call forwarding from your phone to this number.", voice="polly.Joanna")
-        vr.hangup()
-        return xml_response(vr)
+        # Check if the caller is a registered tenant
+        caller_number = request.form.get("From", "").strip()
+        try:
+            tenant = get_tenant_by_real_number(caller_number)
+            # If we found a tenant, treat this as a forwarded call
+            forwarded_from = caller_number
+            print(f"Treating call from registered tenant {caller_number} as forwarded call")
+        except:
+            # Not a registered tenant, this is a direct call
+            vr = VoiceResponse()
+            vr.say("This is a call screening service. To use this service, please set up call forwarding from your phone to this number.", voice="polly.Joanna")
+            vr.hangup()
+            return xml_response(vr)
     
-    # Look up tenant by their real number (ForwardedFrom)
+    # Look up tenant by their real number (ForwardedFrom or From)
     tenant = get_tenant_by_real_number(forwarded_from)
     
     # Check if caller is blocked
