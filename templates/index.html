@@ -31,8 +31,13 @@
                             <div class="bg-secondary bg-opacity-25 p-3 rounded mb-3 border">
                                 <h6 class="text-body"><i class="fas fa-mobile-alt me-2 text-primary"></i><strong>Step 1: Set Up Call Forwarding</strong></h6>
                                 <p class="mb-1 text-body">Forward ALL calls from your phone to:</p>
-                                <code class="bg-warning text-dark px-2 py-1 rounded fw-bold">+18339424234</code>
-                                <small class="d-block mt-1 text-body-secondary">This is the shared CallBunker screening number</small>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <code class="bg-warning text-dark px-2 py-1 rounded fw-bold" id="forwardingNumber">+18339424234</code>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="copyForwardingNumber()" title="Copy number">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <small class="d-block text-body-secondary">This is the shared CallBunker screening number</small>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -136,4 +141,59 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyForwardingNumber() {
+    const number = '+18339424234';
+    navigator.clipboard.writeText(number).then(function() {
+        // Show success feedback
+        const button = event.target.closest('button');
+        const originalIcon = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check text-success"></i>';
+        button.classList.add('btn-success');
+        button.classList.remove('btn-outline-primary');
+        
+        // Create toast notification
+        showCopyToast('Forwarding number copied!');
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+            button.innerHTML = originalIcon;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-primary');
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Failed to copy: ', err);
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = number;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showCopyToast('Forwarding number copied!');
+    });
+}
+
+function showCopyToast(message) {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.innerHTML = `
+        <div class="alert alert-success alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 1050; min-width: 250px;">
+            <i class="fas fa-check-circle me-2"></i>${message}
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+</script>
 {% endblock %}
