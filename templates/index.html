@@ -7,11 +7,19 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>
-                <i class="fas fa-tachometer-alt me-2"></i>Tenant Dashboard
+                <i class="fas fa-shield-alt me-2"></i>CallBunker Dashboard
             </h1>
             <a href="{{ url_for('admin.new_tenant') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Add New Tenant
+                <i class="fas fa-plus me-2"></i>Add New User
             </a>
+        </div>
+        
+        <!-- Call Forwarding Setup Instructions -->
+        <div class="alert alert-info mb-4">
+            <h5><i class="fas fa-info-circle me-2"></i>How to Use CallBunker</h5>
+            <p class="mb-2"><strong>Step 1:</strong> Set up call forwarding on your phone to forward ALL calls to: <code>+18339424234</code></p>
+            <p class="mb-2"><strong>Step 2:</strong> Register your real phone number below with your preferred PIN and verbal code</p>
+            <p class="mb-0"><strong>Step 3:</strong> Callers dial your real number → get screened → forwarded back to you after verification</p>
         </div>
     </div>
 </div>
@@ -43,7 +51,7 @@
                 </p>
                 {% endif %}
                 <p class="card-text">
-                    <i class="fas fa-arrow-right me-2"></i><strong>Forwards to:</strong> {{ tenant.forward_to }}
+                    <i class="fas fa-arrow-right me-2"></i><strong>Real Number:</strong> {{ tenant.forward_to }}
                 </p>
                 <p class="card-text">
                     <i class="fas fa-cog me-2"></i><strong>Mode:</strong> 
