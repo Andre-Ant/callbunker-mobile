@@ -15,12 +15,12 @@
                 <form method="post">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="screening_number" class="form-label">Screening Number *</label>
+                            <label for="screening_number" class="form-label">Your Real Phone Number *</label>
                             <input type="text" class="form-control" name="screening_number" 
                                    value="{{ tenant.screening_number if tenant else '' }}" 
                                    placeholder="+15551234567"
                                    {{ 'readonly' if action == 'Edit' else 'required' }}>
-                            <div class="form-text">Twilio phone number in E.164 format</div>
+                            <div class="form-text">Your actual phone number that you're forwarding calls from</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="owner_label" class="form-label">Owner Label</label>
@@ -32,11 +32,11 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="forward_to" class="form-label">Forward To *</label>
+                            <label for="forward_to" class="form-label">Forward Back To *</label>
                             <input type="text" class="form-control" name="forward_to" 
                                    value="{{ tenant.forward_to if tenant else '' }}" 
                                    placeholder="+15559876543" required>
-                            <div class="form-text">Destination number in E.164 format</div>
+                            <div class="form-text">Where to forward verified calls (usually same as your real number)</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="forward_mode" class="form-label">Forward Mode</label>
