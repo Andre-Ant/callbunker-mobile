@@ -31,3 +31,18 @@ def get_tenant_or_404(screening_number: str) -> Tenant:
     if not tenant:
         abort(404, description=f"Unknown screening number: {screening_number}")
     return tenant
+
+def get_tenant_by_real_number(real_number: str) -> Tenant:
+    """Get tenant by their real phone number (ForwardedFrom)"""
+    if not real_number:
+        abort(404, "Missing real number")
+    
+    # Normalize phone number format
+    if not real_number.startswith('+'):
+        real_number = '+' + real_number.strip()
+    
+    tenant = Tenant.query.get(real_number)
+    if not tenant:
+        abort(404, f"No user found for number: {real_number}. Please register this number in the CallBunker system.")
+    
+    return tenant

@@ -4,7 +4,7 @@ from flask import Blueprint, request, Response
 from twilio.twiml.voice_response import VoiceResponse, Gather
 from app import db
 from models import Tenant, Whitelist
-from utils.twilio_helpers import xml_response, get_tenant_or_404
+from utils.twilio_helpers import xml_response, get_tenant_or_404, get_tenant_by_real_number
 from utils.rate_limiting import is_blocked, note_failure_and_maybe_block, clear_failures
 from utils.auth import norm_digits, norm_speech
 
@@ -33,10 +33,13 @@ def tenant_forward_mode(tenant):
     """Get the forward mode for a tenant"""
     return (tenant.forward_mode or "bridge").strip().lower()
 
-def on_verified(tenant):
+def on_verified(tenant, forwarded_from=None):
     """Handle successful verification - forward the call"""
     mode = tenant_forward_mode(tenant)
     vr = VoiceResponse()
+    
+    # For call forwarding model, forward back to the original number
+    forward_to_number = forwarded_from if forwarded_from else tenant.forward_to
     
     if mode == "voicemail":
         vr.say("Thank you for verification. Please leave your message after the tone.", voice="polly.Joanna")
@@ -49,7 +52,7 @@ def on_verified(tenant):
     else:  # bridge mode
         vr.say("Connecting your call now.", voice="polly.Joanna")
         dial = vr.dial(
-            tenant.forward_to,
+            forward_to_number,
             timeout=30,
             hangup_on_star=True,
             action="/voice/call_complete"
@@ -72,13 +75,22 @@ def voicemail_prompt(to_number):
 @voice_bp.route('/incoming', methods=['POST'])
 def voice_incoming():
     """
-    Twilio posts here when a call hits ANY screening number.
-    We identify tenant by the 'To' number.
+    Twilio posts here when a call hits the shared screening number.
+    We identify tenant by the 'ForwardedFrom' number (user's real number).
     """
-    to_number = request.form.get("To", "").strip()
+    to_number = request.form.get("To", "").strip()  # Shared screening number
+    forwarded_from = request.form.get("ForwardedFrom", "").strip()  # User's real number
     from_digits = norm_digits(request.form.get("From", ""))
     
-    tenant = get_tenant_or_404(to_number)
+    # If no ForwardedFrom, this is a direct call to screening number
+    if not forwarded_from:
+        vr = VoiceResponse()
+        vr.say("This is a call screening service. To use this service, please set up call forwarding from your phone to this number.", voice="polly.Joanna")
+        vr.hangup()
+        return xml_response(vr)
+    
+    # Look up tenant by their real number (ForwardedFrom)
+    tenant = get_tenant_by_real_number(forwarded_from)
     
     # Check if caller is blocked
     remaining = is_blocked(tenant, from_digits)
@@ -93,7 +105,7 @@ def voice_incoming():
     gather = Gather(
         input="speech dtmf",
         num_digits=4,
-        action=f"/voice/verify?attempts=0&to={to_number}",
+        action=f"/voice/verify?attempts=0&to={to_number}&forwarded_from={forwarded_from}",
         method="POST",
         timeout=6,
         speech_timeout="auto",
@@ -108,28 +120,13 @@ def voice_incoming():
 
 @voice_bp.route('/retry', methods=['GET', 'POST'])
 def voice_retry():
-    """Handle retry attempts for failed verification"""
-    if request.method == 'POST':
-        form_data = request.form
-        attempts = int(form_data.get("attempts", 0))
-        to_number = form_data.get("to") or form_data.get("To")
-        from_digits = norm_digits(form_data.get("From", ""))
-    else:
-        attempts = int(request.args.get("attempts", 0))
-        to_number = request.args.get("to")
-        from_digits = ""
-    
-    # Fix phone number formatting for tenant lookup
-    if to_number and not to_number.startswith('+'):
-        to_number = '+' + to_number.strip()
-    
-    if not to_number:
-        vr = VoiceResponse()
-        vr.say("Invalid request. Goodbye.", voice="polly.Joanna")
-        vr.hangup()
-        return xml_response(vr)
-    
-    tenant = get_tenant_or_404(to_number)
+    """Handle retry attempts for failed verification (deprecated - now handled in verify endpoint)"""
+    # This endpoint is deprecated in the new call forwarding model
+    # All retry logic is now handled in the verify endpoint
+    vr = VoiceResponse()
+    vr.say("Invalid request. Goodbye.", voice="polly.Joanna")
+    vr.hangup()
+    return xml_response(vr)
     
     # Check if caller is blocked
     if from_digits:
@@ -146,41 +143,30 @@ def voice_retry():
     
     next_attempts = attempts + 1
     vr = VoiceResponse()
-    gather = Gather(
-        input="speech dtmf",
-        num_digits=4,
-        action=f"/voice/verify?attempts={next_attempts}&to={to_number}",
-        method="POST",
-        timeout=6,
-        speech_timeout="auto",
-    )
-    gather.say("Incorrect code. Please try again with your four digit pin, or say your verbal code.", voice="polly.Joanna")
-    vr.append(gather)
-    # Fallback if no input received
-    vr.say("No input received. Goodbye.", voice="polly.Joanna")
-    vr.hangup()
-    return xml_response(vr)
+    # This retry endpoint is deprecated
 
 @voice_bp.route('/verify', methods=['POST'])
 def voice_verify():
     """Handle PIN and verbal code verification"""
-    to_number = request.args.get("to") or request.form.get("To")
+    to_number = request.args.get("to") or request.form.get("To")  # Shared screening number
+    forwarded_from = request.args.get("forwarded_from") or request.form.get("ForwardedFrom")  # User's real number
+    
     # Fix phone number formatting for tenant lookup
-    if to_number and not to_number.startswith('+'):
-        to_number = '+' + to_number.strip()
+    if forwarded_from and not forwarded_from.startswith('+'):
+        forwarded_from = '+' + forwarded_from.strip()
     
     from_digits = norm_digits(request.form.get("From", ""))
     attempts = int(request.args.get("attempts", request.form.get("attempts", 0)))
     pressed = request.form.get("Digits")
     speech = request.form.get("SpeechResult")
     
-    if not to_number:
+    if not forwarded_from:
         vr = VoiceResponse()
         vr.say("Invalid request. Goodbye.", voice="polly.Joanna")
         vr.hangup()
         return xml_response(vr)
     
-    tenant = get_tenant_or_404(to_number)
+    tenant = get_tenant_by_real_number(forwarded_from)
     
     # Check if caller is blocked
     remaining = is_blocked(tenant, from_digits)
@@ -196,7 +182,7 @@ def voice_verify():
     # Check PIN verification
     if pressed and len(pressed) == 4 and pressed == expected_pin:
         clear_failures(tenant, from_digits)
-        return on_verified(tenant)
+        return on_verified(tenant, forwarded_from)
     
     # Check verbal verification
     if speech:
@@ -205,12 +191,12 @@ def voice_verify():
         # Exact match only
         if said == accepted_verbal:
             clear_failures(tenant, from_digits)
-            return on_verified(tenant)
+            return on_verified(tenant, forwarded_from)
         
         # Check whitelist verbal authentication
         if is_caller_whitelisted_verbal(tenant, from_digits) and said == accepted_verbal:
             clear_failures(tenant, from_digits)
-            return on_verified(tenant)
+            return on_verified(tenant, forwarded_from)
     
     # Verification failed
     note_failure_and_maybe_block(tenant, from_digits)
@@ -225,7 +211,7 @@ def voice_verify():
     gather = Gather(
         input="speech dtmf", 
         num_digits=4,
-        action=f"/voice/verify?attempts={next_attempts}&to={to_number}",
+        action=f"/voice/verify?attempts={next_attempts}&to={to_number}&forwarded_from={forwarded_from}",
         method="POST",
         timeout=6,
         speech_timeout="auto",

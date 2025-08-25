@@ -7,9 +7,9 @@ from sqlalchemy.orm import relationship
 class Tenant(db.Model):
     __tablename__ = 'tenant'
     
-    screening_number = db.Column(db.String(20), primary_key=True)  # Twilio E.164
+    screening_number = db.Column(db.String(20), primary_key=True)  # User's real number (E.164)
     owner_label = db.Column(db.String(100), nullable=True)
-    forward_to = db.Column(db.String(20), nullable=False)  # E.164
+    forward_to = db.Column(db.String(20), nullable=False)  # Same as screening_number for forwarding model
     current_pin = db.Column(db.String(4), default="1122", nullable=False)
     verbal_code = db.Column(db.String(50), default="open sesame", nullable=False)
     retry_limit = db.Column(db.Integer, default=3, nullable=False)
