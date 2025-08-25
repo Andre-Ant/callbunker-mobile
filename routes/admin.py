@@ -174,3 +174,39 @@ def clear_logs(screening_number):
     
     flash('Failure logs cleared!', 'success')
     return redirect(url_for('admin.tenant_detail', screening_number=screening_number))
+
+@admin_bp.route('/tenant/<screening_number>/delete', methods=['POST'])
+@require_admin_web
+def delete_tenant(screening_number):
+    """Delete a tenant and all associated data"""
+    try:
+        tenant = Tenant.query.get_or_404(screening_number)
+        tenant_name = tenant.owner_label or screening_number
+        
+        # Delete associated data (handled by cascade)
+        db.session.delete(tenant)
+        db.session.commit()
+        
+        flash(f"Successfully deleted user {tenant_name} and all associated data.", "success")
+        
+        # Send notification email if configured
+        try:
+            send_notification_email(
+                subject="CallBunker - User Deleted",
+                body=f"User {tenant_name} ({screening_number}) has been deleted from CallBunker.",
+                html_body=f"""
+                <h3>User Deleted</h3>
+                <p><strong>User:</strong> {tenant_name}</p>
+                <p><strong>Number:</strong> {screening_number}</p>
+                <p><strong>Deleted at:</strong> {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC</p>
+                """
+            )
+        except Exception as email_error:
+            # Don't fail the deletion if email fails
+            print(f"Email notification failed: {email_error}")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting user: {e}", "error")
+    
+    return redirect(url_for('admin.admin_home'))
