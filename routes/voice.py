@@ -203,7 +203,6 @@ def voice_verify():
     # Check verbal verification
     if speech:
         said = norm_speech(speech)
-        print(f"SPEECH DEBUG - Raw: '{speech}', Normalized: '{said}', Expected: '{accepted_verbal}', Match: {said == accepted_verbal}")
         
         # Exact match only
         if said == accepted_verbal:
@@ -220,9 +219,7 @@ def voice_verify():
     
     # Check if max attempts reached
     next_attempts = attempts + 1
-    print(f"RETRY DEBUG - Current attempts: {attempts}, Next: {next_attempts}, Limit: {tenant.retry_limit}")
     if next_attempts >= tenant.retry_limit:
-        print("MAX ATTEMPTS REACHED - Going to voicemail")
         return voicemail_prompt(to_number)
     
     # Create retry response directly
