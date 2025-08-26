@@ -63,6 +63,51 @@ def onboarding():
     """Enhanced onboarding flow for new users"""
     return render_template('onboarding.html')
 
+@admin_bp.route('/onboarding/tenant', methods=['POST'])
+@require_admin_web
+def onboarding_tenant():
+    """Create or update tenant for onboarding flow"""
+    screening_number = request.form.get('screening_number', '').strip()
+    
+    # Check if tenant already exists
+    existing_tenant = Tenant.query.get(screening_number)
+    if existing_tenant:
+        # Update existing tenant instead of creating new one
+        existing_tenant.owner_label = request.form.get('owner_label', '').strip()
+        existing_tenant.forward_to = request.form.get('forward_to', '').strip()
+        existing_tenant.current_pin = request.form.get('current_pin', '1122').strip()
+        existing_tenant.verbal_code = request.form.get('verbal_code', 'open sesame').strip()
+        existing_tenant.retry_limit = int(request.form.get('retry_limit', 3))
+        existing_tenant.forward_mode = request.form.get('forward_mode', 'bridge').strip()
+        existing_tenant.rl_window_sec = int(request.form.get('rl_window_sec', 3600))
+        existing_tenant.rl_max_attempts = int(request.form.get('rl_max_attempts', 5))
+        existing_tenant.rl_block_minutes = int(request.form.get('rl_block_minutes', 60))
+        existing_tenant.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Account updated successfully!', 'existing': True})
+    
+    # Create new tenant
+    try:
+        tenant = Tenant(
+            screening_number=screening_number,
+            owner_label=request.form.get('owner_label', '').strip(),
+            forward_to=request.form.get('forward_to', '').strip(),
+            current_pin=request.form.get('current_pin', '1122').strip(),
+            verbal_code=request.form.get('verbal_code', 'open sesame').strip(),
+            retry_limit=int(request.form.get('retry_limit', 3)),
+            forward_mode=request.form.get('forward_mode', 'bridge').strip(),
+            rl_window_sec=int(request.form.get('rl_window_sec', 3600)),
+            rl_max_attempts=int(request.form.get('rl_max_attempts', 5)),
+            rl_block_minutes=int(request.form.get('rl_block_minutes', 60))
+        )
+        
+        db.session.add(tenant)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Account created successfully!', 'existing': False})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Failed to create account: {str(e)}'})
+
 @admin_bp.route('/tenant/new', methods=['GET', 'POST'])
 @require_admin_web
 def new_tenant():
