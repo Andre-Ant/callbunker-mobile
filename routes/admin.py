@@ -67,28 +67,28 @@ def onboarding():
 @require_admin_web
 def onboarding_tenant():
     """Create or update tenant for onboarding flow"""
-    screening_number = request.form.get('screening_number', '').strip()
-    
-    # Check if tenant already exists
-    existing_tenant = Tenant.query.get(screening_number)
-    if existing_tenant:
-        # Update existing tenant instead of creating new one
-        existing_tenant.owner_label = request.form.get('owner_label', '').strip()
-        existing_tenant.forward_to = request.form.get('forward_to', '').strip()
-        existing_tenant.current_pin = request.form.get('current_pin', '1122').strip()
-        existing_tenant.verbal_code = request.form.get('verbal_code', 'open sesame').strip()
-        existing_tenant.retry_limit = int(request.form.get('retry_limit', 3))
-        existing_tenant.forward_mode = request.form.get('forward_mode', 'bridge').strip()
-        existing_tenant.rl_window_sec = int(request.form.get('rl_window_sec', 3600))
-        existing_tenant.rl_max_attempts = int(request.form.get('rl_max_attempts', 5))
-        existing_tenant.rl_block_minutes = int(request.form.get('rl_block_minutes', 60))
-        existing_tenant.updated_at = datetime.utcnow()
-        
-        db.session.commit()
-        return jsonify({'success': True, 'message': 'Account updated successfully!', 'existing': True})
-    
-    # Create new tenant
     try:
+        screening_number = request.form.get('screening_number', '').strip()
+        
+        # Check if tenant already exists
+        existing_tenant = Tenant.query.get(screening_number)
+        if existing_tenant:
+            # Update existing tenant instead of creating new one
+            existing_tenant.owner_label = request.form.get('owner_label', '').strip()
+            existing_tenant.forward_to = request.form.get('forward_to', '').strip()
+            existing_tenant.current_pin = request.form.get('current_pin', '1122').strip()
+            existing_tenant.verbal_code = request.form.get('verbal_code', 'open sesame').strip()
+            existing_tenant.retry_limit = int(request.form.get('retry_limit', 3))
+            existing_tenant.forward_mode = request.form.get('forward_mode', 'bridge').strip()
+            existing_tenant.rl_window_sec = int(request.form.get('rl_window_sec', 3600))
+            existing_tenant.rl_max_attempts = int(request.form.get('rl_max_attempts', 5))
+            existing_tenant.rl_block_minutes = int(request.form.get('rl_block_minutes', 60))
+            existing_tenant.updated_at = datetime.utcnow()
+            
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Account updated successfully!', 'existing': True})
+        
+        # Create new tenant
         tenant = Tenant(
             screening_number=screening_number,
             owner_label=request.form.get('owner_label', '').strip(),
@@ -105,8 +105,11 @@ def onboarding_tenant():
         db.session.add(tenant)
         db.session.commit()
         return jsonify({'success': True, 'message': 'Account created successfully!', 'existing': False})
+        
     except Exception as e:
-        return jsonify({'success': False, 'message': f'Failed to create account: {str(e)}'})
+        # Always return JSON, even for errors
+        db.session.rollback()
+        return jsonify({'success': False, 'message': f'Failed to create account: {str(e)}'}), 400
 
 @admin_bp.route('/tenant/new', methods=['GET', 'POST'])
 @require_admin_web
@@ -244,13 +247,7 @@ def delete_tenant(screening_number):
         try:
             send_notification_email(
                 subject="CallBunker - User Deleted",
-                body=f"User {tenant_name} ({screening_number}) has been deleted from CallBunker.",
-                html_body=f"""
-                <h3>User Deleted</h3>
-                <p><strong>User:</strong> {tenant_name}</p>
-                <p><strong>Number:</strong> {screening_number}</p>
-                <p><strong>Deleted at:</strong> {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC</p>
-                """
+                body=f"User {tenant_name} ({screening_number}) has been deleted from CallBunker.\n\nDeleted at: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
             )
         except Exception as email_error:
             # Don't fail the deletion if email fails
