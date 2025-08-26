@@ -1,5 +1,6 @@
 import re
 from datetime import datetime
+from urllib.parse import quote
 from flask import Blueprint, request, Response
 from twilio.twiml.voice_response import VoiceResponse, Gather
 from app import db
@@ -120,7 +121,7 @@ def voice_incoming():
     gather = Gather(
         input="speech dtmf",
         num_digits=4,
-        action=f"/voice/verify?attempts=0&to={to_number}&forwarded_from={forwarded_from}",
+        action=f"/voice/verify?attempts=0&to={quote(to_number or '')}&forwarded_from={quote(forwarded_from or '')}",
         method="POST",
         timeout=6,
         speech_timeout="auto",
@@ -229,7 +230,7 @@ def voice_verify():
     gather = Gather(
         input="speech dtmf", 
         num_digits=4,
-        action=f"/voice/verify?attempts={next_attempts}&to={to_number}&forwarded_from={forwarded_from}",
+        action=f"/voice/verify?attempts={next_attempts}&to={quote(to_number or '')}&forwarded_from={quote(forwarded_from or '')}",
         method="POST",
         timeout=12,  # Increased timeout for better speech recognition
         speech_timeout=4,  # Longer speech timeout
