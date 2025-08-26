@@ -84,6 +84,27 @@
     </div>
 </div>
 
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-info mb-4">
+            <div class="card-header bg-info text-dark">
+                <h5 class="mb-0"><i class="fas fa-test-tube me-2"></i>Test Auto-Whitelist Feature</h5>
+            </div>
+            <div class="card-body bg-dark text-white">
+                <p>Test how the auto-learning whitelist works with any phone number:</p>
+                <form id="testForm" class="d-flex gap-2 align-items-center">
+                    <input type="text" class="form-control" id="testNumber" 
+                           placeholder="+15551234567" value="+15551234567" required>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i>Check Status
+                    </button>
+                </form>
+                <div id="testResult" class="mt-3" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% if whitelists %}
 <div class="row">
     <div class="col-12">
@@ -212,4 +233,64 @@
     </div>
 </div>
 {% endif %}
+
+<script>
+document.getElementById('testForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const testNumber = document.getElementById('testNumber').value;
+    const resultDiv = document.getElementById('testResult');
+    
+    if (!testNumber) {
+        resultDiv.innerHTML = '<div class="alert alert-warning">Please enter a phone number to test.</div>';
+        resultDiv.style.display = 'block';
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('test_number', testNumber);
+        
+        const response = await fetch('{{ url_for("admin.test_autowhitelist", screening_number=tenant.screening_number) }}', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            if (result.whitelisted) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Already Whitelisted!</strong><br>
+                        ${result.message}
+                    </div>`;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Not Whitelisted Yet</strong><br>
+                        ${result.message}
+                        <br><br>
+                        <strong>What happens:</strong>
+                        <ol class="mb-0 mt-2">
+                            <li>First call: Caller enters PIN <code>${result.pin}</code> → connects → auto-whitelisted</li>
+                            <li>Future calls: Caller connects directly (no PIN needed!)</li>
+                        </ol>
+                    </div>`;
+            }
+        } else {
+            resultDiv.innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
+        }
+        
+        resultDiv.style.display = 'block';
+        
+    } catch (error) {
+        resultDiv.innerHTML = '<div class="alert alert-danger">Error testing number. Please try again.</div>';
+        resultDiv.style.display = 'block';
+    }
+});
+</script>
+
 {% endblock %}

@@ -229,6 +229,33 @@ def clear_logs(screening_number):
     flash('Failure logs cleared!', 'success')
     return redirect(url_for('admin.tenant_detail', screening_number=screening_number))
 
+@admin_bp.route('/tenant/<screening_number>/test_autowhitelist', methods=['POST'])
+@require_admin_web
+def test_autowhitelist(screening_number):
+    """Test the auto-whitelist functionality"""
+    tenant = Tenant.query.get_or_404(screening_number)
+    test_number = request.form.get('test_number', '+15551234567').strip()
+    
+    # Check current whitelist status
+    existing = Whitelist.query.filter_by(
+        screening_number=screening_number,
+        number=test_number
+    ).first()
+    
+    if existing:
+        return jsonify({
+            'success': True,
+            'message': f'Number {test_number} is already whitelisted and would bypass authentication.',
+            'whitelisted': True
+        })
+    else:
+        return jsonify({
+            'success': True,
+            'message': f'Number {test_number} is NOT whitelisted. First call would require PIN ({tenant.current_pin}), then auto-whitelist for future calls.',
+            'whitelisted': False,
+            'pin': tenant.current_pin
+        })
+
 @admin_bp.route('/tenant/<screening_number>/delete', methods=['POST'])
 @require_admin_web
 def delete_tenant(screening_number):
