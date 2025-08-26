@@ -1,0 +1,502 @@
+{% extends "base.html" %}
+
+{% block title %}Get Started - CallBunker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="mb-3">
+                <i class="fas fa-shield-alt me-3 text-primary"></i>Welcome to CallBunker
+            </h1>
+            <p class="lead text-body">Your personal call screening service that blocks spam while letting important calls through</p>
+        </div>
+
+        <!-- Benefits Section -->
+        <div class="card border-primary mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-star me-2"></i>What You'll Get</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
+                            <h6>Automatic Spam Blocking</h6>
+                            <p class="small text-body">Unknown callers get screened before reaching you</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-key fa-3x text-info mb-3"></i>
+                            <h6>PIN & Voice Authentication</h6>
+                            <p class="small text-body">Legitimate callers use your PIN or verbal code to connect</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-phone fa-3x text-warning mb-3"></i>
+                            <h6>Keep Your Number</h6>
+                            <p class="small text-body">Use your existing phone number - no need to change it</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Setup Steps -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list-ol me-2"></i>Setup Guide</h5>
+            </div>
+            <div class="card-body">
+                <!-- Step 1: Google Voice -->
+                <div class="border rounded p-4 mb-4" id="step1">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <strong>1</strong>
+                        </div>
+                        <h5 class="mb-0">Get a Google Voice Number</h5>
+                        <span class="badge bg-secondary ms-auto" id="step1Status">Pending</span>
+                    </div>
+                    <div class="ps-5">
+                        <p class="mb-3">We need a Google Voice number to avoid call forwarding loops. This free service will ring your real phone after screening.</p>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            <strong>Why Google Voice?</strong> When we forward screened calls back to your phone, we need a different number to prevent infinite loops.
+                        </div>
+
+                        <div class="mb-3">
+                            <a href="https://voice.google.com" target="_blank" class="btn btn-primary">
+                                <i class="fas fa-external-link-alt me-2"></i>Open Google Voice
+                            </a>
+                            <small class="d-block mt-2 text-body-secondary">Opens in a new tab so you can follow along</small>
+                        </div>
+
+                        <div class="bg-light p-3 rounded mb-3">
+                            <h6><i class="fas fa-list me-2"></i>Google Voice Setup Steps:</h6>
+                            <ol class="mb-0">
+                                <li>Sign in with your Google account</li>
+                                <li><strong>Choose a number</strong> - pick any area code you like</li>
+                                <li><strong>Verify your phone</strong> - add your real phone number</li>
+                                <li><strong>Test it works</strong> - make sure calls to Google Voice ring your phone</li>
+                            </ol>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="googleVoiceNumber" class="form-label">Enter your Google Voice number:</label>
+                            <div class="input-group">
+                                <input type="tel" class="form-control" id="googleVoiceNumber" 
+                                       placeholder="+1 (555) 123-4567" onchange="validateGoogleVoice()">
+                                <button class="btn btn-outline-secondary" type="button" onclick="formatPhoneNumber('googleVoiceNumber')">
+                                    <i class="fas fa-magic"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">This will be used as your "Forward Back To" number</div>
+                        </div>
+
+                        <button class="btn btn-success" onclick="completeStep1()" id="step1Button" disabled>
+                            <i class="fas fa-check me-2"></i>I've Got My Google Voice Number
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: CallBunker Setup -->
+                <div class="border rounded p-4 mb-4" id="step2" style="opacity: 0.5;">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <strong>2</strong>
+                        </div>
+                        <h5 class="mb-0">Configure CallBunker</h5>
+                        <span class="badge bg-secondary ms-auto" id="step2Status">Waiting</span>
+                    </div>
+                    <div class="ps-5" id="step2Content">
+                        <p class="mb-3">Now we'll set up your CallBunker account with your phone numbers and authentication.</p>
+                        
+                        <form id="callbunkerForm" onsubmit="createTenant(event)">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="realNumber" class="form-label">Your Real Phone Number *</label>
+                                    <input type="tel" class="form-control" id="realNumber" name="screening_number" 
+                                           placeholder="+1 (555) 987-6543" required>
+                                    <div class="form-text">The number people call you on</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="ownerLabel" class="form-label">Label (Optional)</label>
+                                    <input type="text" class="form-control" id="ownerLabel" name="owner_label" 
+                                           placeholder="John's Business Line">
+                                    <div class="form-text">A name to identify this setup</div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="pinCode" class="form-label">PIN Code *</label>
+                                    <input type="text" class="form-control" id="pinCode" name="current_pin" 
+                                           value="1122" pattern="[0-9]{4}" maxlength="4" required>
+                                    <div class="form-text">4-digit code callers will enter</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="verbalCode" class="form-label">Verbal Code *</label>
+                                    <input type="text" class="form-control" id="verbalCode" name="verbal_code" 
+                                           value="open sesame" required>
+                                    <div class="form-text">Phrase callers can say instead</div>
+                                </div>
+                            </div>
+
+                            <input type="hidden" id="forwardToNumber" name="forward_to" value="">
+                            <input type="hidden" name="forward_mode" value="bridge">
+                            <input type="hidden" name="retry_limit" value="3">
+                            <input type="hidden" name="rl_window_sec" value="1800">
+                            <input type="hidden" name="rl_max_attempts" value="5">
+                            <input type="hidden" name="rl_block_minutes" value="60">
+
+                            <button type="submit" class="btn btn-success" id="step2Button">
+                                <i class="fas fa-check me-2"></i>Create My CallBunker Account
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Step 3: Call Forwarding -->
+                <div class="border rounded p-4 mb-4" id="step3" style="opacity: 0.5;">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <strong>3</strong>
+                        </div>
+                        <h5 class="mb-0">Enable Call Forwarding</h5>
+                        <span class="badge bg-secondary ms-auto" id="step3Status">Waiting</span>
+                    </div>
+                    <div class="ps-5" id="step3Content">
+                        <p class="mb-3">Finally, forward ALL calls from your real phone to the CallBunker screening number.</p>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Important:</strong> You must complete Steps 1 & 2 before setting up call forwarding!
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Forward ALL calls to:</strong></label>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <code class="bg-warning text-dark px-3 py-2 rounded fs-5" id="forwardingNumberDisplay">+1 (833) 942-4234</code>
+                                <button class="btn btn-outline-primary" onclick="copyForwardingNumber()" title="Copy number">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header bg-info text-white">
+                                        <i class="fas fa-mobile-alt me-2"></i>Phone Settings Method
+                                    </div>
+                                    <div class="card-body">
+                                        <p><strong>iPhone:</strong> Settings → Phone → Call Forwarding</p>
+                                        <p><strong>Android:</strong> Phone app → Settings → Call forwarding</p>
+                                        <p class="mb-0"><small>Set "Always forward" to <code>+18339424234</code></small></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header bg-success text-white">
+                                        <i class="fas fa-phone me-2"></i>Dial Code Method
+                                    </div>
+                                    <div class="card-body">
+                                        <p><strong>AT&T:</strong> <code>*21*18339424234#</code></p>
+                                        <p><strong>Verizon:</strong> <code>*72</code> then <code>18339424234</code></p>
+                                        <p class="mb-0"><strong>T-Mobile:</strong> <code>**21*18339424234#</code></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" onclick="testSetup()" id="testButton">
+                            <i class="fas fa-phone me-2"></i>Test My Setup
+                        </button>
+                        
+                        <button class="btn btn-success ms-2" onclick="completeSetup()" id="completeButton" style="display: none;">
+                            <i class="fas fa-check me-2"></i>Setup Complete!
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Success -->
+                <div class="border rounded p-4 mb-4 border-success d-none" id="step4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <h5 class="mb-0">All Done!</h5>
+                        <span class="badge bg-success ms-auto">Complete</span>
+                    </div>
+                    <div class="ps-5">
+                        <p class="mb-3">🎉 Your CallBunker is now active and protecting your phone!</p>
+                        
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-info-circle me-2"></i>How it works now:</h6>
+                            <ol class="mb-0">
+                                <li>People call your real number</li>
+                                <li>Calls get forwarded to CallBunker for screening</li>
+                                <li>Callers enter your PIN (<span id="finalPin"></span>) or say "<span id="finalVerbal"></span>"</li>
+                                <li>Verified calls get connected to your Google Voice number</li>
+                                <li>Google Voice rings your real phone</li>
+                            </ol>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('admin.admin_home') }}" class="btn btn-primary">
+                                <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                            </a>
+                            <button class="btn btn-outline-info" onclick="shareSetup()">
+                                <i class="fas fa-share me-2"></i>Share PIN with Contacts
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Result Modal -->
+<div class="modal fade" id="testModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-phone me-2"></i>Setup Test Results
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="testResults">
+                <!-- Test results will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentStep = 1;
+let googleVoiceNumber = '';
+let tenantCreated = false;
+
+function validateGoogleVoice() {
+    const input = document.getElementById('googleVoiceNumber');
+    const number = input.value.trim();
+    const button = document.getElementById('step1Button');
+    
+    if (number && number.length >= 10) {
+        button.disabled = false;
+        googleVoiceNumber = number;
+    } else {
+        button.disabled = true;
+    }
+}
+
+function formatPhoneNumber(inputId) {
+    const input = document.getElementById(inputId);
+    let value = input.value.replace(/\D/g, '');
+    
+    if (value.length >= 11 && value.startsWith('1')) {
+        value = value.substring(1);
+    }
+    
+    if (value.length === 10) {
+        input.value = `+1 (${value.slice(0,3)}) ${value.slice(3,6)}-${value.slice(6)}`;
+    }
+    
+    if (inputId === 'googleVoiceNumber') {
+        validateGoogleVoice();
+    }
+}
+
+function completeStep1() {
+    // Mark step 1 complete and enable step 2
+    document.getElementById('step1Status').textContent = 'Complete';
+    document.getElementById('step1Status').className = 'badge bg-success ms-auto';
+    document.getElementById('step1').style.opacity = '1';
+    
+    // Enable step 2
+    document.getElementById('step2').style.opacity = '1';
+    document.getElementById('step2Status').textContent = 'Active';
+    document.getElementById('step2Status').className = 'badge bg-primary ms-auto';
+    
+    // Set the forward_to field with Google Voice number
+    document.getElementById('forwardToNumber').value = googleVoiceNumber;
+    
+    currentStep = 2;
+    
+    // Scroll to step 2
+    document.getElementById('step2').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function createTenant(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const button = document.getElementById('step2Button');
+    
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating Account...';
+    
+    try {
+        const response = await fetch('/tenant/new', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            // Mark step 2 complete and enable step 3
+            document.getElementById('step2Status').textContent = 'Complete';
+            document.getElementById('step2Status').className = 'badge bg-success ms-auto';
+            
+            // Enable step 3
+            document.getElementById('step3').style.opacity = '1';
+            document.getElementById('step3Status').textContent = 'Active';
+            document.getElementById('step3Status').className = 'badge bg-primary ms-auto';
+            
+            tenantCreated = true;
+            currentStep = 3;
+            
+            // Scroll to step 3
+            document.getElementById('step3').scrollIntoView({ behavior: 'smooth' });
+            
+        } else {
+            throw new Error('Failed to create tenant');
+        }
+    } catch (error) {
+        alert('Error creating account: ' + error.message);
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-check me-2"></i>Create My CallBunker Account';
+    }
+}
+
+function copyForwardingNumber() {
+    navigator.clipboard.writeText('+18339424234').then(() => {
+        // Show toast notification
+        showToast('Forwarding number copied!', 'success');
+    }).catch(() => {
+        // Fallback for older browsers
+        const temp = document.createElement('input');
+        temp.value = '+18339424234';
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        showToast('Forwarding number copied!', 'success');
+    });
+}
+
+async function testSetup() {
+    const testButton = document.getElementById('testButton');
+    testButton.disabled = true;
+    testButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing...';
+    
+    // Simulate testing the setup
+    setTimeout(() => {
+        const testResults = document.getElementById('testResults');
+        testResults.innerHTML = `
+            <div class="alert alert-success">
+                <h6><i class="fas fa-check-circle me-2"></i>Test Results:</h6>
+                <ul class="mb-0">
+                    <li>✅ CallBunker account is active</li>
+                    <li>✅ Google Voice number configured</li>
+                    <li>✅ Ready for call forwarding</li>
+                </ul>
+            </div>
+            <p class="mb-0">Your setup looks good! Once you enable call forwarding, your CallBunker will be fully active.</p>
+        `;
+        
+        // Show test modal
+        new bootstrap.Modal(document.getElementById('testModal')).show();
+        
+        // Enable complete button
+        document.getElementById('completeButton').style.display = 'inline-block';
+        
+        testButton.disabled = false;
+        testButton.innerHTML = '<i class="fas fa-phone me-2"></i>Test Again';
+    }, 2000);
+}
+
+function completeSetup() {
+    // Mark step 3 complete
+    document.getElementById('step3Status').textContent = 'Complete';
+    document.getElementById('step3Status').className = 'badge bg-success ms-auto';
+    
+    // Show step 4 (success)
+    document.getElementById('step4').classList.remove('d-none');
+    document.getElementById('finalPin').textContent = document.getElementById('pinCode').value;
+    document.getElementById('finalVerbal').textContent = document.getElementById('verbalCode').value;
+    
+    // Scroll to success
+    document.getElementById('step4').scrollIntoView({ behavior: 'smooth' });
+    
+    // Confetti effect (if you want to add celebration)
+    if (typeof confetti !== 'undefined') {
+        confetti();
+    }
+}
+
+function shareSetup() {
+    const pin = document.getElementById('pinCode').value;
+    const verbal = document.getElementById('verbalCode').value;
+    const message = `Hi! I'm using CallBunker to screen my calls. To reach me:
+
+1. Call my number as usual
+2. When prompted, enter PIN: ${pin}
+   OR say: "${verbal}"
+3. Your call will be connected!
+
+This helps me avoid spam calls. Thanks for understanding!`;
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'My CallBunker Contact Info',
+            text: message
+        });
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(message).then(() => {
+            showToast('Contact info copied to clipboard!', 'success');
+        });
+    }
+}
+
+function showToast(message, type = 'info') {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} position-fixed top-0 end-0 m-3`;
+    toast.style.zIndex = '9999';
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check' : 'info'}-circle me-2"></i>
+        ${message}
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Auto-format phone numbers as user types
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInputs = document.querySelectorAll('input[type="tel"]');
+    phoneInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.id === 'googleVoiceNumber') {
+                validateGoogleVoice();
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

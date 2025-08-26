@@ -57,6 +57,12 @@ def edit_tenant(screening_number):
     
     return render_template('tenant_form.html', tenant=tenant, action='Edit')
 
+@admin_bp.route('/onboarding')
+@require_admin_web
+def onboarding():
+    """Enhanced onboarding flow for new users"""
+    return render_template('onboarding.html')
+
 @admin_bp.route('/tenant/new', methods=['GET', 'POST'])
 @require_admin_web
 def new_tenant():
