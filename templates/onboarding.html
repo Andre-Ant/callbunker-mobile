@@ -446,7 +446,7 @@ async function createTenant(event) {
     button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating Account...';
     
     try {
-        const response = await fetch('/onboarding/tenant', {
+        const response = await fetch('/admin/onboarding/tenant', {
             method: 'POST',
             body: formData
         });
