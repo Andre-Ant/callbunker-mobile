@@ -28,7 +28,8 @@ Preferred communication style: Simple, everyday language.
 - **Dual Authentication**: PIN-based (4-digit codes) and verbal code authentication
 - **Session-based Admin Auth**: Web interface protection via session tokens
 - **Rate Limiting**: Configurable windows, attempt limits, and block durations per tenant
-- **Whitelist System**: Bypass authentication for approved callers with optional custom PINs
+- **Smart Whitelist System**: Auto-learns trusted callers after successful authentication, enabling bypass for future calls
+- **Manual Whitelist**: Manually add approved callers with optional custom PINs for immediate bypass
 
 ## Voice Processing Architecture
 - **Twilio Integration**: TwiML-based voice response system

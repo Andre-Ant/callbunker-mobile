@@ -39,6 +39,33 @@ def is_caller_whitelisted_bypass(tenant, caller_digits):
     
     return bool(whitelist_entry)
 
+def auto_whitelist_caller(tenant, caller_digits, custom_pin=None):
+    """Automatically add caller to whitelist after successful authentication"""
+    # Check if already whitelisted
+    existing = Whitelist.query.filter_by(
+        screening_number=tenant.screening_number,
+        number=caller_digits
+    ).first()
+    
+    if existing:
+        return  # Already whitelisted
+    
+    # Add to whitelist
+    whitelist_entry = Whitelist(
+        screening_number=tenant.screening_number,
+        number=caller_digits,
+        pin=custom_pin,
+        verbal=False  # Default to PIN-only for auto-whitelisted numbers
+    )
+    
+    db.session.add(whitelist_entry)
+    try:
+        db.session.commit()
+        print(f"Auto-whitelisted caller {caller_digits} for tenant {tenant.screening_number}")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Failed to auto-whitelist caller: {e}")
+
 def tenant_forward_mode(tenant):
     """Get the forward mode for a tenant"""
     return (tenant.forward_mode or "bridge").strip().lower()
@@ -214,6 +241,8 @@ def voice_verify():
     # Check PIN verification
     if pressed and len(pressed) == 4 and pressed == expected_pin:
         clear_failures(tenant, from_digits)
+        # Auto-whitelist after successful PIN entry
+        auto_whitelist_caller(tenant, from_digits, pressed if pressed != tenant.current_pin else None)
         return on_verified(tenant, forwarded_from)
     
     # Check verbal verification
@@ -223,6 +252,8 @@ def voice_verify():
         # Exact match only
         if said == accepted_verbal:
             clear_failures(tenant, from_digits)
+            # Auto-whitelist after successful verbal authentication
+            auto_whitelist_caller(tenant, from_digits, None)
             return on_verified(tenant, forwarded_from)
         
         # Check whitelist verbal authentication
