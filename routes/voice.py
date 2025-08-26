@@ -231,27 +231,13 @@ def voice_verify():
         num_digits=4,
         action=f"/voice/verify?attempts={next_attempts}&to={to_number}&forwarded_from={forwarded_from}",
         method="POST",
-        timeout=10,  # Increased from 6 to 10 seconds
-        speech_timeout=3,  # Set explicit speech timeout instead of "auto"
+        timeout=12,  # Increased timeout for better speech recognition
+        speech_timeout=4,  # Longer speech timeout
         finish_on_key=""
     )
-    gather.say("Incorrect code. Please try again with your four digit pin, or say your verbal code.", voice="polly.Joanna")
+    gather.say("Incorrect code. Please try again with your four digit pin, or say your verbal code clearly.", voice="polly.Joanna")
     vr.append(gather)
-    # Fallback if no input received - give one more chance instead of hanging up
-    if next_attempts < tenant.retry_limit - 1:
-        vr.say("I didn't hear anything. Let me ask one more time.", voice="polly.Joanna")
-        final_gather = Gather(
-            input="speech dtmf",
-            num_digits=4, 
-            action=f"/voice/verify?attempts={next_attempts}&to={to_number}&forwarded_from={forwarded_from}",
-            method="POST",
-            timeout=10,
-            speech_timeout=3,
-            finish_on_key=""
-        )
-        final_gather.say("Please enter your four digit pin, or clearly say your verbal code.", voice="polly.Joanna")
-        vr.append(final_gather)
-    
+    # Simple fallback - just hang up if no input
     vr.say("No input received. Goodbye.", voice="polly.Joanna")
     vr.hangup()
     return xml_response(vr)
