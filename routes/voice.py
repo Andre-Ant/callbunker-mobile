@@ -30,6 +30,15 @@ def is_caller_whitelisted_verbal(tenant, caller_digits):
     
     return bool(whitelist_entry)
 
+def is_caller_whitelisted_bypass(tenant, caller_digits):
+    """Check if caller is whitelisted and should bypass authentication entirely"""
+    whitelist_entry = Whitelist.query.filter_by(
+        screening_number=tenant.screening_number,
+        number=caller_digits
+    ).first()
+    
+    return bool(whitelist_entry)
+
 def tenant_forward_mode(tenant):
     """Get the forward mode for a tenant"""
     return (tenant.forward_mode or "bridge").strip().lower()
@@ -115,6 +124,13 @@ def voice_incoming():
         vr.say("Sorry, this number is temporarily blocked due to repeated failed attempts. Goodbye.", voice="polly.Joanna")
         vr.hangup()
         return xml_response(vr)
+    
+    # Check if caller is whitelisted and should bypass authentication
+    if is_caller_whitelisted_bypass(tenant, from_digits):
+        # Clear any existing failures since this is a trusted caller
+        clear_failures(tenant, from_digits)
+        # Skip authentication and connect directly
+        return on_verified(tenant, forwarded_from)
     
     # Start verification process
     vr = VoiceResponse()
