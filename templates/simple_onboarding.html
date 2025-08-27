@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Get Started - CallBunker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="mb-3">
+                <i class="fas fa-shield-alt me-3 text-primary"></i>Welcome to CallBunker
+            </h1>
+            <p class="lead text-body">Simple call screening that works with your existing phone number</p>
+        </div>
+
+        <!-- How It Works -->
+        <div class="card border-info mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>How CallBunker Works</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="bg-light p-3 rounded">
+                            <i class="fas fa-phone fa-2x text-primary mb-2"></i>
+                            <h6>Someone calls your number</h6>
+                            <small class="text-body">(555) 123-4567</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="bg-light p-3 rounded">
+                            <i class="fas fa-shield-alt fa-2x text-warning mb-2"></i>
+                            <h6>CallBunker screens them</h6>
+                            <small class="text-body">Asks for PIN or verbal code</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="bg-light p-3 rounded">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <h6>Verified calls ring you</h6>
+                            <small class="text-body">Spam gets blocked</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Setup Form -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Set Up Your Call Screening</h5>
+            </div>
+            <div class="card-body">
+                <form id="setupForm" onsubmit="createTenant(event)">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="phoneNumber" class="form-label">Your Phone Number *</label>
+                            <input type="tel" class="form-control" id="phoneNumber" name="screening_number" 
+                                   placeholder="+1 (555) 123-4567" required>
+                            <div class="form-text">The number people call you on</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="label" class="form-label">Label (Optional)</label>
+                            <input type="text" class="form-control" id="label" name="owner_label" 
+                                   placeholder="John's Phone">
+                            <div class="form-text">Just for your reference</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="pin" class="form-label">PIN Code *</label>
+                            <input type="text" class="form-control" id="pin" name="current_pin" 
+                                   value="1122" pattern="[0-9]{4}" maxlength="4" required>
+                            <div class="form-text">4-digit code legitimate callers will use</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="verbal" class="form-label">Verbal Code *</label>
+                            <input type="text" class="form-control" id="verbal" name="verbal_code" 
+                                   value="open sesame" required>
+                            <div class="form-text">Phrase callers can say instead of PIN</div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden fields for defaults -->
+                    <input type="hidden" name="forward_to" id="forwardTo" value="">
+                    <input type="hidden" name="forward_mode" value="bridge">
+                    <input type="hidden" name="retry_limit" value="3">
+                    <input type="hidden" name="rl_window_sec" value="1800">
+                    <input type="hidden" name="rl_max_attempts" value="5">
+                    <input type="hidden" name="rl_block_minutes" value="60">
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-shield-alt me-2"></i>Create My Call Screening
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Instructions Section (Hidden initially) -->
+        <div class="card mt-4 d-none" id="instructionsCard">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Setup Complete! Final Step</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Important:</strong> You need to set up call forwarding on your phone to activate screening.
+                </div>
+
+                <h6><i class="fas fa-mobile-alt me-2"></i>Set Up Call Forwarding:</h6>
+                <div class="bg-light p-3 rounded mb-3">
+                    <p class="mb-2"><strong>Forward your calls to:</strong></p>
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="+1 (631) 641-7727" readonly>
+                        <button class="btn btn-outline-secondary" onclick="copyToClipboard('+16316417727')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>For iPhone:</h6>
+                        <ol class="small">
+                            <li>Go to <strong>Settings</strong> → <strong>Phone</strong></li>
+                            <li>Tap <strong>Call Forwarding</strong></li>
+                            <li>Turn it <strong>On</strong></li>
+                            <li>Enter: <strong>+16316417727</strong></li>
+                        </ol>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>For Android:</h6>
+                        <ol class="small">
+                            <li>Open <strong>Phone</strong> app</li>
+                            <li>Tap <strong>⋮</strong> → <strong>Settings</strong></li>
+                            <li>Tap <strong>Call forwarding</strong></li>
+                            <li>Enter: <strong>+16316417727</strong></li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning mt-3">
+                    <strong>Test it!</strong> Have someone call your number. They should hear CallBunker ask for the PIN (<span id="userPin">1122</span>) or verbal code ("<span id="userVerbal">open sesame</span>").
+                </div>
+
+                <div class="d-grid">
+                    <a href="/admin" class="btn btn-success">
+                        <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function createTenant(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const phoneNumber = formData.get('screening_number');
+    
+    // Set forward_to to be the same as the phone number (forwarding back to themselves)
+    formData.set('forward_to', phoneNumber);
+    
+    fetch('/admin/tenants', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show instructions
+            document.getElementById('setupForm').parentElement.parentElement.classList.add('d-none');
+            document.getElementById('instructionsCard').classList.remove('d-none');
+            
+            // Fill in user's codes
+            document.getElementById('userPin').textContent = formData.get('current_pin');
+            document.getElementById('userVerbal').textContent = formData.get('verbal_code');
+            
+            // Scroll to instructions
+            document.getElementById('instructionsCard').scrollIntoView({behavior: 'smooth'});
+        } else {
+            alert('Error creating tenant: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error creating tenant');
+    });
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Visual feedback
+        const button = event.target;
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+        }, 1000);
+    });
+}
+</script>
+{% endblock %}

@@ -8,6 +8,11 @@ def index():
     """Main dashboard - redirect to admin"""
     return redirect(url_for('admin.admin_home'))
 
+@main_bp.route('/signup')
+def signup():
+    """Simple user signup page"""
+    return render_template('simple_onboarding.html')
+
 @main_bp.route('/health')
 def health():
     """Health check endpoint"""
