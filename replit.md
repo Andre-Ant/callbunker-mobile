@@ -17,6 +17,16 @@ Preferred communication style: Simple, everyday language.
 - **Impact**: Existing whitelisted numbers now properly bypass authentication, new entries use consistent normalized format
 - **User Verification**: Successfully tested with user's whitelisted number - system correctly identifies and bypasses authentication
 
+## August 27, 2025 - Benefits Section Visibility Improvements
+- **Issue**: Benefits sections disappearing from both onboarding page and main dashboard after 3-5 seconds
+- **Root Cause**: JavaScript auto-dismiss code in app.js was removing ALL alert elements, including persistent benefits messages
+- **Solutions Implemented**:
+  - Enhanced onboarding page with sticky benefits reminder that appears when scrolling past main benefits section
+  - Made main dashboard benefits message sticky and persistent with manual close option
+  - Modified JavaScript auto-dismiss selector to exclude sticky benefits from automatic removal
+- **Impact**: Benefits information now stays visible throughout user journey, improving user experience and feature awareness
+- **User Verification**: Confirmed benefits messages no longer auto-disappear and remain accessible during navigation
+
 # System Architecture
 
 ## Core Framework
