@@ -10,6 +10,23 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## August 27, 2025 - TextNow-Based Multi-User System Implementation
+- **Issue**: Google Voice OTP security challenges blocking Twilio forwarded calls, plus infinite forwarding loop concerns
+- **Solution**: Implemented TextNow-based approach with comprehensive user onboarding system
+- **Key Features**:
+  - Two-step signup process: Get TextNow number → Configure CallBunker screening
+  - Users get free professional numbers via TextNow (no OTP issues)
+  - Simple call forwarding setup from TextNow to shared CallBunker number
+  - Loop detection system prevents infinite forwarding scenarios
+  - Cost-effective: single shared CallBunker number handles all users
+- **Technical Implementation**:
+  - Created `/signup` route with simplified onboarding interface
+  - Updated voice processing to use ForwardedFrom field for tenant identification
+  - Added smart loop detection using caller ID matching
+  - Enhanced database to support multiple tenants with individual screening numbers
+- **User Benefits**: Free professional numbers, no carrier compatibility issues, simple setup process
+- **Business Model**: Scalable multi-tenant service with minimal infrastructure costs
+
 ## August 27, 2025 - Auto-Whitelist Phone Number Normalization Fix
 - **Issue**: Auto-whitelist feature not recognizing previously whitelisted numbers due to phone number format inconsistencies
 - **Root Cause**: Mixed storage formats in database (+15086388084 vs 15086388084) causing lookup failures
