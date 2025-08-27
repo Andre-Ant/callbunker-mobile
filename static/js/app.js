@@ -105,7 +105,7 @@ let deleteTarget = null;
 
 // Copy forwarding number to clipboard
 function copyForwardingNumber() {
-    const number = '+18339424234';
+    const number = '+16316417727';
     navigator.clipboard.writeText(number).then(function() {
         // Show success feedback
         const button = event.target.closest('button');

@@ -223,7 +223,7 @@
                                     <div class="card-body">
                                         <p><strong>iPhone:</strong> Settings → Phone → Call Forwarding</p>
                                         <p><strong>Android:</strong> Phone app → Settings → Call forwarding</p>
-                                        <p class="mb-0"><small>Set "Always forward" to <code>+18339424234</code></small></p>
+                                        <p class="mb-0"><small>Set "Always forward" to <code>+16316417727</code></small></p>
                                     </div>
                                 </div>
                             </div>
@@ -233,9 +233,9 @@
                                         <i class="fas fa-phone me-2"></i>Dial Code Method
                                     </div>
                                     <div class="card-body">
-                                        <p><strong>AT&T:</strong> <code>*21*18339424234#</code></p>
-                                        <p><strong>Verizon:</strong> <code>*72</code> then <code>18339424234</code></p>
-                                        <p class="mb-0"><strong>T-Mobile:</strong> <code>**21*18339424234#</code></p>
+                                        <p><strong>AT&T:</strong> <code>*21*16316417727#</code></p>
+                                        <p><strong>Verizon:</strong> <code>*72</code> then <code>16316417727</code></p>
+                                        <p class="mb-0"><strong>T-Mobile:</strong> <code>**21*16316417727#</code></p>
                                     </div>
                                 </div>
                             </div>
@@ -348,7 +348,7 @@
                                     <li>Tap <strong>Phone</strong></li>
                                     <li>Tap <strong>Call Forwarding</strong></li>
                                     <li>Turn ON call forwarding</li>
-                                    <li>Enter: <code>+18339424234</code></li>
+                                    <li>Enter: <code>+16316417727</code></li>
                                 </ol>
 
                                 <h6><i class="fab fa-android me-2"></i>Android</h6>
@@ -357,7 +357,7 @@
                                     <li>Tap ⋮ (menu) → <strong>Settings</strong></li>
                                     <li>Tap <strong>Call forwarding</strong></li>
                                     <li>Choose <strong>Always forward</strong></li>
-                                    <li>Enter: <code>+18339424234</code></li>
+                                    <li>Enter: <code>+16316417727</code></li>
                                 </ol>
                             </div>
                         </div>
@@ -370,16 +370,16 @@
                             </div>
                             <div class="card-body">
                                 <h6><i class="fas fa-building me-2"></i>AT&T</h6>
-                                <p>Dial: <code class="bg-light px-2 py-1">*21*18339424234#</code></p>
+                                <p>Dial: <code class="bg-light px-2 py-1">*21*16316417727#</code></p>
                                 <small class="text-muted">To disable: <code>*21*#</code></small>
 
                                 <h6 class="mt-3"><i class="fas fa-signal me-2"></i>Verizon</h6>
                                 <p>Dial: <code class="bg-light px-2 py-1">*72</code><br>
-                                When prompted, dial: <code>18339424234</code></p>
+                                When prompted, dial: <code>16316417727</code></p>
                                 <small class="text-muted">To disable: <code>*73</code></small>
 
                                 <h6 class="mt-3"><i class="fas fa-mobile-alt me-2"></i>T-Mobile</h6>
-                                <p>Dial: <code class="bg-light px-2 py-1">**21*18339424234#</code></p>
+                                <p>Dial: <code class="bg-light px-2 py-1">**21*16316417727#</code></p>
                                 <small class="text-muted">To disable: <code>##21#</code></small>
 
                                 <h6 class="mt-3"><i class="fas fa-tower-cell me-2"></i>Other Carriers</h6>
@@ -519,13 +519,13 @@ async function createTenant(event) {
 }
 
 function copyForwardingNumber() {
-    navigator.clipboard.writeText('+18339424234').then(() => {
+    navigator.clipboard.writeText('+16316417727').then(() => {
         // Show toast notification
         showToast('Forwarding number copied!', 'success');
     }).catch(() => {
         // Fallback for older browsers
         const temp = document.createElement('input');
-        temp.value = '+18339424234';
+        temp.value = '+16316417727';
         document.body.appendChild(temp);
         temp.select();
         document.execCommand('copy');
