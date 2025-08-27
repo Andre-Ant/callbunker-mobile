@@ -12,7 +12,7 @@
             </h1>
             <p class="lead text-body">Get a free phone number with built-in call screening</p>
             
-            <div class="alert alert-info d-flex align-items-start mt-4" role="alert">
+            <div class="alert alert-info benefits-alert d-flex align-items-start mt-4" role="alert">
                 <i class="fas fa-info-circle fa-lg me-3 mt-1"></i>
                 <div class="text-start">
                     <strong>Perfect for New Phone Numbers:</strong> This gives you a completely new phone number with call screening built-in. When you give out ONLY the TextNow number (not your real number), all calls get screened first. Ideal for side projects, freelance work, online selling, dating apps, or any time you need a protected secondary number.
@@ -30,28 +30,28 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-3 text-center mb-3">
-                        <div class="bg-light p-3 rounded">
+                        <div class="bg-secondary bg-opacity-25 p-3 rounded">
                             <i class="fas fa-phone fa-2x text-primary mb-2"></i>
                             <h6>Get free TextNow number</h6>
                             <small class="text-body">New number to give out</small>
                         </div>
                     </div>
                     <div class="col-md-3 text-center mb-3">
-                        <div class="bg-light p-3 rounded">
+                        <div class="bg-secondary bg-opacity-25 p-3 rounded">
                             <i class="fas fa-arrow-right fa-2x text-info mb-2"></i>
                             <h6>TextNow forwards calls</h6>
                             <small class="text-body">To CallBunker screening</small>
                         </div>
                     </div>
                     <div class="col-md-3 text-center mb-3">
-                        <div class="bg-light p-3 rounded">
+                        <div class="bg-secondary bg-opacity-25 p-3 rounded">
                             <i class="fas fa-shield-alt fa-2x text-warning mb-2"></i>
                             <h6>CallBunker screens</h6>
                             <small class="text-body">Asks for PIN or verbal code</small>
                         </div>
                     </div>
                     <div class="col-md-3 text-center mb-3">
-                        <div class="bg-light p-3 rounded">
+                        <div class="bg-secondary bg-opacity-25 p-3 rounded">
                             <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
                             <h6>Verified calls ring you</h6>
                             <small class="text-body">Spam gets blocked</small>
@@ -240,6 +240,30 @@ function createTenant(event) {
     .catch(error => {
         console.error('Error:', error);
         alert('Error creating tenant');
+    });
+}
+
+// Copy to clipboard function
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success feedback
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check text-success"></i> Copied!';
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Failed to copy: ', err);
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Number copied to clipboard!');
     });
 }
 
