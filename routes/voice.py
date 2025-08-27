@@ -14,31 +14,59 @@ voice_bp = Blueprint('voice', __name__)
 def caller_expected_pin(tenant, caller_digits):
     """Get the expected PIN for a caller - either custom or tenant default"""
     normalized_caller = norm_digits(caller_digits)
+    
+    # First try the normalized format (without +)
     whitelist_entry = Whitelist.query.filter_by(
         screening_number=tenant.screening_number,
         number=normalized_caller
     ).filter(Whitelist.pin.isnot(None)).first()
+    
+    # If not found, try the original format (with +) for legacy data
+    if not whitelist_entry:
+        whitelist_entry = Whitelist.query.filter_by(
+            screening_number=tenant.screening_number,
+            number=f"+{normalized_caller}"
+        ).filter(Whitelist.pin.isnot(None)).first()
     
     return whitelist_entry.pin if whitelist_entry else tenant.current_pin
 
 def is_caller_whitelisted_verbal(tenant, caller_digits):
     """Check if caller is whitelisted for verbal authentication"""
     normalized_caller = norm_digits(caller_digits)
+    
+    # First try the normalized format (without +)
     whitelist_entry = Whitelist.query.filter_by(
         screening_number=tenant.screening_number,
         number=normalized_caller,
         verbal=True
     ).first()
     
+    # If not found, try the original format (with +) for legacy data
+    if not whitelist_entry:
+        whitelist_entry = Whitelist.query.filter_by(
+            screening_number=tenant.screening_number,
+            number=f"+{normalized_caller}",
+            verbal=True
+        ).first()
+    
     return bool(whitelist_entry)
 
 def is_caller_whitelisted_bypass(tenant, caller_digits):
     """Check if caller is whitelisted and should bypass authentication entirely"""
     normalized_caller = norm_digits(caller_digits)
+    
+    # First try the normalized format (without +)
     whitelist_entry = Whitelist.query.filter_by(
         screening_number=tenant.screening_number,
         number=normalized_caller
     ).first()
+    
+    # If not found, try the original format (with +) for legacy data
+    if not whitelist_entry:
+        whitelist_entry = Whitelist.query.filter_by(
+            screening_number=tenant.screening_number,
+            number=f"+{normalized_caller}"
+        ).first()
     
     return bool(whitelist_entry)
 

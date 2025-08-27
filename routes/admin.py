@@ -247,10 +247,18 @@ def test_autowhitelist(screening_number):
     whitelist_numbers = [wl.number for wl in all_whitelist]
     
     # Check current whitelist status with normalized number
+    # First try the normalized format (without +)
     existing = Whitelist.query.filter_by(
         screening_number=screening_number,
         number=test_number_normalized
     ).first()
+    
+    # If not found, try the original format (with +) for legacy data
+    if not existing:
+        existing = Whitelist.query.filter_by(
+            screening_number=screening_number,
+            number=f"+{test_number_normalized}"
+        ).first()
     
     if existing:
         return jsonify({
