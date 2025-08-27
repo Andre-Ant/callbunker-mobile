@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, render_template, redirect, url_fo
 from datetime import datetime
 from app import db
 from models import Tenant, Whitelist, FailLog, Blocklist
-from utils.auth import require_admin_web, parse_annotated_number
+from utils.auth import require_admin_web, parse_annotated_number, norm_digits
 from utils.sendgrid_helper import send_notification_email
 import re
 
@@ -234,32 +234,35 @@ def clear_logs(screening_number):
 def test_autowhitelist(screening_number):
     """Test the auto-whitelist functionality"""
     tenant = Tenant.query.get_or_404(screening_number)
-    test_number = request.form.get('test_number', '+15551234567').strip()
+    test_number_raw = request.form.get('test_number', '+15551234567').strip()
+    
+    # Normalize the test number using the same logic as the voice system
+    test_number_normalized = norm_digits(test_number_raw)
     
     # Get all whitelisted numbers for debugging
     all_whitelist = Whitelist.query.filter_by(screening_number=screening_number).all()
     whitelist_numbers = [wl.number for wl in all_whitelist]
     
-    # Check current whitelist status
+    # Check current whitelist status with normalized number
     existing = Whitelist.query.filter_by(
         screening_number=screening_number,
-        number=test_number
+        number=test_number_normalized
     ).first()
     
     if existing:
         return jsonify({
             'success': True,
-            'message': f'Number {test_number} is already whitelisted and would bypass authentication.',
+            'message': f'Number {test_number_raw} is already whitelisted and would bypass authentication.',
             'whitelisted': True,
-            'debug_info': f'Found in whitelist. All whitelisted numbers: {whitelist_numbers}'
+            'debug_info': f'Input: {test_number_raw} → Normalized: {test_number_normalized} → Found in whitelist!'
         })
     else:
         return jsonify({
             'success': True,
-            'message': f'Number {test_number} is NOT whitelisted. First call would require PIN ({tenant.current_pin}), then auto-whitelist for future calls.',
+            'message': f'Number {test_number_raw} is NOT whitelisted. First call would require PIN ({tenant.current_pin}), then auto-whitelist for future calls.',
             'whitelisted': False,
             'pin': tenant.current_pin,
-            'debug_info': f'Not found in whitelist. All whitelisted numbers: {whitelist_numbers}. Searched for: {test_number}'
+            'debug_info': f'Input: {test_number_raw} → Normalized: {test_number_normalized} → Not found. Whitelist has: {whitelist_numbers}'
         })
 
 @admin_bp.route('/tenant/<screening_number>/delete', methods=['POST'])
