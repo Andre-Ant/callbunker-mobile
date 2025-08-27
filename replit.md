@@ -10,6 +10,17 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## August 27, 2025 - Android Dark Theme Visibility Fix
+- **Issue**: Text and content invisible on Android devices due to dark theme compatibility problems
+- **Root Cause**: Bootstrap's `bg-light`, `text-muted`, and `text-body` classes rendered invisible in dark mode on mobile browsers
+- **Solution**: Replaced with explicit high-contrast color classes (`text-white`, `text-light`, `text-info`) and visible bordered backgrounds
+- **Implementation**:
+  - Updated both signup and how-it-works pages with reliable dark-theme compatible styling
+  - Added colored borders with subtle RGBA backgrounds for better visibility
+  - Implemented aggressive cache-busting headers and meta tags for mobile browsers
+  - Fixed auto-dismiss JavaScript to preserve benefits messages permanently
+- **User Verification**: Confirmed full readability on Android device with all content now clearly visible
+
 ## August 27, 2025 - TextNow-Based Multi-User System (Final Solution)
 - **Decision**: Chose TextNow approach after testing Google Voice OTP challenges and carrier forwarding loop issues
 - **Why TextNow**: Google Voice requires OTP verification that creates complications, carrier forwarding creates infinite loops
