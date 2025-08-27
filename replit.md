@@ -8,6 +8,15 @@ The application provides both webhook endpoints for Twilio integration and a web
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Changes
+
+## August 27, 2025 - Auto-Whitelist Phone Number Normalization Fix
+- **Issue**: Auto-whitelist feature not recognizing previously whitelisted numbers due to phone number format inconsistencies
+- **Root Cause**: Mixed storage formats in database (+15086388084 vs 15086388084) causing lookup failures
+- **Solution**: Updated all whitelist lookup functions to check both legacy (+) and normalized (digits-only) formats
+- **Impact**: Existing whitelisted numbers now properly bypass authentication, new entries use consistent normalized format
+- **User Verification**: Successfully tested with user's whitelisted number - system correctly identifies and bypasses authentication
+
 # System Architecture
 
 ## Core Framework
