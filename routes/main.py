@@ -5,8 +5,8 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    """Main dashboard - redirect to admin"""
-    return redirect(url_for('admin.admin_home'))
+    """Main dashboard - redirect to TextNow signup"""
+    return redirect(url_for('main.signup'))
 
 @main_bp.route('/signup')
 def signup():
