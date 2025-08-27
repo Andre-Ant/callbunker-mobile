@@ -109,8 +109,8 @@ def on_verified(tenant, forwarded_from=None):
     mode = tenant_forward_mode(tenant)
     vr = VoiceResponse()
     
-    # For call forwarding model, forward back to the original number
-    forward_to_number = forwarded_from if forwarded_from else tenant.forward_to
+    # Forward to the tenant's configured destination number
+    forward_to_number = tenant.forward_to
     
     if mode == "voicemail":
         vr.say("Thank you for verification. Please leave your message after the tone.", voice="polly.Joanna")
