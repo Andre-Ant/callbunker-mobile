@@ -19,7 +19,7 @@
                 <h5 class="mb-0"><i class="fas fa-star me-2"></i>What You'll Get</h5>
                 <small class="d-block mt-1 opacity-75">These benefits stay active throughout setup</small>
             </div>
-            <div class="card-body">
+            <div class="card-body" id="benefitsContent">
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <div class="text-center">
@@ -41,6 +41,24 @@
                             <h6>Keep Your Number</h6>
                             <p class="small text-body">Use your existing phone number - no need to change it</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sticky Benefits Mini-Card (appears during setup steps) -->
+        <div class="position-sticky top-0 mb-3 d-none" id="stickyBenefits" style="z-index: 1000;">
+            <div class="card border-success bg-light">
+                <div class="card-body py-2 px-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-star text-success me-2"></i>
+                            <small class="fw-bold">Your Benefits: </small>
+                            <small class="text-body">Spam blocking, PIN/Voice auth, Keep your number</small>
+                        </div>
+                        <button class="btn btn-outline-success btn-sm" onclick="scrollToBenefits()">
+                            <i class="fas fa-eye me-1"></i>View Full Benefits
+                        </button>
                     </div>
                 </div>
             </div>
@@ -616,8 +634,33 @@ function scrollToBenefits() {
     document.getElementById('benefitsSection').scrollIntoView({ behavior: 'smooth' });
 }
 
+function showStickyBenefits() {
+    document.getElementById('stickyBenefits').classList.remove('d-none');
+}
+
+function hideStickyBenefits() {
+    document.getElementById('stickyBenefits').classList.add('d-none');
+}
+
 // Auto-format phone numbers as user types
 document.addEventListener('DOMContentLoaded', function() {
+    // Set up scroll listener to show sticky benefits when original is out of view
+    let benefitsSection = document.getElementById('benefitsSection');
+    let stickyBenefits = document.getElementById('stickyBenefits');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Benefits section is visible, hide sticky version
+                hideStickyBenefits();
+            } else {
+                // Benefits section is not visible, show sticky version
+                showStickyBenefits();
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    observer.observe(benefitsSection);
     const phoneInputs = document.querySelectorAll('input[type="tel"]');
     phoneInputs.forEach(input => {
         input.addEventListener('input', function() {
