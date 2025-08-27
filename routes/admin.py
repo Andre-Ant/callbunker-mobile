@@ -158,11 +158,14 @@ def whitelist_add(screening_number):
     tenant = Tenant.query.get_or_404(screening_number)
     
     number_input = request.form.get('number', '').strip()
-    number, custom_pin = parse_annotated_number(number_input)
+    number_raw, custom_pin = parse_annotated_number(number_input)
     
-    if not number:
+    if not number_raw:
         flash('Invalid number format!', 'error')
         return redirect(url_for('admin.whitelist_manage', screening_number=screening_number))
+    
+    # Normalize the number using the same logic as the voice system
+    number = norm_digits(number_raw)
     
     # Check if entry already exists
     existing = Whitelist.query.filter_by(screening_number=screening_number, number=number).first()

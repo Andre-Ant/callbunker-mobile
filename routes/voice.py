@@ -13,18 +13,20 @@ voice_bp = Blueprint('voice', __name__)
 
 def caller_expected_pin(tenant, caller_digits):
     """Get the expected PIN for a caller - either custom or tenant default"""
+    normalized_caller = norm_digits(caller_digits)
     whitelist_entry = Whitelist.query.filter_by(
         screening_number=tenant.screening_number,
-        number=caller_digits
+        number=normalized_caller
     ).filter(Whitelist.pin.isnot(None)).first()
     
     return whitelist_entry.pin if whitelist_entry else tenant.current_pin
 
 def is_caller_whitelisted_verbal(tenant, caller_digits):
     """Check if caller is whitelisted for verbal authentication"""
+    normalized_caller = norm_digits(caller_digits)
     whitelist_entry = Whitelist.query.filter_by(
         screening_number=tenant.screening_number,
-        number=caller_digits,
+        number=normalized_caller,
         verbal=True
     ).first()
     
@@ -32,19 +34,23 @@ def is_caller_whitelisted_verbal(tenant, caller_digits):
 
 def is_caller_whitelisted_bypass(tenant, caller_digits):
     """Check if caller is whitelisted and should bypass authentication entirely"""
+    normalized_caller = norm_digits(caller_digits)
     whitelist_entry = Whitelist.query.filter_by(
         screening_number=tenant.screening_number,
-        number=caller_digits
+        number=normalized_caller
     ).first()
     
     return bool(whitelist_entry)
 
 def auto_whitelist_caller(tenant, caller_digits, custom_pin=None):
     """Automatically add caller to whitelist after successful authentication"""
+    # Normalize caller digits to match storage format
+    normalized_caller = norm_digits(caller_digits)
+    
     # Check if already whitelisted
     existing = Whitelist.query.filter_by(
         screening_number=tenant.screening_number,
-        number=caller_digits
+        number=normalized_caller
     ).first()
     
     if existing:
@@ -53,7 +59,7 @@ def auto_whitelist_caller(tenant, caller_digits, custom_pin=None):
     # Add to whitelist
     whitelist_entry = Whitelist(
         screening_number=tenant.screening_number,
-        number=caller_digits,
+        number=normalized_caller,
         pin=custom_pin,
         verbal=False  # Default to PIN-only for auto-whitelisted numbers
     )
@@ -61,7 +67,7 @@ def auto_whitelist_caller(tenant, caller_digits, custom_pin=None):
     db.session.add(whitelist_entry)
     try:
         db.session.commit()
-        print(f"Auto-whitelisted caller {caller_digits} for tenant {tenant.screening_number}")
+        print(f"Auto-whitelisted caller {normalized_caller} for tenant {tenant.screening_number}")
     except Exception as e:
         db.session.rollback()
         print(f"Failed to auto-whitelist caller: {e}")
