@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}How CallBunker Works{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-6 fw-bold">How CallBunker Works</h1>
+                <p class="lead">Step-by-step call screening with TextNow</p>
+            </div>
+
+            <!-- Protection Warning -->
+            <div class="alert alert-warning mb-5" role="alert">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-exclamation-triangle fa-lg me-3 mt-1"></i>
+                    <div>
+                        <h6 class="alert-heading">Important: Protection Only Covers Your TextNow Number</h6>
+                        <p class="mb-2">CallBunker screens calls that come through your TextNow number. If someone has your real/direct phone number, they can still call you directly and bypass the screening.</p>
+                        <p class="mb-0"><strong>Best Protection:</strong> Give out ONLY your TextNow number and keep your real number private.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4 Step Process -->
+            <div class="row mb-5">
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-phone text-primary fa-lg"></i>
+                            </div>
+                            <h6>1. Caller Dials</h6>
+                            <p class="small text-muted">Someone calls your TextNow number</p>
+                            <code class="small">+1-555-NEW-NUM</code>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-arrow-right text-info fa-lg"></i>
+                            </div>
+                            <h6>2. TextNow Forwards</h6>
+                            <p class="small text-muted">Automatically forwards to CallBunker</p>
+                            <code class="small">+1-631-641-7727</code>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-shield-alt text-warning fa-lg"></i>
+                            </div>
+                            <h6>3. CallBunker Screens</h6>
+                            <p class="small text-muted">Asks for PIN or verbal code</p>
+                            <code class="small">Enter 1122</code>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="fas fa-check-circle text-success fa-lg"></i>
+                            </div>
+                            <h6>4. Call Connected</h6>
+                            <p class="small text-muted">Verified calls ring your phone</p>
+                            <code class="small">+1-555-987-6543</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What Happens -->
+            <div class="row mb-5">
+                <div class="col-md-6 mb-4">
+                    <div class="card border-success h-100">
+                        <div class="card-header bg-success">
+                            <h6 class="mb-0 text-white"><i class="fas fa-check-circle me-2"></i>Legitimate Caller</h6>
+                        </div>
+                        <div class="card-body">
+                            <ol class="small mb-3">
+                                <li>Calls your TextNow number</li>
+                                <li>Gets forwarded to CallBunker</li>
+                                <li>Enters correct PIN (1122) or says "open sesame"</li>
+                                <li>Call connects to your real phone</li>
+                                <li><strong>Gets auto-whitelisted</strong> for future calls</li>
+                            </ol>
+                            <div class="alert alert-success small mb-0">
+                                <i class="fas fa-magic me-1"></i> After first successful call, they bypass screening next time!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card border-danger h-100">
+                        <div class="card-header bg-danger">
+                            <h6 class="mb-0 text-white"><i class="fas fa-times-circle me-2"></i>Spam/Robocaller</h6>
+                        </div>
+                        <div class="card-body">
+                            <ol class="small mb-3">
+                                <li>Calls your TextNow number</li>
+                                <li>Gets forwarded to CallBunker</li>
+                                <li>Can't enter PIN or say verbal code</li>
+                                <li>Call gets terminated or sent to voicemail</li>
+                                <li><strong>Gets rate-limited</strong> after multiple attempts</li>
+                            </ol>
+                            <div class="alert alert-danger small mb-0">
+                                <i class="fas fa-ban me-1"></i> Calls to your TextNow number get blocked - spam can't reach you through this protected line!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Setup Requirements -->
+            <div class="card mb-5">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cog me-2"></i>What You Need to Set Up</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3 text-center">
+                            <i class="fas fa-mobile-alt fa-2x mb-3"></i>
+                            <h6>TextNow Account</h6>
+                            <ul class="small text-start">
+                                <li>Free account at textnow.com</li>
+                                <li>Choose your area code</li>
+                                <li>Get free phone number</li>
+                                <li>Set up call forwarding</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 mb-3 text-center">
+                            <i class="fas fa-shield-alt fa-2x mb-3"></i>
+                            <h6>CallBunker Setup</h6>
+                            <ul class="small text-start">
+                                <li>Register your TextNow number</li>
+                                <li>Enter your real phone number</li>
+                                <li>Choose PIN and verbal code</li>
+                                <li>Start giving out TextNow number</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 mb-3 text-center">
+                            <i class="fas fa-users fa-2x mb-3"></i>
+                            <h6>Tell Your Contacts</h6>
+                            <ul class="small text-start">
+                                <li>Give them your TextNow number</li>
+                                <li>Tell them the PIN (1122)</li>
+                                <li>Or verbal code ("open sesame")</li>
+                                <li>They only need it once!</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="text-center">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Ready to Set Up CallBunker?</h5>
+                        <p class="card-text">Get your free TextNow number and start screening calls in 2 minutes!</p>
+                        <a href="/signup" class="btn btn-primary btn-lg">
+                            <i class="fas fa-rocket me-2"></i>Start Setup Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

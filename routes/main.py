@@ -21,7 +21,7 @@ def carrier_forwarding():
 @main_bp.route('/how-it-works')
 def how_it_works():
     """Visual walkthrough of how CallBunker works with TextNow"""
-    return render_template('visual_walkthrough.html')
+    return render_template('how_it_works_simple.html')
 
 @main_bp.route('/health')
 def health():
