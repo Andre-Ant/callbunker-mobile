@@ -236,6 +236,10 @@ def test_autowhitelist(screening_number):
     tenant = Tenant.query.get_or_404(screening_number)
     test_number = request.form.get('test_number', '+15551234567').strip()
     
+    # Get all whitelisted numbers for debugging
+    all_whitelist = Whitelist.query.filter_by(screening_number=screening_number).all()
+    whitelist_numbers = [wl.number for wl in all_whitelist]
+    
     # Check current whitelist status
     existing = Whitelist.query.filter_by(
         screening_number=screening_number,
@@ -246,14 +250,16 @@ def test_autowhitelist(screening_number):
         return jsonify({
             'success': True,
             'message': f'Number {test_number} is already whitelisted and would bypass authentication.',
-            'whitelisted': True
+            'whitelisted': True,
+            'debug_info': f'Found in whitelist. All whitelisted numbers: {whitelist_numbers}'
         })
     else:
         return jsonify({
             'success': True,
             'message': f'Number {test_number} is NOT whitelisted. First call would require PIN ({tenant.current_pin}), then auto-whitelist for future calls.',
             'whitelisted': False,
-            'pin': tenant.current_pin
+            'pin': tenant.current_pin,
+            'debug_info': f'Not found in whitelist. All whitelisted numbers: {whitelist_numbers}. Searched for: {test_number}'
         })
 
 @admin_bp.route('/tenant/<screening_number>/delete', methods=['POST'])

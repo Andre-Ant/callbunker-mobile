@@ -265,6 +265,7 @@ document.getElementById('testForm').addEventListener('submit', async function(e)
                         <i class="fas fa-check-circle me-2"></i>
                         <strong>Already Whitelisted!</strong><br>
                         ${result.message}
+                        ${result.debug_info ? `<br><small class="text-muted">Debug: ${result.debug_info}</small>` : ''}
                     </div>`;
             } else {
                 resultDiv.innerHTML = `
@@ -278,6 +279,7 @@ document.getElementById('testForm').addEventListener('submit', async function(e)
                             <li>First call: Caller enters PIN <code>${result.pin}</code> → connects → auto-whitelisted</li>
                             <li>Future calls: Caller connects directly (no PIN needed!)</li>
                         </ol>
+                        ${result.debug_info ? `<br><small class="text-muted">Debug: ${result.debug_info}</small>` : ''}
                     </div>`;
             }
         } else {
