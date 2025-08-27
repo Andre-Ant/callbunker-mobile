@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, render_template, redirect, url_for, make_response
 from utils.auth import require_admin_web
 
 main_bp = Blueprint('main', __name__)
@@ -11,7 +11,11 @@ def index():
 @main_bp.route('/signup')
 def signup():
     """Simple user signup page"""
-    return render_template('simple_onboarding.html')
+    response = make_response(render_template('simple_onboarding.html'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @main_bp.route('/carrier-forwarding')
 def carrier_forwarding():
@@ -21,7 +25,11 @@ def carrier_forwarding():
 @main_bp.route('/how-it-works')
 def how_it_works():
     """Visual walkthrough of how CallBunker works with TextNow"""
-    return render_template('how_it_works_simple.html')
+    response = make_response(render_template('how_it_works_simple.html'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @main_bp.route('/health')
 def health():
