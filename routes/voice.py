@@ -127,7 +127,8 @@ def on_verified(tenant, forwarded_from=None):
             forward_to_number,
             timeout=30,
             hangup_on_star=True,
-            action="/voice/call_complete"
+            action="/voice/call_complete",
+            caller_id="+16316417727"  # Use CallBunker number as caller ID to prevent loops
         )
     
     return xml_response(vr)
@@ -159,8 +160,17 @@ def voice_incoming():
         to_number = '+' + to_number
     forwarded_from = request.form.get("ForwardedFrom", "").strip()  # User's real number
     from_digits = norm_digits(request.form.get("From", ""))
+    from_number = request.form.get("From", "").strip()
     
     print(f"To: {to_number}, ForwardedFrom: {forwarded_from}, From: {from_digits}")
+    
+    # LOOP DETECTION: If the call is coming FROM CallBunker number, it's a loop
+    if from_number == "+16316417727":
+        print("LOOP DETECTED: Call is from CallBunker itself, terminating to prevent infinite loop")
+        vr = VoiceResponse()
+        vr.say("Loop detected. Call terminated.", voice="polly.Joanna")
+        vr.hangup()
+        return xml_response(vr)
     
     # If no ForwardedFrom, check if the caller (From) is a registered tenant
     # This handles carrier call forwarding which doesn't set ForwardedFrom
