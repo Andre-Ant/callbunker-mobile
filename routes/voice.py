@@ -153,6 +153,9 @@ def voice_incoming():
     print(f"WEBHOOK CALLED - Form data: {dict(request.form)}")
     
     to_number = request.form.get("To", "").strip()  # Shared screening number
+    # Ensure proper E.164 format
+    if to_number and not to_number.startswith('+'):
+        to_number = '+' + to_number
     forwarded_from = request.form.get("ForwardedFrom", "").strip()  # User's real number
     from_digits = norm_digits(request.form.get("From", ""))
     
@@ -175,8 +178,8 @@ def voice_incoming():
             vr.hangup()
             return xml_response(vr)
     
-    # Look up tenant by their real number (ForwardedFrom or From)
-    tenant = get_tenant_by_real_number(forwarded_from)
+    # Look up tenant by the screening number (To number)
+    tenant = get_tenant_or_404(to_number)
     
     # Check if caller is blocked
     remaining = is_blocked(tenant, from_digits)
