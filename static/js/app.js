@@ -1,8 +1,8 @@
 // CallBunker - Frontend JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-dismiss alerts after 5 seconds
-    const alerts = document.querySelectorAll('.alert');
+    // Auto-dismiss alerts after 5 seconds (except sticky benefits)
+    const alerts = document.querySelectorAll('.alert:not(.position-sticky)');
     alerts.forEach(function(alert) {
         setTimeout(function() {
             const bsAlert = new bootstrap.Alert(alert);
