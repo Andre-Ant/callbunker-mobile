@@ -13,6 +13,11 @@ def signup():
     """Simple user signup page"""
     return render_template('simple_onboarding.html')
 
+@main_bp.route('/carrier-forwarding')
+def carrier_forwarding():
+    """Better approach: Forward from existing phone number"""
+    return render_template('carrier_forwarding.html')
+
 @main_bp.route('/health')
 def health():
     """Health check endpoint"""
