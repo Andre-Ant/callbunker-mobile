@@ -145,6 +145,23 @@ def voicemail_prompt(to_number):
     )
     return xml_response(vr)
 
+@voice_bp.route('/otp-verification', methods=['POST'])
+def voice_otp_verification():
+    """
+    Special endpoint for Google Voice OTP verification calls.
+    Bypasses authentication and forwards directly to user.
+    """
+    # Get the target phone number from URL parameter
+    to_number = request.args.get('to', '+15086388084')  # Default to your number
+    
+    print(f"OTP VERIFICATION CALL - Forwarding directly to {to_number}")
+    
+    vr = VoiceResponse()
+    vr.say("Connecting your verification call now.", voice="polly.Joanna")
+    vr.dial(to_number, timeout=30)
+    
+    return xml_response(vr)
+
 @voice_bp.route('/incoming', methods=['POST'])
 def voice_incoming():
     """
