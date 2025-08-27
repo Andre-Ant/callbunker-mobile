@@ -122,14 +122,22 @@ def on_verified(tenant, forwarded_from=None):
             action="/voice/voicemail_complete"
         )
     else:  # bridge mode
-        vr.say("Connecting your call now.", voice="polly.Joanna")
-        dial = vr.dial(
-            forward_to_number,
-            timeout=30,
-            hangup_on_star=True,
-            action="/voice/call_complete",
-            caller_id="+16316417727"  # Use CallBunker number as caller ID to prevent loops
-        )
+        # For carrier forwarding, we need special handling to prevent loops
+        if forward_to_number == tenant.screening_number:
+            # This is carrier forwarding - user forwards their phone to CallBunker
+            # We can't forward back to the same number that's forwarding to us!
+            vr.say("Your call has been verified. However, call forwarding is creating a loop. Please disable call forwarding on your phone and call back directly, or contact support.", voice="polly.Joanna")
+            vr.hangup()
+        else:
+            # Normal forwarding to a different number
+            vr.say("Connecting your call now.", voice="polly.Joanna")
+            dial = vr.dial(
+                forward_to_number,
+                timeout=30,
+                hangup_on_star=True,
+                action="/voice/call_complete",
+                caller_id="+16316417727"  # Use CallBunker number as caller ID
+            )
     
     return xml_response(vr)
 
