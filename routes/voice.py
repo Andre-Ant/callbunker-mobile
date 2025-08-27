@@ -178,8 +178,8 @@ def voice_incoming():
             vr.hangup()
             return xml_response(vr)
     
-    # Look up tenant by the screening number (To number)
-    tenant = get_tenant_or_404(to_number)
+    # Look up tenant by the ForwardedFrom number (user's real number)
+    tenant = get_tenant_or_404(forwarded_from)
     
     # Check if caller is blocked
     remaining = is_blocked(tenant, from_digits)
