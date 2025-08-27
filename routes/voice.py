@@ -111,6 +111,7 @@ def on_verified(tenant, forwarded_from=None):
     
     # Forward to the tenant's configured destination number
     forward_to_number = tenant.forward_to
+    print(f"ON_VERIFIED: Forwarding to {forward_to_number} in {mode} mode for tenant {tenant.screening_number}")
     
     if mode == "voicemail":
         vr.say("Thank you for verification. Please leave your message after the tone.", voice="polly.Joanna")
@@ -193,6 +194,7 @@ def voice_incoming():
     if is_caller_whitelisted_bypass(tenant, from_digits):
         # Clear any existing failures since this is a trusted caller
         clear_failures(tenant, from_digits)
+        print(f"BYPASS AUTH: Caller {from_digits} is whitelisted, connecting directly")
         # Skip authentication and connect directly
         return on_verified(tenant, forwarded_from)
     
