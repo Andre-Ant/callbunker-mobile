@@ -18,6 +18,11 @@ def carrier_forwarding():
     """Better approach: Forward from existing phone number"""
     return render_template('carrier_forwarding.html')
 
+@main_bp.route('/how-it-works')
+def how_it_works():
+    """Visual walkthrough of how CallBunker works with TextNow"""
+    return render_template('visual_walkthrough.html')
+
 @main_bp.route('/health')
 def health():
     """Health check endpoint"""
