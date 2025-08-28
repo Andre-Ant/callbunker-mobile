@@ -132,17 +132,11 @@ def on_verified(tenant, forwarded_from=None):
             # Normal forwarding to a different number
             vr.say("Connecting your call now.", voice="polly.Joanna")
             
-            # Determine caller ID - use Google Voice number if available
+            # Use the original caller's number as caller ID to avoid spam warnings
             from flask import request
             from_number = request.form.get("From", "").strip()
-            if from_number in ["+16179421250", "16179421250"]:
-                # For Google Voice calls, show the Google Voice number as caller ID
-                caller_id = "+16179421250"
-                print(f"Using Google Voice number {caller_id} as caller ID")
-            else:
-                # For other calls, use CallBunker number
-                caller_id = "+16316417727"
-                print(f"Using CallBunker number {caller_id} as caller ID")
+            caller_id = from_number  # Show the actual caller's number
+            print(f"Using original caller number {caller_id} as caller ID")
             
             dial = vr.dial(
                 forward_to_number,
