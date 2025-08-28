@@ -252,8 +252,14 @@ def voice_incoming():
                 vr.hangup()
                 return xml_response(vr)
     else:
-        # Look up tenant by the ForwardedFrom number (user's real number)
-        tenant = get_tenant_or_404(forwarded_from)
+        # For Google Voice calls, ForwardedFrom is the Google Voice number, not the real number
+        # We need to use the CallBunker tenant configuration
+        if forwarded_from == "+16179421250":  # Your Google Voice number
+            print(f"Google Voice forwarded call detected via ForwardedFrom: {forwarded_from}")
+            tenant = get_tenant_or_404("+16316417727")  # Use CallBunker tenant
+        else:
+            # Look up tenant by the ForwardedFrom number (user's real number for other services)
+            tenant = get_tenant_or_404(forwarded_from)
     
 
     
