@@ -5,13 +5,13 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    """Main dashboard - redirect to TextNow signup"""
-    return redirect(url_for('main.signup'))
+    """Main dashboard - redirect to multi-user signup"""
+    return redirect(url_for('multi_user.signup'))
 
 @main_bp.route('/signup')
 def signup():
-    """Main signup page - now redirects to Google Voice setup"""
-    response = make_response(redirect(url_for('admin.google_voice_setup')))
+    """Main signup page - redirect to multi-user signup"""
+    response = make_response(redirect(url_for('multi_user.signup')))
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
