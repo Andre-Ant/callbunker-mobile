@@ -10,7 +10,11 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
-## August 28, 2025 - Language Cleanup Complete
+## August 28, 2025 - How It Works Page Complete Update
+- **Google Voice Migration**: Updated entire "How It Works" page from outdated TextNow to current Google Voice system
+- **Critical Setup Warning**: Added prominent red alert warning users to forward Google Voice to Defense Number (not real phone)
+- **Auto-Whitelist Explanation**: Added comprehensive section explaining how trusted callers bypass authentication after first success
+- **Current Authentication**: Updated all examples to use active PIN (8322) and verbal code ("Black widow")
 - **Grammar Fix**: Corrected "You Get Call" to "You Get Calls" in signup page step 4
 - **Twilio References Removed**: Hidden all user-facing Twilio prompts and technical terms from dashboard and interface
 - **Flash Messages**: Updated to use "Defense Number" instead of technical terms
