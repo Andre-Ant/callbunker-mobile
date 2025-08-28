@@ -279,10 +279,13 @@ def voice_incoming():
     
     # Start verification process
     vr = VoiceResponse()
+    verify_url = f"/voice/verify?attempts=0&to={quote(to_number or '')}&forwarded_from={quote(forwarded_from or '')}"
+    print(f"GENERATING AUTH PROMPT: Verify URL = {verify_url}")
+    
     gather = Gather(
         input="speech dtmf",
         num_digits=4,
-        action=f"/voice/verify?attempts=0&to={quote(to_number or '')}&forwarded_from={quote(forwarded_from or '')}",
+        action=verify_url,
         method="POST",
         timeout=6,
         speech_timeout="auto",
@@ -293,6 +296,9 @@ def voice_incoming():
     # Fallback if no input received - terminate call completely
     vr.say("No input received. This call will now end.", voice="polly.Joanna")
     vr.hangup()
+    
+    twiml_response = vr.to_xml()
+    print(f"SENDING TWIML AUTH RESPONSE: {twiml_response}")
     return xml_response(vr)
 
 @voice_bp.route('/retry', methods=['GET', 'POST'])
