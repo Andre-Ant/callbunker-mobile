@@ -157,16 +157,17 @@ def voicemail_prompt(to_number):
 def voice_otp_verification():
     """
     Special endpoint for Google Voice OTP verification calls.
-    Bypasses authentication and forwards directly to user.
+    When Google Voice calls +16316417727 to verify it, forward directly to user's phone.
     """
-    # Get the target phone number from URL parameter
-    to_number = request.args.get('to', '+15086388084')  # Default to your number
+    from_number = request.form.get('From', '')
+    to_number = request.form.get('To', '')
     
-    print(f"OTP VERIFICATION CALL - Forwarding directly to {to_number}")
+    print(f"OTP VERIFICATION CALL - From: {from_number}, To: {to_number}")
+    print(f"Google Voice verification call - Forwarding directly to +15086388084")
     
     vr = VoiceResponse()
-    vr.say("Connecting your verification call now.", voice="polly.Joanna")
-    vr.dial(to_number, timeout=30)
+    vr.say("This is your Google Voice verification call. Connecting now.", voice="polly.Joanna")
+    vr.dial("+15086388084", timeout=30)  # Your real phone number
     
     return xml_response(vr)
 
