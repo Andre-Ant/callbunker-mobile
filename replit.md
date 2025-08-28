@@ -10,6 +10,12 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## August 28, 2025 - Language Cleanup Complete
+- **Grammar Fix**: Corrected "You Get Call" to "You Get Calls" in signup page step 4
+- **Twilio References Removed**: Hidden all user-facing Twilio prompts and technical terms from dashboard and interface
+- **Flash Messages**: Updated to use "Defense Number" instead of technical terms
+- **JavaScript Cleanup**: Removed webhook configuration displays from regular user view (admin-only now)
+
 ## August 28, 2025 - Removed Multi-User Jargon for User Clarity
 - **Terminology Simplification**: Removed all "Multi-User" and "Personal" jargon from user-facing content
 - **Template Updates**: Changed "Multi-User CallBunker" to "Business CallBunker" in comparisons and "CallBunker" in main interfaces
