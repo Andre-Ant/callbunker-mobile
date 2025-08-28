@@ -198,7 +198,7 @@ def voice_incoming():
     print(f"To: {to_number}, ForwardedFrom: {forwarded_from}, From: {from_digits}")
     
     # CHECK FOR GOOGLE VOICE OTP VERIFICATION CALLS
-    # These come from Google Voice verification service numbers and should forward to the correct user
+    # These are for your personal Google Voice setup - forward to your phone
     google_voice_verification_numbers = [
         '12024558888',  # Google Voice verification service
         '18005551234',  # Another Google verification number
@@ -208,22 +208,11 @@ def voice_incoming():
     caller_digits_only = norm_digits(from_number)
     if caller_digits_only in google_voice_verification_numbers:
         print(f"GOOGLE VOICE OTP VERIFICATION DETECTED from {from_number}")
-        # For Google Voice verification, we need to determine which user is setting up their number
-        # Look up the tenant by the CallBunker number (to_number) and forward to their configured number
-        try:
-            tenant = get_tenant_or_404(to_number)
-            forward_to = tenant.forward_to
-            print(f"Forwarding Google Voice verification to tenant's number: {forward_to}")
-            vr = VoiceResponse()
-            vr.say("This is your Google Voice verification call. Connecting now.", voice="polly.Joanna")
-            vr.dial(forward_to, timeout=30)
-            return xml_response(vr)
-        except:
-            print(f"No tenant found for {to_number}, cannot forward Google Voice verification")
-            vr = VoiceResponse()
-            vr.say("Google Voice verification call received, but no user configuration found. Please contact support.", voice="polly.Joanna")
-            vr.hangup()
-            return xml_response(vr)
+        print(f"Forwarding to your phone: +15086388084")
+        vr = VoiceResponse()
+        vr.say("This is your Google Voice verification call. Connecting now.", voice="polly.Joanna")
+        vr.dial("+15086388084", timeout=30)  # Your real phone number
+        return xml_response(vr)
     
     # LOOP DETECTION: If the call is coming FROM CallBunker number, it's a loop
     if from_number == "+16316417727":
