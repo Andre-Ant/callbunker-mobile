@@ -282,16 +282,20 @@ def voice_incoming():
     verify_url = f"/voice/verify?attempts=0&to={quote(to_number or '')}&forwarded_from={quote(forwarded_from or '')}"
     print(f"GENERATING AUTH PROMPT: Verify URL = {verify_url}")
     
+    # Add a brief pause to ensure audio channel is ready
+    vr.pause(length=1)
+    
     gather = Gather(
         input="speech dtmf",
         num_digits=4,
         action=verify_url,
         method="POST",
-        timeout=6,
+        timeout=8,  # Increased timeout
         speech_timeout="auto",
         finish_on_key=""
     )
-    gather.say("Please enter your four digit pin, or say your verbal code.", voice="polly.Joanna")
+    # Use a different voice and slower speech for better delivery
+    gather.say("Please enter your four digit pin, or say your verbal code.", voice="alice", rate="slow")
     vr.append(gather)
     # Fallback if no input received - terminate call completely
     vr.say("No input received. This call will now end.", voice="polly.Joanna")
