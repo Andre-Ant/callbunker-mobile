@@ -265,12 +265,17 @@ def voice_incoming():
         return xml_response(vr)
     
     # Check if caller is whitelisted and should bypass authentication
-    if is_caller_whitelisted_bypass(tenant, from_digits):
+    is_whitelisted = is_caller_whitelisted_bypass(tenant, from_digits)
+    print(f"WHITELIST CHECK: Caller {from_digits}, Whitelisted: {is_whitelisted}")
+    
+    if is_whitelisted:
         # Clear any existing failures since this is a trusted caller
         clear_failures(tenant, from_digits)
         print(f"BYPASS AUTH: Caller {from_digits} is whitelisted, connecting directly")
         # Skip authentication and connect directly
         return on_verified(tenant, forwarded_from)
+    
+    print(f"AUTH REQUIRED: Caller {from_digits} not whitelisted, starting authentication")
     
     # Start verification process
     vr = VoiceResponse()
