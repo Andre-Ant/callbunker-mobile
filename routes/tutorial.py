@@ -17,19 +17,7 @@ def format_phone_display(phone):
         return f"({digits[1:4]}) {digits[4:7]}-{digits[7:11]}"
     return phone
 
-@tutorial_bp.route('/personal')
-def personal_tutorial():
-    """Interactive tutorial for personal CallBunker system"""
-    # Get the main tenant (shared system)
-    tenant = Tenant.query.filter_by(screening_number='+16316417727').first()
-    
-    if not tenant:
-        flash('Personal system not configured. Please contact support.', 'error')
-        return redirect(url_for('main.index'))
-    
-    return render_template('tutorial/personal.html', 
-                         tenant=tenant,
-                         format_phone=format_phone_display)
+
 
 @tutorial_bp.route('/multi-user/<int:user_id>')
 def multi_user_tutorial(user_id):
@@ -44,8 +32,9 @@ def multi_user_tutorial(user_id):
 def update_step_progress():
     """Track user progress through tutorial steps"""
     try:
-        step_id = request.json.get('step_id')
-        completed = request.json.get('completed', False)
+        data = request.get_json() or {}
+        step_id = data.get('step_id')
+        completed = data.get('completed', False)
         
         # Store in session for now (could be database later)
         if 'tutorial_progress' not in session:
@@ -60,41 +49,26 @@ def update_step_progress():
 
 @tutorial_bp.route('/test-call', methods=['POST'])
 def initiate_test_call():
-    """Provide test call instructions"""
+    """Provide test call instructions for multi-user system"""
     try:
-        system_type = request.json.get('system_type')  # 'personal' or 'multi-user'
-        user_id = request.json.get('user_id')
+        data = request.get_json() or {}
+        user_id = data.get('user_id')
         
-        if system_type == 'personal':
-            tenant = Tenant.query.filter_by(screening_number='+16316417727').first()
-            if not tenant:
-                return jsonify({'success': False, 'error': 'Personal system not found'})
+        if not user_id:
+            return jsonify({'success': False, 'error': 'User ID required'})
             
-            response = {
-                'success': True,
-                'call_number': '(617) 942-1250',  # User's Google Voice
-                'pin': tenant.current_pin,
-                'verbal_code': tenant.verbal_code,
-                'callbunker_number': format_phone_display(tenant.screening_number),
-                'instructions': 'Call your Google Voice number. You\'ll be asked for authentication.'
-            }
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'success': False, 'error': 'User not found'})
         
-        elif system_type == 'multi-user' and user_id:
-            user = User.query.get(user_id)
-            if not user:
-                return jsonify({'success': False, 'error': 'User not found'})
-            
-            response = {
-                'success': True,
-                'call_number': format_phone_display(user.google_voice_number),
-                'pin': user.pin,
-                'verbal_code': user.verbal_code,
-                'callbunker_number': format_phone_display(user.assigned_twilio_number),
-                'instructions': 'Call your Google Voice number. You\'ll be asked for authentication.'
-            }
-        
-        else:
-            return jsonify({'success': False, 'error': 'Invalid system type or missing user ID'})
+        response = {
+            'success': True,
+            'call_number': format_phone_display(user.google_voice_number),
+            'pin': user.pin,
+            'verbal_code': user.verbal_code,
+            'callbunker_number': format_phone_display(user.assigned_twilio_number),
+            'instructions': 'Call your Google Voice number. You\'ll be asked for authentication.'
+        }
         
         return jsonify(response)
         
