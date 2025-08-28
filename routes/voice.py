@@ -222,6 +222,8 @@ def voice_incoming():
             print(f"Google Voice call detected from {from_number} - using CallBunker tenant")
             # Use the CallBunker tenant configuration for Google Voice calls
             tenant = get_tenant_or_404("+16316417727")
+            # Set forwarded_from to empty since Google Voice doesn't provide it
+            forwarded_from = ""
         else:
             # Check if the caller is a registered tenant for other carriers
             caller_number = request.form.get("From", "").strip()
@@ -317,13 +319,20 @@ def voice_verify():
     pressed = request.form.get("Digits")
     speech = request.form.get("SpeechResult")
     
+    # Handle Google Voice calls (no ForwardedFrom) vs regular forwarded calls
+    from_number = norm_digits(request.form.get("From", ""))
     if not forwarded_from:
-        vr = VoiceResponse()
-        vr.say("Invalid request. Goodbye.", voice="polly.Joanna")
-        vr.hangup()
-        return xml_response(vr)
-    
-    tenant = get_tenant_by_real_number(forwarded_from)
+        # Check if this is a Google Voice call
+        if from_number in ["16179421250", "+16179421250"]:
+            print(f"Google Voice verification call from {from_number}")
+            tenant = get_tenant_or_404("+16316417727")  # Use CallBunker tenant for Google Voice
+        else:
+            vr = VoiceResponse()
+            vr.say("Invalid request. Goodbye.", voice="polly.Joanna")
+            vr.hangup()
+            return xml_response(vr)
+    else:
+        tenant = get_tenant_by_real_number(forwarded_from)
     
     # Check if caller is blocked
     remaining = is_blocked(tenant, from_digits)
