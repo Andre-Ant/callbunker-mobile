@@ -1,0 +1,487 @@
+{% extends "base.html" %}
+
+{% block title %}CallBunker Multi-User Tutorial{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="text-center mb-4">
+        <h1 class="text-white">
+            <i class="fas fa-graduation-cap me-2 text-primary"></i>
+            Multi-User CallBunker Tutorial
+        </h1>
+        <p class="text-light">Set up your personal CallBunker number: <code class="text-warning">{{ format_phone(user.assigned_twilio_number) }}</code></p>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="card border-primary mb-4" style="background: rgba(13, 110, 253, 0.1);">
+        <div class="card-body">
+            <h6 class="text-primary mb-3">
+                <i class="fas fa-tasks me-2"></i>Setup Progress
+            </h6>
+            <div class="progress mb-2" style="height: 20px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: 0%" id="progress-bar">
+                    <span class="fw-bold" id="progress-text">0 of 5 steps completed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tutorial Steps -->
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Step 1: Understanding Your System -->
+            <div class="tutorial-step card border-secondary mb-4" data-step="1" style="background: rgba(108, 117, 125, 0.1);">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-light">
+                        <span class="step-icon badge bg-secondary me-2">1</span>
+                        Understanding Your Personal System
+                    </h5>
+                    <div class="step-status">
+                        <i class="fas fa-circle text-muted"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-info">Your Unique Setup:</h6>
+                            <ul class="text-light">
+                                <li><strong>Your Google Voice:</strong> <code class="text-success">{{ format_phone(user.google_voice_number) }}</code></li>
+                                <li><strong>Your CallBunker Number:</strong> <code class="text-warning">{{ format_phone(user.assigned_twilio_number) }}</code></li>
+                                <li><strong>Your Real Phone:</strong> <code class="text-info">{{ format_phone(user.real_phone_number) }}</code></li>
+                            </ul>
+                            <div class="alert alert-info border-info" style="background: rgba(13, 202, 240, 0.2);">
+                                <small class="text-light">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    This CallBunker number is exclusively yours - no sharing!
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">How It Works:</h6>
+                            <div class="flow-diagram text-center">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <span class="badge bg-success">Caller</span>
+                                    <i class="fas fa-arrow-right text-muted mx-1"></i>
+                                    <span class="badge bg-warning small">Google Voice</span>
+                                    <i class="fas fa-arrow-right text-muted mx-1"></i>
+                                    <span class="badge bg-danger small">CallBunker</span>
+                                    <i class="fas fa-arrow-right text-muted mx-1"></i>
+                                    <span class="badge bg-info small">Your Phone</span>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <h6 class="text-success">Benefits:</h6>
+                                <ul class="text-light small">
+                                    <li>Personal authentication codes</li>
+                                    <li>Individual call logs</li>
+                                    <li>Private whitelist management</li>
+                                    <li>Dedicated number routing</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-success mt-3" onclick="completeStep(1)">
+                        <i class="fas fa-check me-2"></i>I Understand My Personal Setup
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Configure Google Voice -->
+            <div class="tutorial-step card border-secondary mb-4" data-step="2" style="background: rgba(108, 117, 125, 0.1);">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-light">
+                        <span class="step-icon badge bg-secondary me-2">2</span>
+                        Configure Your Google Voice Forwarding
+                    </h5>
+                    <div class="step-status">
+                        <i class="fas fa-circle text-muted"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning border-warning" style="background: rgba(255, 193, 7, 0.2);">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Critical:</strong> Caller ID must be set to <strong>OFF</strong> for proper caller identification
+                    </div>
+                    
+                    <h6 class="text-primary">Step-by-Step Instructions:</h6>
+                    <ol class="text-light">
+                        <li>Go to <a href="https://voice.google.com" target="_blank" class="text-info">voice.google.com</a></li>
+                        <li>Click <span class="badge bg-secondary">Settings</span> → <span class="badge bg-secondary">Calls</span></li>
+                        <li>Set <strong>Caller ID</strong> to <span class="text-danger">OFF</span></li>
+                        <li>Under "Forwarding", add your personal CallBunker number: 
+                            <code class="text-warning bg-dark px-2 py-1 rounded">{{ format_phone(user.assigned_twilio_number) }}</code>
+                        </li>
+                        <li>Enable forwarding to your CallBunker number</li>
+                        <li>Remove any other forwarding numbers</li>
+                    </ol>
+                    
+                    <div class="alert alert-success border-success" style="background: rgba(25, 135, 84, 0.2);">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Pro Tip:</strong> Your personal CallBunker number ensures no conflicts with other users
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button class="btn btn-primary me-2" onclick="window.open('https://voice.google.com', '_blank')">
+                            <i class="fas fa-external-link-alt me-2"></i>Open Google Voice
+                        </button>
+                        <button class="btn btn-success" onclick="completeStep(2)">
+                            <i class="fas fa-check me-2"></i>Forwarding Configured
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Learn Authentication -->
+            <div class="tutorial-step card border-secondary mb-4" data-step="3" style="background: rgba(108, 117, 125, 0.1);">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-light">
+                        <span class="step-icon badge bg-secondary me-2">3</span>
+                        Your Personal Authentication Codes
+                    </h5>
+                    <div class="step-status">
+                        <i class="fas fa-circle text-muted"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info border-info" style="background: rgba(13, 202, 240, 0.2);">
+                        <i class="fas fa-user-shield me-2"></i>
+                        <strong>Personal Codes:</strong> These are unique to your account and can be customized
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-warning">
+                                <i class="fas fa-keyboard me-2"></i>Your PIN Method
+                            </h6>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text bg-warning text-dark">PRESS:</span>
+                                <input type="text" class="form-control bg-dark text-warning fw-bold fs-4 text-center" 
+                                       value="{{ user.pin }}" readonly>
+                            </div>
+                            <small class="text-light">Callers enter this on their keypad</small>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success">
+                                <i class="fas fa-microphone me-2"></i>Your Verbal Code
+                            </h6>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text bg-success text-white">SAY:</span>
+                                <input type="text" class="form-control bg-dark text-success fw-bold" 
+                                       value="{{ user.verbal_code }}" readonly>
+                            </div>
+                            <small class="text-light">Callers can speak this phrase</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="alert alert-primary border-primary" style="background: rgba(13, 110, 253, 0.2);">
+                                <small class="text-light">
+                                    <i class="fas fa-edit me-2"></i>
+                                    You can customize these codes in your dashboard after setup
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-success border-success" style="background: rgba(25, 135, 84, 0.2);">
+                                <small class="text-light">
+                                    <i class="fas fa-users me-2"></i>
+                                    Auto-whitelist adds trusted callers automatically
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-success" onclick="completeStep(3)">
+                        <i class="fas fa-check me-2"></i>I Know My Authentication Codes
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Test Call -->
+            <div class="tutorial-step card border-secondary mb-4" data-step="4" style="background: rgba(108, 117, 125, 0.1);">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-light">
+                        <span class="step-icon badge bg-secondary me-2">4</span>
+                        Test Your Personal Setup
+                    </h5>
+                    <div class="step-status">
+                        <i class="fas fa-circle text-muted"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="text-primary">Ready to test your personal system?</h6>
+                            <p class="text-light mb-2">
+                                Have someone call your Google Voice number:
+                            </p>
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <code class="text-success bg-dark px-3 py-2 rounded fs-5">{{ format_phone(user.google_voice_number) }}</code>
+                                <small class="text-light">
+                                    They'll be asked for PIN <code class="text-warning">{{ user.pin }}</code> 
+                                    or to say "<span class="text-success">{{ user.verbal_code }}</span>"
+                                </small>
+                            </div>
+                            <div class="alert alert-info border-info" style="background: rgba(13, 202, 240, 0.2);">
+                                <small class="text-light">
+                                    <i class="fas fa-route me-2"></i>
+                                    Call route: Your Google Voice → Your CallBunker ({{ format_phone(user.assigned_twilio_number) }}) → Your Phone ({{ format_phone(user.real_phone_number) }})
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-primary mb-2" onclick="initiateTestCall('multi-user', {{ user.id }})">
+                                <i class="fas fa-phone me-2"></i>Get Test Instructions
+                            </button>
+                            <br>
+                            <button class="btn btn-success" onclick="completeStep(4)">
+                                <i class="fas fa-check me-2"></i>Test Successful
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="test-instructions" class="alert alert-primary border-primary mt-3" style="background: rgba(13, 110, 253, 0.2); display: none;">
+                        <h6 class="text-primary">Personal Test Call Instructions:</h6>
+                        <div id="test-details"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Personal Dashboard -->
+            <div class="tutorial-step card border-secondary mb-4" data-step="5" style="background: rgba(108, 117, 125, 0.1);">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-light">
+                        <span class="step-icon badge bg-secondary me-2">5</span>
+                        Explore Your Personal Dashboard
+                    </h5>
+                    <div class="step-status">
+                        <i class="fas fa-circle text-muted"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-user-friends fa-2x text-info mb-2"></i>
+                                <h6 class="text-info">Personal Whitelist</h6>
+                                <p class="text-light small">Manage your trusted callers</p>
+                                <a href="{{ url_for('multi_user.user_dashboard', user_id=user.id) }}" class="btn btn-outline-info btn-sm">
+                                    View Whitelist
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-chart-bar fa-2x text-warning mb-2"></i>
+                                <h6 class="text-warning">Call History</h6>
+                                <p class="text-light small">Your personal call logs</p>
+                                <a href="{{ url_for('multi_user.user_dashboard', user_id=user.id) }}" class="btn btn-outline-warning btn-sm">
+                                    View History
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-user-cog fa-2x text-success mb-2"></i>
+                                <h6 class="text-success">Personal Settings</h6>
+                                <p class="text-light small">Customize your codes</p>
+                                <a href="{{ url_for('multi_user.user_dashboard', user_id=user.id) }}" class="btn btn-outline-success btn-sm">
+                                    Settings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-success border-success mt-4" style="background: rgba(25, 135, 84, 0.2);">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="text-success mb-1">
+                                    <i class="fas fa-trophy me-2"></i>Congratulations!
+                                </h6>
+                                <p class="text-light mb-0 small">
+                                    Your personal CallBunker system is ready. You have a dedicated number with private authentication codes.
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <a href="{{ url_for('multi_user.user_dashboard', user_id=user.id) }}" class="btn btn-success">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <button class="btn btn-success btn-lg" onclick="completeStep(5)">
+                            <i class="fas fa-graduation-cap me-2"></i>Tutorial Complete!
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card border-info" style="background: rgba(13, 202, 240, 0.1);">
+                <div class="card-header">
+                    <h6 class="text-info mb-0">
+                        <i class="fas fa-user-shield me-2"></i>Your Personal Setup
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-light">Your Numbers:</h6>
+                        <div class="bg-dark p-2 rounded">
+                            <small class="text-light d-block">Google Voice: <code class="text-success">{{ format_phone(user.google_voice_number) }}</code></small>
+                            <small class="text-light d-block">CallBunker: <code class="text-warning">{{ format_phone(user.assigned_twilio_number) }}</code></small>
+                            <small class="text-light d-block">Real Phone: <code class="text-info">{{ format_phone(user.real_phone_number) }}</code></small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-light">Your Codes:</h6>
+                        <div class="bg-dark p-2 rounded">
+                            <small class="text-light d-block">PIN: <code class="text-warning">{{ user.pin }}</code></small>
+                            <small class="text-light d-block">Verbal: <code class="text-success">{{ user.verbal_code }}</code></small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-light">Monthly Cost:</h6>
+                        <div class="text-center">
+                            <span class="text-success fw-bold fs-4">$1.00</span>
+                            <small class="text-light d-block">Personal CallBunker number</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('multi_user.user_dashboard', user_id=user.id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
+                        </a>
+                        <a href="/demo/systems" class="btn btn-outline-info">
+                            <i class="fas fa-compare me-2"></i>Compare Systems
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Tips -->
+            <div class="card border-secondary mt-3" style="background: rgba(108, 117, 125, 0.1);">
+                <div class="card-header">
+                    <h6 class="text-light mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Quick Tips
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="text-light small mb-0">
+                        <li>Your CallBunker number is exclusively yours</li>
+                        <li>Customize PIN and verbal codes anytime</li>
+                        <li>Auto-whitelist learns trusted callers</li>
+                        <li>View call logs in your dashboard</li>
+                        <li>Google Voice caller ID must be OFF</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let completedSteps = new Set();
+
+function completeStep(stepNumber) {
+    completedSteps.add(stepNumber);
+    
+    // Update step visual state
+    const stepElement = document.querySelector(`[data-step="${stepNumber}"]`);
+    const stepIcon = stepElement.querySelector('.step-icon');
+    const stepStatus = stepElement.querySelector('.step-status i');
+    
+    stepIcon.classList.remove('bg-secondary');
+    stepIcon.classList.add('bg-success');
+    stepStatus.classList.remove('fa-circle', 'text-muted');
+    stepStatus.classList.add('fa-check-circle', 'text-success');
+    
+    // Update progress bar
+    updateProgress();
+    
+    // Track progress
+    fetch('/tutorial/step-progress', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            step_id: `multi_user_step_${stepNumber}_user_{{ user.id }}`,
+            completed: true
+        })
+    });
+    
+    // Auto-scroll to next step
+    if (stepNumber < 5) {
+        setTimeout(() => {
+            document.querySelector(`[data-step="${stepNumber + 1}"]`).scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }, 500);
+    }
+}
+
+function updateProgress() {
+    const totalSteps = 5;
+    const completed = completedSteps.size;
+    const percentage = (completed / totalSteps) * 100;
+    
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    
+    progressBar.style.width = percentage + '%';
+    progressText.textContent = `${completed} of ${totalSteps} steps completed`;
+    
+    if (completed === totalSteps) {
+        progressBar.classList.remove('bg-primary');
+        progressBar.classList.add('bg-success');
+        progressText.textContent = '🎉 Personal Setup Complete!';
+    }
+}
+
+function initiateTestCall(systemType, userId) {
+    fetch('/tutorial/test-call', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            system_type: systemType,
+            user_id: userId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const instructionsDiv = document.getElementById('test-instructions');
+            const detailsDiv = document.getElementById('test-details');
+            
+            detailsDiv.innerHTML = `
+                <ol class="text-primary mb-2">
+                    <li>Call your Google Voice: <strong>${data.call_number}</strong></li>
+                    <li>You'll hear CallBunker's greeting from your personal number</li>
+                    <li>Enter PIN: <code class="bg-dark text-warning px-2 py-1 rounded">${data.pin}</code> OR</li>
+                    <li>Say verbal code: "<code class="bg-dark text-success px-2 py-1 rounded">${data.verbal_code}</code>"</li>
+                    <li>Call connects to your real phone: <strong>${data.callbunker_number}</strong></li>
+                </ol>
+                <small class="text-light">
+                    <i class="fas fa-shield-alt me-1"></i>
+                    Your personal CallBunker number (${data.callbunker_number}) handles this call privately.
+                </small>
+            `;
+            
+            instructionsDiv.style.display = 'block';
+        } else {
+            alert('Error getting test instructions: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
+    });
+}
+</script>
+{% endblock %}

@@ -11,6 +11,9 @@
             {{ user.name }}'s Dashboard
         </h1>
         <div class="d-flex gap-2">
+            <a href="{{ url_for('tutorial.multi_user_tutorial', user_id=user.id) }}" class="btn btn-warning">
+                <i class="fas fa-graduation-cap me-2"></i>Setup Tutorial
+            </a>
             <a href="{{ url_for('multi_user.signup') }}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-2"></i>Back to Signup
             </a>
