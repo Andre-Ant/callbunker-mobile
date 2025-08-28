@@ -273,19 +273,26 @@ def verify_auth(user_id, attempts):
 def connect_call(user, original_caller_number):
     """Connect authenticated call to user's real phone"""
     vr = VoiceResponse()
-    vr.say("Connecting your call now.", voice="polly.Joanna")
     
     # Use original caller's number as caller ID to avoid spam warnings
     forward_to = f"+1{user.real_phone_number}" if len(user.real_phone_number) == 10 else user.real_phone_number
     
     print(f"CONNECTING: User {user.id} call from {original_caller_number} to {forward_to}")
     
-    vr.dial(
+    # Brief connection message before dialing
+    vr.say("Connecting now.", voice="polly.Joanna")
+    
+    # Direct dial without additional complexity
+    dial = vr.dial(
         forward_to,
-        timeout=30,
-        caller_id=original_caller_number,  # Preserve original caller ID
-        action=url_for('multi_user_voice.call_complete')
+        timeout=25,
+        hangup_on_star=True,
+        caller_id=original_caller_number
     )
+    
+    # Fallback if dial fails
+    vr.say("The call could not be completed. Please try again later.", voice="polly.Joanna")
+    vr.hangup()
     
     return xml_response(vr)
 

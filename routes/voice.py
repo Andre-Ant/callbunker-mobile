@@ -130,7 +130,7 @@ def on_verified(tenant, forwarded_from=None):
             vr.hangup()
         else:
             # Normal forwarding to a different number
-            vr.say("Connecting your call now.", voice="polly.Joanna")
+            vr.say("Connecting now.", voice="polly.Joanna")
             
             # Use the original caller's number as caller ID to avoid spam warnings
             from flask import request
@@ -140,11 +140,14 @@ def on_verified(tenant, forwarded_from=None):
             
             dial = vr.dial(
                 forward_to_number,
-                timeout=30,
+                timeout=25,
                 hangup_on_star=True,
-                action="/voice/call_complete",
                 caller_id=caller_id
             )
+            
+            # Fallback if dial fails
+            vr.say("The call could not be completed. Please try again later.", voice="polly.Joanna")
+            vr.hangup()
     
     return xml_response(vr)
 
