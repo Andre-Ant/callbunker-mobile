@@ -215,25 +215,31 @@ def voice_incoming():
         vr.hangup()
         return xml_response(vr)
     
-    # If no ForwardedFrom, check if the caller (From) is a registered tenant
-    # This handles carrier call forwarding which doesn't set ForwardedFrom
+    # If no ForwardedFrom, check if this is a Google Voice forwarded call
     if not forwarded_from:
-        # Check if the caller is a registered tenant
-        caller_number = request.form.get("From", "").strip()
-        try:
-            tenant = get_tenant_by_real_number(caller_number)
-            # If we found a tenant, treat this as a forwarded call
-            forwarded_from = caller_number
-            print(f"Treating call from registered tenant {caller_number} as forwarded call")
-        except:
-            # Not a registered tenant, this is a direct call
-            vr = VoiceResponse()
-            vr.say("This is a call screening service. To use this service, please set up call forwarding from your phone to this number.", voice="polly.Joanna")
-            vr.hangup()
-            return xml_response(vr)
+        # Check if the caller is from a known Google Voice number
+        if from_number in ["+16179421250", "16179421250"]:  # Your Google Voice number
+            print(f"Google Voice call detected from {from_number} - using CallBunker tenant")
+            # Use the CallBunker tenant configuration for Google Voice calls
+            tenant = get_tenant_or_404("+16316417727")
+        else:
+            # Check if the caller is a registered tenant for other carriers
+            caller_number = request.form.get("From", "").strip()
+            try:
+                tenant = get_tenant_by_real_number(caller_number)
+                forwarded_from = caller_number
+                print(f"Treating call from registered tenant {caller_number} as forwarded call")
+            except:
+                # Not a registered tenant, this is a direct call
+                vr = VoiceResponse()
+                vr.say("This is a call screening service. To use this service, please set up call forwarding from your phone to this number.", voice="polly.Joanna")
+                vr.hangup()
+                return xml_response(vr)
+    else:
+        # Look up tenant by the ForwardedFrom number (user's real number)
+        tenant = get_tenant_or_404(forwarded_from)
     
-    # Look up tenant by the ForwardedFrom number (user's real number)
-    tenant = get_tenant_or_404(forwarded_from)
+
     
     # Check if caller is blocked
     remaining = is_blocked(tenant, from_digits)
