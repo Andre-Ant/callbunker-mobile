@@ -10,14 +10,8 @@
                 <i class="fas fa-shield-alt me-2"></i>CallBunker Dashboard
             </h1>
             <div class="d-flex gap-2">
-                <a href="{{ url_for('main.signup') }}" class="btn btn-primary">
-                    <i class="fas fa-rocket me-2"></i>Personal Setup
-                </a>
-                <a href="{{ url_for('multi_user.signup') }}" class="btn btn-success">
-                    <i class="fas fa-users me-2"></i>Multi-User Setup
-                </a>
-                <a href="{{ url_for('demo.compare_systems') }}" class="btn btn-outline-info">
-                    <i class="fas fa-balance-scale me-2"></i>Compare Systems
+                <a href="{{ url_for('main.how_it_works') }}" class="btn btn-outline-info">
+                    <i class="fas fa-info-circle me-2"></i>How It Works
                 </a>
                 <a href="{{ url_for('admin.new_tenant') }}" class="btn btn-outline-secondary">
                     <i class="fas fa-plus me-2"></i>Quick Add
@@ -156,7 +150,7 @@
             <i class="fas fa-phone-slash fa-5x text-muted mb-3"></i>
             <h3 class="text-muted">No Tenants Configured</h3>
             <p class="text-muted mb-4">Get started by adding your first screening number.</p>
-            <a href="{{ url_for('main.signup') }}" class="btn btn-primary btn-lg">
+            <a href="{{ url_for('multi_user.signup') }}" class="btn btn-primary btn-lg">
                 <i class="fas fa-rocket me-2"></i>Get Started with CallBunker
             </a>
             <p class="mt-2">
