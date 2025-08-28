@@ -230,10 +230,11 @@ def voice_incoming():
     
     # If no ForwardedFrom, check if this is a Google Voice forwarded call
     if not forwarded_from:
-        # Check if the caller is from a known Google Voice number
-        if from_number in ["+16179421250", "16179421250"]:  # Your Google Voice number
-            print(f"Google Voice call detected from {from_number} - using CallBunker tenant")
-            # Use the CallBunker tenant configuration for Google Voice calls
+        # Check if the To number is CallBunker AND it's not a direct call to CallBunker
+        # Google Voice forwards calls TO CallBunker but doesn't always set ForwardedFrom
+        if to_number == "+16316417727":
+            print(f"Call forwarded to CallBunker from {from_number} - assuming Google Voice forwarding")
+            # Use the CallBunker tenant configuration for Google Voice calls  
             tenant = get_tenant_or_404("+16316417727")
             # Set forwarded_from to empty since Google Voice doesn't provide it
             forwarded_from = ""

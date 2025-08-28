@@ -73,35 +73,35 @@
                 </div>
             </div>
 
-            <!-- Step 2: Configure Caller ID -->
-            <div class="card mb-4 border-warning" style="background: rgba(255, 193, 7, 0.1);">
+            <!-- Step 2: Keep Caller ID Disabled (Recommended) -->
+            <div class="card mb-4 border-success" style="background: rgba(25, 135, 84, 0.1);">
                 <div class="card-body">
-                    <h4 class="card-title text-warning">
-                        <span class="badge bg-warning text-dark me-2">2</span>
-                        Enable Caller ID Setting
+                    <h4 class="card-title text-success">
+                        <span class="badge bg-success me-2">2</span>
+                        Keep Caller ID Setting Disabled (Recommended)
                     </h4>
                     <p class="text-light mb-3">
-                        This critical setting allows CallBunker to recognize your calls:
+                        For the best user experience, keep Google Voice caller ID <strong>disabled</strong>:
                     </p>
                     
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="bg-warning bg-opacity-10 p-3 rounded border border-warning">
-                                <h6 class="text-warning"><i class="fas fa-mobile-alt me-2"></i>Mobile App</h6>
+                            <div class="bg-success bg-opacity-10 p-3 rounded border border-success">
+                                <h6 class="text-success"><i class="fas fa-mobile-alt me-2"></i>Mobile App</h6>
                                 <ol class="text-light small mb-0">
                                     <li>Open Google Voice app</li>
                                     <li>Menu → Settings → Calls</li>
-                                    <li>Turn ON "Show my Google Voice number as caller ID"</li>
+                                    <li>Keep "Show my Google Voice number as caller ID" <strong>OFF</strong></li>
                                 </ol>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="bg-warning bg-opacity-10 p-3 rounded border border-warning">
-                                <h6 class="text-warning"><i class="fas fa-desktop me-2"></i>Desktop</h6>
+                            <div class="bg-success bg-opacity-10 p-3 rounded border border-success">
+                                <h6 class="text-success"><i class="fas fa-desktop me-2"></i>Desktop</h6>
                                 <ol class="text-light small mb-0">
                                     <li>Go to voice.google.com</li>
                                     <li>Settings → Calls</li>
-                                    <li>Turn ON caller ID forwarding</li>
+                                    <li>Keep caller ID forwarding <strong>OFF</strong></li>
                                 </ol>
                             </div>
                         </div>
@@ -109,11 +109,11 @@
                     
                     <div class="alert alert-info border-info mt-3" style="background: rgba(13, 202, 240, 0.2);">
                         <i class="fas fa-info-circle me-2 text-info"></i>
-                        <strong class="text-white">Why This Works:</strong>
+                        <strong class="text-white">Why This Works Better:</strong>
                         <p class="mb-0 text-white">
-                            With this setting enabled, ALL forwarded calls will show your Google Voice number as caller ID. 
-                            CallBunker will automatically whitelist your Google Voice number, so verified callers bypass authentication entirely.
-                            This eliminates OTP verification issues since Google Voice uses voice calls, not text messages.
+                            With caller ID disabled, you'll see the <strong>actual caller's number</strong> instead of your own Google Voice number.
+                            This lets you identify who's calling before answering. CallBunker automatically detects Google Voice forwarded calls
+                            and applies authentication regardless of caller ID settings.
                         </p>
                     </div>
                 </div>
@@ -151,10 +151,10 @@
                         
                         <div class="mb-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="caller_id_enabled" required>
-                                <label class="form-check-label text-light" for="caller_id_enabled">
+                                <input class="form-check-input" type="checkbox" id="setup_confirmed" required>
+                                <label class="form-check-label text-light" for="setup_confirmed">
                                     <i class="fas fa-check-circle text-success me-1"></i>
-                                    I have enabled "Show my Google Voice number as caller ID" in my Google Voice settings
+                                    I have set up call forwarding from Google Voice to CallBunker's number
                                 </label>
                             </div>
                         </div>
