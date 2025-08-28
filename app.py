@@ -41,9 +41,11 @@ from routes.admin import admin_bp
 from routes.main import main_bp
 from routes.multi_user import multi_user_bp
 from routes.multi_user_voice import multi_user_voice_bp
+from routes.demo import demo_bp
 
 app.register_blueprint(voice_bp, url_prefix='/voice')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(main_bp)
 app.register_blueprint(multi_user_bp)
 app.register_blueprint(multi_user_voice_bp)
+app.register_blueprint(demo_bp)

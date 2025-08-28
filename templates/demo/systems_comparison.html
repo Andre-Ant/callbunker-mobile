@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}CallBunker Systems Comparison{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="text-center mb-5">
+        <h1 class="text-white">
+            <i class="fas fa-balance-scale me-2 text-info"></i>
+            CallBunker System Options
+        </h1>
+        <p class="lead text-light">Choose the right call screening solution for your needs</p>
+    </div>
+
+    <!-- Systems Comparison -->
+    <div class="row">
+        <!-- Personal System -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-primary h-100" style="background: rgba(13, 110, 253, 0.1);">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user me-2"></i>Personal CallBunker
+                    </h4>
+                    <div class="badge bg-success fs-6 mt-2">FREE</div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-phone fa-3x text-primary mb-3"></i>
+                        <h5 class="text-primary">Single User Solution</h5>
+                    </div>
+
+                    <h6 class="text-white mb-3">
+                        <i class="fas fa-check-circle me-2 text-success"></i>How It Works:
+                    </h6>
+                    <ul class="text-light">
+                        <li><strong>Your Google Voice:</strong> (617) 942-1250</li>
+                        <li><strong>Forwards to CallBunker:</strong> +1 (631) 641-7727</li>
+                        <li><strong>Connects to your phone:</strong> (508) 638-8084</li>
+                        <li><strong>Authentication:</strong> PIN 8322 or "Black widow"</li>
+                    </ul>
+
+                    <h6 class="text-white mb-3 mt-4">
+                        <i class="fas fa-star me-2 text-warning"></i>Benefits:
+                    </h6>
+                    <ul class="text-light">
+                        <li>✓ Completely free to use</li>
+                        <li>✓ Uses your existing Google Voice</li>
+                        <li>✓ Single CallBunker number shared</li>
+                        <li>✓ Perfect for personal use</li>
+                        <li>✓ Auto-whitelist trusted callers</li>
+                    </ul>
+
+                    <div class="alert alert-info border-info mt-3" style="background: rgba(13, 202, 240, 0.2);">
+                        <small class="text-white">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <strong>Current Status:</strong> {{ personal_tenants }} personal account(s) active
+                        </small>
+                    </div>
+                </div>
+                <div class="card-footer bg-primary bg-opacity-25 text-center">
+                    <a href="{{ url_for('main.signup') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-rocket me-2"></i>Setup Personal Account
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Multi-User System -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-success h-100" style="background: rgba(25, 135, 84, 0.1);">
+                <div class="card-header bg-success text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-users me-2"></i>Multi-User CallBunker
+                    </h4>
+                    <div class="badge bg-warning text-dark fs-6 mt-2">$1/month per user</div>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-building fa-3x text-success mb-3"></i>
+                        <h5 class="text-success">Scalable Business Solution</h5>
+                    </div>
+
+                    <h6 class="text-white mb-3">
+                        <i class="fas fa-cog me-2 text-success"></i>How It Works:
+                    </h6>
+                    <ul class="text-light">
+                        <li><strong>Each user gets:</strong> Unique CallBunker number</li>
+                        <li><strong>Google Voice setup:</strong> Forward to their number</li>
+                        <li><strong>Custom authentication:</strong> Personal PIN & verbal</li>
+                        <li><strong>Individual settings:</strong> Rate limits, whitelist</li>
+                    </ul>
+
+                    <h6 class="text-white mb-3 mt-4">
+                        <i class="fas fa-star me-2 text-warning"></i>Benefits:
+                    </h6>
+                    <ul class="text-light">
+                        <li>✓ Individual Twilio numbers</li>
+                        <li>✓ Separate user configurations</li>
+                        <li>✓ Google Voice verification support</li>
+                        <li>✓ Scalable for businesses</li>
+                        <li>✓ Per-user whitelist & settings</li>
+                    </ul>
+
+                    <div class="alert alert-warning border-warning mt-3" style="background: rgba(255, 193, 7, 0.2);">
+                        <small class="text-white">
+                            <i class="fas fa-users me-1"></i>
+                            <strong>Current Status:</strong> {{ multi_users }} users, {{ available_slots }} slots available
+                        </small>
+                    </div>
+                </div>
+                <div class="card-footer bg-success bg-opacity-25 text-center">
+                    <a href="{{ url_for('multi_user.signup') }}" class="btn btn-success btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Join Multi-User System
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technical Comparison -->
+    <div class="card border-info mt-4" style="background: rgba(13, 202, 240, 0.1);">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-code me-2"></i>Technical Differences
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-dark table-striped">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Personal System</th>
+                            <th>Multi-User System</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Cost</strong></td>
+                            <td><span class="badge bg-success">Free</span></td>
+                            <td><span class="badge bg-warning text-dark">$1/month per user</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>CallBunker Numbers</strong></td>
+                            <td>Shared: +1 (631) 641-7727</td>
+                            <td>Individual numbers from pool</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Google Voice Setup</strong></td>
+                            <td>One Google Voice → One CallBunker</td>
+                            <td>Each Google Voice → Unique CallBunker</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User Management</strong></td>
+                            <td>Single tenant system</td>
+                            <td>Individual user accounts</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Authentication</strong></td>
+                            <td>Shared PIN/verbal codes</td>
+                            <td>Personal PIN/verbal codes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Whitelist</strong></td>
+                            <td>Single shared whitelist</td>
+                            <td>Per-user whitelists</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Scalability</strong></td>
+                            <td>Personal/Family use</td>
+                            <td>Business/Enterprise ready</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call Flow Diagrams -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card border-primary" style="background: rgba(13, 110, 253, 0.1);">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-sitemap me-2"></i>Personal System Flow
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <div class="mb-2">
+                            <i class="fas fa-phone fa-lg text-success"></i>
+                            <small class="d-block text-light">Caller dials Google Voice</small>
+                            <small class="text-warning">(617) 942-1250</small>
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-arrow-down fa-lg text-info"></i>
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-shield-alt fa-lg text-primary"></i>
+                            <small class="d-block text-light">CallBunker screens</small>
+                            <small class="text-warning">+1 (631) 641-7727</small>
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-arrow-down fa-lg text-info"></i>
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-mobile-alt fa-lg text-success"></i>
+                            <small class="d-block text-light">Connects to your phone</small>
+                            <small class="text-warning">(508) 638-8084</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card border-success" style="background: rgba(25, 135, 84, 0.1);">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-sitemap me-2"></i>Multi-User System Flow
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <div class="mb-2">
+                            <i class="fas fa-phone fa-lg text-success"></i>
+                            <small class="d-block text-light">Caller dials User's Google Voice</small>
+                            <small class="text-warning">(555) 123-4567</small>
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-arrow-down fa-lg text-info"></i>
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-shield-alt fa-lg text-success"></i>
+                            <small class="d-block text-light">User's CallBunker screens</small>
+                            <small class="text-warning">+1 (631) 641-7728</small>
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-arrow-down fa-lg text-info"></i>
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-mobile-alt fa-lg text-success"></i>
+                            <small class="d-block text-light">Connects to user's phone</small>
+                            <small class="text-warning">(555) 987-6543</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="text-center mt-4">
+        <div class="btn-group btn-group-lg" role="group">
+            <a href="{{ url_for('multi_user.admin_phone_pool') }}" class="btn btn-outline-info">
+                <i class="fas fa-cogs me-2"></i>Admin: Phone Pool
+            </a>
+            <a href="{{ url_for('admin.tenants') }}" class="btn btn-outline-primary">
+                <i class="fas fa-list me-2"></i>Admin: Tenants
+            </a>
+            <a href="/" class="btn btn-outline-secondary">
+                <i class="fas fa-home me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
