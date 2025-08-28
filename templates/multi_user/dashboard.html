@@ -1,15 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}{{ user.name }}'s CallBunker Dashboard{% endblock %}
+{% block title %}{{ user.name }} - CallBunker Dashboard{% endblock %}
 
 {% block content %}
 <div class="container">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="text-white">
-            <i class="fas fa-user-shield me-2 text-success"></i>
-            {{ user.name }}'s Dashboard
-        </h1>
+        <div>
+            <h1 class="text-white">
+                <i class="fas fa-user-shield me-2 text-success"></i>
+                {{ user.name }}'s CallBunker
+            </h1>
+            <p class="text-warning mb-0 fw-bold">The last line of defense against spam calls</p>
+        </div>
         <div class="d-flex gap-2">
             <a href="{{ url_for('tutorial.multi_user_tutorial', user_id=user.id) }}" class="btn btn-warning">
                 <i class="fas fa-graduation-cap me-2"></i>Setup Tutorial
@@ -26,16 +29,16 @@
             <div class="card border-success" style="background: rgba(25, 135, 84, 0.1);">
                 <div class="card-body">
                     <h5 class="card-title text-success">
-                        <i class="fas fa-check-circle me-2"></i>Account Active
+                        <i class="fas fa-shield-alt me-2"></i>CallBunker Active
                     </h5>
                     <div class="row">
                         <div class="col-6">
-                            <small class="text-light d-block">Your CallBunker Number:</small>
+                            <small class="text-light d-block">Your Defense Number:</small>
                             <code class="text-warning fw-bold fs-5">{{ format_phone(user.assigned_twilio_number) }}</code>
                         </div>
                         <div class="col-6">
-                            <small class="text-light d-block">Status:</small>
-                            <span class="text-success fw-bold fs-6">Active</span>
+                            <small class="text-light d-block">Protection Status:</small>
+                            <span class="text-success fw-bold fs-6">Defending</span>
                         </div>
                     </div>
                 </div>
@@ -45,10 +48,10 @@
             <div class="card border-info" style="background: rgba(13, 202, 240, 0.1);">
                 <div class="card-body">
                     <h6 class="card-title text-info">
-                        <i class="fas fa-list me-2"></i>Whitelist Status
+                        <i class="fas fa-user-check me-2"></i>Trusted Callers
                     </h6>
                     <div class="d-flex justify-content-between">
-                        <span class="text-light">Approved Callers:</span>
+                        <span class="text-light">Bypassing Defense:</span>
                         <span class="badge bg-info">{{ whitelist_count }}</span>
                     </div>
                 </div>
@@ -60,7 +63,7 @@
     <div class="card border-primary mb-4" style="background: rgba(13, 110, 253, 0.1);">
         <div class="card-header bg-primary text-white">
             <h5 class="mb-0">
-                <i class="fas fa-cog me-2"></i>Google Voice Setup Required
+                <i class="fas fa-mobile-alt me-2"></i>Activate Your Defense Line
                 <button class="btn btn-sm btn-outline-light float-end" type="button" data-bs-toggle="collapse" data-bs-target="#setupSteps" aria-expanded="true">
                     <i class="fas fa-chevron-down"></i>
                 </button>
@@ -117,7 +120,7 @@
     <div class="card border-warning mb-4" style="background: rgba(255, 193, 7, 0.1);">
         <div class="card-header">
             <h5 class="text-warning mb-0">
-                <i class="fas fa-key me-2"></i>Your Authentication Codes
+                <i class="fas fa-lock me-2"></i>Defense Authorization Codes
             </h5>
         </div>
         <div class="card-body">
@@ -148,7 +151,7 @@
             
             <div class="alert alert-info mt-3 border-info" style="background: rgba(13, 202, 240, 0.2);">
                 <i class="fas fa-lightbulb me-2"></i>
-                <strong>Auto-Whitelist:</strong> After successful authentication, callers bypass future screening automatically.
+                <strong>Auto-Trust:</strong> After successful authentication, callers bypass CallBunker defense automatically.
             </div>
         </div>
     </div>
@@ -157,7 +160,7 @@
     <div class="card border-success" style="background: rgba(25, 135, 84, 0.1);">
         <div class="card-header">
             <h5 class="text-success mb-0">
-                <i class="fas fa-phone-alt me-2"></i>Test Your Setup
+                <i class="fas fa-phone-alt me-2"></i>Test Your Defense
             </h5>
         </div>
         <div class="card-body">
