@@ -10,14 +10,14 @@ demo_bp = Blueprint('demo', __name__, url_prefix='/demo')
 
 @demo_bp.route('/systems')
 def compare_systems():
-    """Compare personal vs multi-user CallBunker systems"""
+    """Compare personal vs business CallBunker systems"""
     
     # Get current system stats
     personal_tenants = Tenant.query.count()
-    multi_users = User.query.count()
+    business_users = User.query.count()
     available_slots = TwilioPhonePool.query.filter_by(is_assigned=False).count()
     
     return render_template('demo/systems_comparison.html',
                          personal_tenants=personal_tenants,
-                         multi_users=multi_users,
+                         business_users=business_users,
                          available_slots=available_slots)

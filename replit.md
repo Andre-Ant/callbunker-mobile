@@ -1,6 +1,6 @@
 # Overview
 
-CallBunker is a multi-tenant call screening service that acts as a protective layer between callers and final destinations. The system requires callers to authenticate via PIN codes or verbal codes before connecting them to the intended recipient. It integrates with Twilio for voice services and supports multiple tenants (screening numbers) with individual configurations for rate limiting, whitelisting, and forwarding modes.
+CallBunker is a business call screening service that acts as a protective layer between callers and final destinations. The system requires callers to authenticate via PIN codes or verbal codes before connecting them to the intended recipient. It integrates with Twilio for voice services and supports multiple tenants (screening numbers) with individual configurations for rate limiting, whitelisting, and forwarding modes.
 
 The application provides both webhook endpoints for Twilio integration and a web-based admin interface for managing tenants, whitelists, and system configuration. It includes features like rate limiting to prevent abuse, blocklisting for repeated failures, and optional email notifications via SendGrid.
 
@@ -10,11 +10,18 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## August 28, 2025 - Removed Multi-User Jargon for User Clarity
+- **Terminology Simplification**: Removed all "Multi-User" and "Personal" jargon from user-facing content
+- **Template Updates**: Changed "Multi-User CallBunker" to "Business CallBunker" in comparisons and "CallBunker" in main interfaces
+- **User Experience**: Simplified language to "CallBunker", "Business System", "Account Settings", and "Trusted Callers"
+- **Documentation**: Updated backend references from multi_users to business_users for clarity
+- **Maintained Functionality**: All backend multi-user capabilities preserved while removing confusing technical terms
+
 ## August 28, 2025 - Multi-User System Complete & UI Optimization
-- **Multi-User Focus**: Completely removed personal setup sections - system now purely multi-user focused
+- **Business System Focus**: Completely removed personal setup sections - system now purely business focused
 - **Dashboard Optimization**: Streamlined dashboard with defense-themed messaging and removed setup instructions section
 - **CallBunker Branding**: Updated all UI with consistent "CallBunker" branding and "The last line of defense against spam calls" tagline
-- **Code Cleanup**: Removed personal tutorial routes, templates, and references to maintain multi-user system integrity
+- **Code Cleanup**: Removed personal tutorial routes, templates, and references to maintain business system integrity
 - **Defense-Themed Language**: Updated terminology throughout (Defense Number, Protection Status: Defending, Trusted Callers, etc.)
 - **UX Enhancements**:
   - "Join CallBunker" heading with defense tagline on signup
