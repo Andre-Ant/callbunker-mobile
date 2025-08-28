@@ -175,7 +175,7 @@ def voice_otp_verification():
 def voice_incoming():
     """
     Twilio posts here when a call hits the shared screening number.
-    We identify tenant by the 'ForwardedFrom' number (user's real number).
+    Handles both regular calls and Google Voice OTP verification.
     """
     # Debug logging to see what Twilio sends
     print(f"WEBHOOK CALLED - Form data: {dict(request.form)}")
@@ -189,6 +189,23 @@ def voice_incoming():
     from_number = request.form.get("From", "").strip()
     
     print(f"To: {to_number}, ForwardedFrom: {forwarded_from}, From: {from_digits}")
+    
+    # CHECK FOR GOOGLE VOICE OTP VERIFICATION CALLS
+    # These come from Google Voice verification service numbers and should bypass authentication
+    google_voice_verification_numbers = [
+        '12024558888',  # Google Voice verification service
+        '18005551234',  # Another Google verification number
+        # Add more as needed
+    ]
+    
+    caller_digits_only = norm_digits(from_number)
+    if caller_digits_only in google_voice_verification_numbers:
+        print(f"GOOGLE VOICE OTP VERIFICATION DETECTED from {from_number}")
+        print(f"Forwarding directly to +15086388084 (bypassing authentication)")
+        vr = VoiceResponse()
+        vr.say("This is your Google Voice verification call. Connecting now.", voice="polly.Joanna")
+        vr.dial("+15086388084", timeout=30)
+        return xml_response(vr)
     
     # LOOP DETECTION: If the call is coming FROM CallBunker number, it's a loop
     if from_number == "+16316417727":
