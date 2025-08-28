@@ -367,7 +367,13 @@ def voice_verify():
             vr.hangup()
             return xml_response(vr)
     else:
-        tenant = get_tenant_by_real_number(forwarded_from)
+        # For Google Voice calls, ForwardedFrom is the Google Voice number, not the real number
+        if forwarded_from == "+16179421250":  # Your Google Voice number
+            print(f"Google Voice verify call detected via ForwardedFrom: {forwarded_from}")
+            tenant = get_tenant_or_404("+16316417727")  # Use CallBunker tenant
+        else:
+            # For other services, use the ForwardedFrom as the tenant lookup
+            tenant = get_tenant_by_real_number(forwarded_from)
     
     # Check if caller is blocked
     remaining = is_blocked(tenant, from_digits)
