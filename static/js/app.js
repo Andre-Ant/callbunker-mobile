@@ -47,23 +47,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Copy webhook URLs to clipboard
-    const webhookInfo = document.getElementById('webhook-info');
+    // System webhook configuration (admin only - hidden from regular users)
+    const webhookInfo = document.getElementById('webhook-info-admin');
     if (webhookInfo) {
         const baseUrl = window.location.origin;
         const webhookUrl = baseUrl + '/voice/incoming';
         
         const webhookElement = document.createElement('div');
-        webhookElement.className = 'alert alert-info';
+        webhookElement.className = 'alert alert-warning';
         webhookElement.innerHTML = `
-            <h6><i class="fas fa-webhook me-2"></i>Twilio Webhook URL:</h6>
+            <h6><i class="fas fa-cog me-2"></i>System Configuration:</h6>
             <div class="input-group">
                 <input type="text" class="form-control" value="${webhookUrl}" readonly>
                 <button class="btn btn-outline-secondary" type="button" onclick="copyWebhookUrl('${webhookUrl}')">
                     <i class="fas fa-copy"></i>
                 </button>
             </div>
-            <small class="form-text">Configure this URL in your Twilio phone number settings.</small>
+            <small class="form-text">Backend system endpoint for call routing.</small>
         `;
         webhookInfo.appendChild(webhookElement);
     }

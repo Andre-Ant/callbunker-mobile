@@ -76,7 +76,7 @@ def signup():
         db.session.add(user)
         db.session.commit()
         
-        flash(f'Account created! Your CallBunker number is {format_phone_display(user.assigned_twilio_number)}', 'success')
+        flash(f'Account created! Your Defense Number is {format_phone_display(user.assigned_twilio_number)}', 'success')
         return redirect(url_for('multi_user.user_dashboard', user_id=user.id))
         
     except Exception as e:
