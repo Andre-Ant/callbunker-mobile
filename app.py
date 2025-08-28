@@ -32,13 +32,18 @@ db.init_app(app)
 with app.app_context():
     # Import models to ensure tables are created
     import models
+    import models_multi_user
     db.create_all()
 
 # Register blueprints
 from routes.voice import voice_bp
 from routes.admin import admin_bp
 from routes.main import main_bp
+from routes.multi_user import multi_user_bp
+from routes.multi_user_voice import multi_user_voice_bp
 
 app.register_blueprint(voice_bp, url_prefix='/voice')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(main_bp)
+app.register_blueprint(multi_user_bp)
+app.register_blueprint(multi_user_voice_bp)

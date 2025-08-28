@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Multi-User CallBunker Signup{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-4">
+                <h1 class="text-white">
+                    <i class="fas fa-users me-2 text-success"></i>
+                    Join CallBunker Multi-User
+                </h1>
+                <p class="lead text-light">
+                    Get your own dedicated CallBunker number for Google Voice call screening
+                </p>
+            </div>
+
+            <!-- Pricing Info -->
+            <div class="alert alert-info border-info mb-4" style="background: rgba(13, 202, 240, 0.2);">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h6 class="text-info mb-1">
+                            <i class="fas fa-dollar-sign me-2"></i>Pricing: $1/month per user
+                        </h6>
+                        <p class="mb-0 text-white small">
+                            Each user gets their own dedicated Twilio CallBunker number
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        {% if available_numbers > 0 %}
+                        <span class="badge bg-success fs-6">{{ available_numbers }} slots available</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark fs-6">Waiting list only</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div class="card border-primary" style="background: rgba(13, 110, 253, 0.1);">
+                <div class="card-body">
+                    <h4 class="card-title text-primary mb-4">
+                        <i class="fas fa-user-plus me-2"></i>Create Your Account
+                    </h4>
+
+                    <form method="POST" class="needs-validation" novalidate>
+                        <!-- Personal Information -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label text-light">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                            <div class="form-text text-light">
+                                Your name for account identification
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label text-light">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <div class="form-text text-light">
+                                For account management and notifications
+                            </div>
+                        </div>
+
+                        <!-- Phone Numbers -->
+                        <div class="mb-3">
+                            <label for="google_voice_number" class="form-label text-light">Your Google Voice Number</label>
+                            <input type="tel" class="form-control" id="google_voice_number" name="google_voice_number" 
+                                   placeholder="(555) 123-4567" required>
+                            <div class="form-text text-light">
+                                The Google Voice number callers will dial
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="real_phone_number" class="form-label text-light">Your Real Phone Number</label>
+                            <input type="tel" class="form-control" id="real_phone_number" name="real_phone_number" 
+                                   placeholder="(555) 987-6543" required>
+                            <div class="form-text text-light">
+                                Where screened calls should be forwarded
+                            </div>
+                        </div>
+
+                        <!-- Authentication Settings -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="pin" class="form-label text-light">4-Digit PIN</label>
+                                <input type="text" class="form-control" id="pin" name="pin" 
+                                       value="1122" maxlength="4" pattern="[0-9]{4}" required>
+                                <div class="form-text text-light">
+                                    Callers enter this on keypad
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="verbal_code" class="form-label text-light">Verbal Code</label>
+                                <input type="text" class="form-control" id="verbal_code" name="verbal_code" 
+                                       value="open sesame" required>
+                                <div class="form-text text-light">
+                                    Callers can say this instead
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" {% if available_numbers == 0 %}disabled{% endif %}>
+                                <i class="fas fa-rocket me-2"></i>
+                                {% if available_numbers > 0 %}
+                                Create My CallBunker Account
+                                {% else %}
+                                Join Waiting List
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- How It Works -->
+            <div class="card border-info mt-4" style="background: rgba(23, 162, 184, 0.1);">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="fas fa-info-circle me-2"></i>How Multi-User CallBunker Works
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-3">
+                            <i class="fas fa-user-plus fa-2x text-success mb-2"></i>
+                            <h6 class="text-light">1. Sign Up</h6>
+                            <small class="text-light">Get your dedicated CallBunker number</small>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <i class="fas fa-phone fa-2x text-primary mb-2"></i>
+                            <h6 class="text-light">2. Configure Google Voice</h6>
+                            <small class="text-light">Forward to your CallBunker number</small>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <i class="fas fa-shield-alt fa-2x text-warning mb-2"></i>
+                            <h6 class="text-light">3. Calls Get Screened</h6>
+                            <small class="text-light">Your PIN/verbal authentication</small>
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <i class="fas fa-check-circle fa-2x text-info mb-2"></i>
+                            <h6 class="text-light">4. You Get Call</h6>
+                            <small class="text-light">Only verified callers reach you</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+{% endblock %}

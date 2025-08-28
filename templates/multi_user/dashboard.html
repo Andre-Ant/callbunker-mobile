@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.name }}'s CallBunker Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-white">
+            <i class="fas fa-user-shield me-2 text-success"></i>
+            {{ user.name }}'s Dashboard
+        </h1>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('multi_user.signup') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Signup
+            </a>
+        </div>
+    </div>
+
+    <!-- Account Status -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-success" style="background: rgba(25, 135, 84, 0.1);">
+                <div class="card-body">
+                    <h5 class="card-title text-success">
+                        <i class="fas fa-check-circle me-2"></i>Account Active
+                    </h5>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-light d-block">Your CallBunker Number:</small>
+                            <code class="text-warning fw-bold fs-5">{{ format_phone(user.assigned_twilio_number) }}</code>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-light d-block">Monthly Cost:</small>
+                            <span class="text-success fw-bold fs-6">$1.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-info" style="background: rgba(13, 202, 240, 0.1);">
+                <div class="card-body">
+                    <h6 class="card-title text-info">
+                        <i class="fas fa-list me-2"></i>Whitelist Status
+                    </h6>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-light">Approved Callers:</span>
+                        <span class="badge bg-info">{{ whitelist_count }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup Instructions -->
+    <div class="card border-primary mb-4" style="background: rgba(13, 110, 253, 0.1);">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-cog me-2"></i>Google Voice Setup Required
+                <button class="btn btn-sm btn-outline-light float-end" type="button" data-bs-toggle="collapse" data-bs-target="#setupSteps" aria-expanded="true">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </h5>
+        </div>
+        <div class="collapse show" id="setupSteps">
+            <div class="card-body">
+                <div class="alert alert-warning border-warning" style="background: rgba(255, 193, 7, 0.2);">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> You must configure Google Voice forwarding to activate your account.
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">
+                            <i class="fas fa-mobile-alt me-2"></i>Step 1: Configure Google Voice
+                        </h6>
+                        <ol class="text-light">
+                            <li>Go to <a href="https://voice.google.com" target="_blank" class="text-info">voice.google.com</a></li>
+                            <li>Click Settings → Calls</li>
+                            <li>Set <strong>Caller ID</strong> to <span class="text-warning">OFF</span></li>
+                            <li>Add forwarding number: <code class="text-warning bg-dark px-2 py-1 rounded">{{ user.assigned_twilio_number }}</code></li>
+                        </ol>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">
+                            <i class="fas fa-phone-volume me-2"></i>Step 2: Verify Setup
+                        </h6>
+                        <div class="bg-secondary bg-opacity-25 p-3 rounded border">
+                            <p class="mb-2 text-light"><strong>Your Google Voice:</strong></p>
+                            <code class="text-success bg-dark px-2 py-1 rounded">{{ format_phone(user.google_voice_number) }}</code>
+                            
+                            <p class="mb-2 text-light mt-3"><strong>Forwards to CallBunker:</strong></p>
+                            <code class="text-warning bg-dark px-2 py-1 rounded">{{ format_phone(user.assigned_twilio_number) }}</code>
+                            
+                            <p class="mb-2 text-light mt-3"><strong>Connects to your phone:</strong></p>
+                            <code class="text-info bg-dark px-2 py-1 rounded">{{ format_phone(user.real_phone_number) }}</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Authentication Settings -->
+    <div class="card border-warning mb-4" style="background: rgba(255, 193, 7, 0.1);">
+        <div class="card-header">
+            <h5 class="text-warning mb-0">
+                <i class="fas fa-key me-2"></i>Your Authentication Codes
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-light">
+                        <i class="fas fa-keypad me-2 text-primary"></i>PIN Code
+                    </h6>
+                    <div class="input-group">
+                        <span class="input-group-text bg-primary text-white">PIN:</span>
+                        <input type="text" class="form-control bg-dark text-warning fw-bold" 
+                               value="{{ user.pin }}" readonly>
+                    </div>
+                    <small class="text-light">Callers enter this on their keypad</small>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-light">
+                        <i class="fas fa-microphone me-2 text-success"></i>Verbal Code
+                    </h6>
+                    <div class="input-group">
+                        <span class="input-group-text bg-success text-white">SAY:</span>
+                        <input type="text" class="form-control bg-dark text-warning fw-bold" 
+                               value="{{ user.verbal_code }}" readonly>
+                    </div>
+                    <small class="text-light">Callers can speak this phrase</small>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-3 border-info" style="background: rgba(13, 202, 240, 0.2);">
+                <i class="fas fa-lightbulb me-2"></i>
+                <strong>Auto-Whitelist:</strong> After successful authentication, callers bypass future screening automatically.
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Call Section -->
+    <div class="card border-success" style="background: rgba(25, 135, 84, 0.1);">
+        <div class="card-header">
+            <h5 class="text-success mb-0">
+                <i class="fas fa-phone-alt me-2"></i>Test Your Setup
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <p class="text-light mb-2">
+                        <strong>Ready to test?</strong> Have someone call your Google Voice number:
+                    </p>
+                    <div class="d-flex align-items-center gap-3">
+                        <code class="text-success bg-dark px-3 py-2 rounded fs-5">{{ format_phone(user.google_voice_number) }}</code>
+                        <small class="text-light">
+                            They'll be asked for PIN <code class="text-warning">{{ user.pin }}</code> or to say "<span class="text-warning">{{ user.verbal_code }}</span>"
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="tel:{{ user.google_voice_number }}" class="btn btn-success">
+                        <i class="fas fa-phone me-2"></i>Call Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
