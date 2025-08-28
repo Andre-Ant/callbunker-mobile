@@ -34,8 +34,8 @@
                             <code class="text-warning fw-bold fs-5">{{ format_phone(user.assigned_twilio_number) }}</code>
                         </div>
                         <div class="col-6">
-                            <small class="text-light d-block">Monthly Cost:</small>
-                            <span class="text-success fw-bold fs-6">$1.00</span>
+                            <small class="text-light d-block">Status:</small>
+                            <span class="text-success fw-bold fs-6">Active</span>
                         </div>
                     </div>
                 </div>
@@ -82,8 +82,16 @@
                             <li>Go to <a href="https://voice.google.com" target="_blank" class="text-info">voice.google.com</a></li>
                             <li>Click Settings → Calls</li>
                             <li>Set <strong>Caller ID</strong> to <span class="text-warning">OFF</span></li>
-                            <li>Add forwarding number: <code class="text-warning bg-dark px-2 py-1 rounded">{{ user.assigned_twilio_number }}</code></li>
+                            <li>Add forwarding number: <code class="text-warning bg-dark px-2 py-1 rounded">{{ format_phone(user.assigned_twilio_number) }}</code></li>
                         </ol>
+                        <div class="mt-3">
+                            <a href="https://voice.google.com" target="_blank" class="btn btn-primary me-2">
+                                <i class="fas fa-external-link-alt me-2"></i>Open Google Voice
+                            </a>
+                            <a href="{{ url_for('tutorial.multi_user_tutorial', user_id=user.id) }}" class="btn btn-outline-warning">
+                                <i class="fas fa-graduation-cap me-2"></i>Detailed Tutorial
+                            </a>
+                        </div>
                     </div>
                     <div class="col-md-6">
                         <h6 class="text-primary">

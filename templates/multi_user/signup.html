@@ -16,26 +16,7 @@
                 </p>
             </div>
 
-            <!-- Pricing Info -->
-            <div class="alert alert-info border-info mb-4" style="background: rgba(13, 202, 240, 0.2);">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h6 class="text-info mb-1">
-                            <i class="fas fa-dollar-sign me-2"></i>Pricing: $1/month per user
-                        </h6>
-                        <p class="mb-0 text-white small">
-                            Each user gets their own dedicated Twilio CallBunker number
-                        </p>
-                    </div>
-                    <div class="col-md-4 text-md-end">
-                        {% if available_numbers > 0 %}
-                        <span class="badge bg-success fs-6">{{ available_numbers }} slots available</span>
-                        {% else %}
-                        <span class="badge bg-warning text-dark fs-6">Waiting list only</span>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+
 
             <!-- Signup Form -->
             <div class="card border-primary" style="background: rgba(13, 110, 253, 0.1);">
@@ -65,10 +46,15 @@
                         <!-- Phone Numbers -->
                         <div class="mb-3">
                             <label for="google_voice_number" class="form-label text-light">Your Google Voice Number</label>
-                            <input type="tel" class="form-control" id="google_voice_number" name="google_voice_number" 
-                                   placeholder="(555) 123-4567" required>
+                            <div class="input-group">
+                                <input type="tel" class="form-control" id="google_voice_number" name="google_voice_number" 
+                                       placeholder="(555) 123-4567" required>
+                                <a href="https://voice.google.com" target="_blank" class="btn btn-outline-info" title="Get Google Voice Number">
+                                    <i class="fas fa-external-link-alt"></i> Get Number
+                                </a>
+                            </div>
                             <div class="form-text text-light">
-                                The Google Voice number callers will dial
+                                The Google Voice number callers will dial. <a href="https://voice.google.com" target="_blank" class="text-info">Don't have one? Get it free at voice.google.com</a>
                             </div>
                         </div>
 
@@ -132,6 +118,11 @@
                             <i class="fas fa-phone fa-2x text-primary mb-2"></i>
                             <h6 class="text-light">2. Configure Google Voice</h6>
                             <small class="text-light">Forward to your CallBunker number</small>
+                            <div class="mt-2">
+                                <a href="https://voice.google.com" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-cog me-1"></i>Setup Now
+                                </a>
+                            </div>
                         </div>
                         <div class="col-md-3 text-center mb-3">
                             <i class="fas fa-shield-alt fa-2x text-warning mb-2"></i>

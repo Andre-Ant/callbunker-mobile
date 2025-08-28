@@ -10,6 +10,19 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## August 28, 2025 - Multi-User Tutorial System & UX Improvements
+- **Feature**: Implemented personalized call screening tutorial system focused on multi-user functionality
+- **Tutorial Integration**: Added interactive 5-step multi-user tutorial with progress tracking and personalized instructions
+- **Seamless Google Voice Integration**: Added direct Google Voice links in signup form and dashboard for immediate configuration
+- **Pricing Cleanup**: Removed pricing prompts from user interfaces for cleaner experience (pricing to be added later)
+- **UX Enhancements**:
+  - "Get Number" button in signup form links directly to voice.google.com
+  - "Open Google Voice" button in user dashboard for immediate configuration
+  - Detailed tutorial accessible from dashboard with personalized user data
+  - Streamlined multi-user signup flow without pricing distractions
+- **Navigation Updates**: Removed personal tutorial link from main dashboard, focused on multi-user system
+- **Dashboard Polish**: Replaced "Monthly Cost" with "Status: Active" for cleaner account display
+
 ## August 27, 2025 - Android Dark Theme Visibility Fix
 - **Issue**: Text and content invisible on Android devices due to dark theme compatibility problems
 - **Root Cause**: Bootstrap's `bg-light`, `text-muted`, and `text-body` classes rendered invisible in dark mode on mobile browsers
