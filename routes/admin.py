@@ -63,6 +63,69 @@ def onboarding():
     """Enhanced onboarding flow for new users"""
     return render_template('onboarding.html')
 
+@admin_bp.route('/google-voice-setup', methods=['GET', 'POST'])
+@require_admin_web
+def google_voice_setup():
+    """Google Voice setup with automatic whitelisting"""
+    if request.method == 'GET':
+        return render_template('google_voice_setup.html')
+    
+    try:
+        google_voice_number = norm_digits(request.form.get('google_voice_number', '').strip())
+        forward_to = norm_digits(request.form.get('forward_to', '').strip())
+        
+        if not google_voice_number or not forward_to:
+            flash('Both phone numbers are required', 'error')
+            return render_template('google_voice_setup.html')
+        
+        # Create or update tenant for the Google Voice number
+        # The screening_number is the Google Voice number since that's what callers dial
+        tenant = Tenant.query.get(google_voice_number)
+        if not tenant:
+            tenant = Tenant(
+                screening_number=google_voice_number,
+                owner_label=f"Google Voice User ({google_voice_number})",
+                forward_to=forward_to,
+                current_pin="1122",
+                verbal_code="open sesame",
+                retry_limit=3,
+                forward_mode="bridge",
+                rl_window_sec=3600,
+                rl_max_attempts=5,
+                rl_block_minutes=60
+            )
+            db.session.add(tenant)
+        else:
+            # Update existing tenant
+            tenant.forward_to = forward_to
+        
+        # Key insight: Auto-whitelist the Google Voice number itself
+        # Since the user configured GV to show their GV number as caller ID,
+        # ALL forwarded calls will appear to come from this Google Voice number
+        existing_whitelist = Whitelist.query.filter_by(
+            screening_number=google_voice_number,
+            number=google_voice_number
+        ).first()
+        
+        if not existing_whitelist:
+            whitelist_entry = Whitelist(
+                screening_number=google_voice_number,
+                number=google_voice_number,
+                pin=None,  # No PIN needed for auto-whitelisted calls
+                verbal=False
+            )
+            db.session.add(whitelist_entry)
+        
+        db.session.commit()
+        
+        flash(f'Google Voice setup complete! Your number {google_voice_number} is now protected by CallBunker.', 'success')
+        return redirect(url_for('admin.tenant_detail', screening_number=google_voice_number))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Setup failed: {str(e)}', 'error')
+        return render_template('google_voice_setup.html')
+
 @admin_bp.route('/onboarding/tenant', methods=['POST'])
 @require_admin_web
 def onboarding_tenant():

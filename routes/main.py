@@ -10,8 +10,8 @@ def index():
 
 @main_bp.route('/signup')
 def signup():
-    """Simple user signup page"""
-    response = make_response(render_template('simple_onboarding.html'))
+    """Main signup page - now redirects to Google Voice setup"""
+    response = make_response(redirect(url_for('admin.google_voice_setup')))
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'

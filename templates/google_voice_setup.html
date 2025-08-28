@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Google Voice Setup - CallBunker{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Cache-busting meta tags for mobile browsers -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- Header -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-4">
+                <h1 class="text-white">
+                    <i class="fas fa-shield-alt me-2 text-success"></i>
+                    Set Up CallBunker with Google Voice
+                </h1>
+                <p class="lead text-light">
+                    Free call screening using your existing Google Voice number
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benefits Alert -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-8">
+            <div class="alert alert-success border-success sticky-benefits" style="background: rgba(25, 135, 84, 0.2);">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-check-circle me-3 mt-1 text-success"></i>
+                    <div class="flex-grow-1">
+                        <strong class="text-light">100% Free Solution</strong>
+                        <p class="mb-2 text-light small">
+                            Google Voice is completely free for personal use. No subscriptions, no hidden fees.
+                        </p>
+                        <ul class="mb-0 text-light small">
+                            <li>Free US phone number from Google</li>
+                            <li>Unlimited call forwarding</li>
+                            <li>Professional spam protection</li>
+                            <li>Works with your existing phone</li>
+                        </ul>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step-by-Step Setup -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            
+            <!-- Step 1: Get Google Voice Number -->
+            <div class="card mb-4 border-info" style="background: rgba(13, 110, 253, 0.1);">
+                <div class="card-body">
+                    <h4 class="card-title text-info">
+                        <span class="badge bg-info me-2">1</span>
+                        Get Your Free Google Voice Number
+                    </h4>
+                    <p class="text-light mb-3">
+                        If you don't have a Google Voice number yet, get one free:
+                    </p>
+                    <div class="d-grid gap-2 d-md-flex">
+                        <a href="https://voice.google.com" target="_blank" class="btn btn-info">
+                            <i class="fas fa-external-link-alt me-2"></i>Get Google Voice Number
+                        </a>
+                        <small class="text-light align-self-center ms-md-3">
+                            Choose any available number you like
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Configure Caller ID -->
+            <div class="card mb-4 border-warning" style="background: rgba(255, 193, 7, 0.1);">
+                <div class="card-body">
+                    <h4 class="card-title text-warning">
+                        <span class="badge bg-warning text-dark me-2">2</span>
+                        Enable Caller ID Setting
+                    </h4>
+                    <p class="text-light mb-3">
+                        This critical setting allows CallBunker to recognize your calls:
+                    </p>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded border border-warning">
+                                <h6 class="text-warning"><i class="fas fa-mobile-alt me-2"></i>Mobile App</h6>
+                                <ol class="text-light small mb-0">
+                                    <li>Open Google Voice app</li>
+                                    <li>Menu → Settings → Calls</li>
+                                    <li>Turn ON "Show my Google Voice number as caller ID"</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded border border-warning">
+                                <h6 class="text-warning"><i class="fas fa-desktop me-2"></i>Desktop</h6>
+                                <ol class="text-light small mb-0">
+                                    <li>Go to voice.google.com</li>
+                                    <li>Settings → Calls</li>
+                                    <li>Turn ON caller ID forwarding</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning bg-opacity-25 border-warning mt-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong class="text-warning">Important:</strong>
+                        <span class="text-light">This setting must be enabled for CallBunker to work properly!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Add to CallBunker -->
+            <div class="card mb-4 border-success" style="background: rgba(25, 135, 84, 0.1);">
+                <div class="card-body">
+                    <h4 class="card-title text-success">
+                        <span class="badge bg-success me-2">3</span>
+                        Register Your Google Voice Number
+                    </h4>
+                    <p class="text-light mb-3">
+                        Add your Google Voice number to CallBunker:
+                    </p>
+                    
+                    <form method="POST" action="{{ url_for('admin.google_voice_setup') }}" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="google_voice_number" class="form-label text-light">Your Google Voice Number</label>
+                            <input type="tel" class="form-control" id="google_voice_number" name="google_voice_number" 
+                                   placeholder="(555) 123-4567" required>
+                            <div class="form-text text-light">
+                                Enter the 10-digit Google Voice number you just got
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="forward_to" class="form-label text-light">Forward Calls To</label>
+                            <input type="tel" class="form-control" id="forward_to" name="forward_to" 
+                                   placeholder="(555) 987-6543" required>
+                            <div class="form-text text-light">
+                                Your real phone number where screened calls should be forwarded
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="caller_id_enabled" required>
+                                <label class="form-check-label text-light" for="caller_id_enabled">
+                                    <i class="fas fa-check-circle text-success me-1"></i>
+                                    I have enabled "Show my Google Voice number as caller ID" in my Google Voice settings
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Setup CallBunker Protection
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Step 4: Setup Call Forwarding -->
+            <div class="card mb-4 border-primary" style="background: rgba(13, 110, 253, 0.1);">
+                <div class="card-body">
+                    <h4 class="card-title text-primary">
+                        <span class="badge bg-primary me-2">4</span>
+                        Configure Google Voice Forwarding
+                    </h4>
+                    <p class="text-light mb-3">
+                        Set up Google Voice to forward calls to CallBunker:
+                    </p>
+                    
+                    <div class="bg-primary bg-opacity-10 p-3 rounded border border-primary">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="text-primary mb-1">Forward all calls to:</h6>
+                                <code class="bg-primary text-white px-2 py-1 rounded fw-bold fs-5">+1 (631) 641-7727</code>
+                                <div class="text-light small mt-1">
+                                    This is your dedicated CallBunker screening number
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <button class="btn btn-outline-primary btn-sm" onclick="copyToClipboard('+16316417727')">
+                                    <i class="fas fa-copy me-1"></i>Copy Number
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6 class="text-primary">How to set up forwarding:</h6>
+                        <ol class="text-light">
+                            <li>Go to voice.google.com → Settings → Calls</li>
+                            <li>In "Call forwarding", click "Add a forwarding phone"</li>
+                            <li>Enter <strong>+1 (631) 641-7727</strong></li>
+                            <li>Verify the number when prompted</li>
+                            <li>Make sure it's checked to receive forwarded calls</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How It Works -->
+            <div class="card border-info" style="background: rgba(23, 162, 184, 0.1);">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="fas fa-info-circle me-2"></i>How It Works
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <i class="fas fa-phone fa-2x text-info mb-2"></i>
+                            <h6 class="text-light">1. Caller Dials</h6>
+                            <small class="text-light">Your Google Voice number</small>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <i class="fas fa-shield-alt fa-2x text-warning mb-2"></i>
+                            <h6 class="text-light">2. CallBunker Screens</h6>
+                            <small class="text-light">PIN or verbal authentication</small>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <h6 class="text-light">3. You Get Call</h6>
+                            <small class="text-light">Only verified callers reach you</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show temporary success feedback
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-success');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-primary');
+        }, 2000);
+    });
+}
+
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+{% endblock %}
