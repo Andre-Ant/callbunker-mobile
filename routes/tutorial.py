@@ -21,7 +21,7 @@ def format_phone_display(phone):
 
 @tutorial_bp.route('/multi-user/<int:user_id>')
 def multi_user_tutorial(user_id):
-    """Interactive tutorial for multi-user CallBunker system"""
+    """Interactive tutorial for CallBunker system"""
     user = User.query.get_or_404(user_id)
     
     return render_template('tutorial/multi_user.html', 

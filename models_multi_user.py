@@ -1,5 +1,5 @@
 """
-Multi-User CallBunker Models - Each user gets their own Twilio number
+CallBunker Business Models - Each user gets their own Twilio number
 """
 from datetime import datetime
 from sqlalchemy import ForeignKey
