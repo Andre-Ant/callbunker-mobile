@@ -97,32 +97,39 @@ def initiate_call(user_id):
                 'error_type': 'no_verified_numbers'
             }), 400
         
-        # Clean approach: Direct call with status tracking (no bridge needed)
-        # The mobile app will handle audio through device's native calling
-        call = client.calls.create(
-            to=normalized_to,  # Call target number directly
-            from_=from_number,  # Show Google Voice number as caller ID
-            # No webhook URL needed - just initiate the call
-        )
+        # Native calling approach - no Twilio call needed
+        # Mobile app will use device's native calling with spoofed caller ID
+        # We just log the intent and provide calling instructions
         
-        # Log the call
+        # Log the call intent
         call_log = MultiUserCallLog()
         call_log.user_id = user_id
         call_log.from_number = from_number
         call_log.to_number = normalized_to
         call_log.direction = 'outbound'
-        call_log.status = 'initiated'
-        call_log.twilio_call_sid = call.sid
+        call_log.status = 'native_ready'
         db.session.add(call_log)
         db.session.commit()
         
         return jsonify({
             'success': True,
-            'call_sid': call.sid,
+            'approach': 'native_calling',
+            'call_log_id': call_log.id,
             'to_number': normalized_to,
             'from_number': from_number,
-            'message': 'Direct call initiated',
-            'instructions': 'Target will see your Google Voice number. Mobile app should now initiate native call to connect you.'
+            'native_call_config': {
+                'target_number': normalized_to,
+                'spoofed_caller_id': from_number,
+                'method': 'device_native',
+                'cost': 'carrier_only'
+            },
+            'instructions': {
+                'implementation': 'Use device native calling with caller ID spoofing',
+                'ios_method': 'CallKit with CXStartCallAction',
+                'android_method': 'TelecomManager with PhoneAccountHandle',
+                'react_native': 'NativeModules.CallManager.makeCall()'
+            },
+            'message': 'Ready for native calling - mobile app should initiate call now'
         })
         
     except Exception as e:
@@ -226,12 +233,8 @@ def api_initiate_call(user_id):
                 'error_code': 'NO_VERIFIED_NUMBERS'
             }), 400
         
-        # Create direct call - clean approach
-        call = client.calls.create(
-            to=normalized_to,
-            from_=from_number
-            # Mobile app handles the connection natively
-        )
+        # Native calling - no Twilio call creation needed
+        # Mobile app handles the actual calling natively
         
         # Log the call
         call_log = MultiUserCallLog()
@@ -246,10 +249,16 @@ def api_initiate_call(user_id):
         
         return jsonify({
             'success': True,
-            'call_sid': call.sid,
+            'approach': 'native_calling',
+            'call_log_id': call_log.id,
             'to_number': normalized_to,
             'from_number': from_number,
-            'status': 'initiated'
+            'native_call_config': {
+                'target_number': normalized_to,
+                'spoofed_caller_id': from_number,
+                'method': 'device_native'
+            },
+            'status': 'ready_for_native_call'
         })
         
     except Exception as e:
@@ -259,42 +268,62 @@ def api_initiate_call(user_id):
             'error_code': 'CALL_FAILED'
         }), 500
 
-@dialer_bp.route('/api/users/<int:user_id>/calls/<call_sid>/status', methods=['GET'])
-def api_call_status(user_id, call_sid):
-    """API endpoint to get call status for mobile app"""
+@dialer_bp.route('/api/users/<int:user_id>/calls/<int:call_log_id>/status', methods=['GET'])
+def api_call_status(user_id, call_log_id):
+    """API endpoint to get call status for native mobile calling"""
     user = MultiUser.query.get_or_404(user_id)
     
     call_log = MultiUserCallLog.query.filter_by(
         user_id=user_id,
-        twilio_call_sid=call_sid
+        id=call_log_id
     ).first()
     
     if not call_log:
         return jsonify({'error': 'Call not found'}), 404
     
-    # Get live status from Twilio
-    try:
-        client = twilio_client()
-        twilio_call = client.calls(call_sid).fetch()
-        
-        return jsonify({
-            'call_sid': call_sid,
-            'status': twilio_call.status,
-            'duration': twilio_call.duration,
-            'to_number': call_log.to_number,
-            'from_number': call_log.from_number,
-            'created_at': call_log.created_at.isoformat()
-        })
-        
-    except Exception as e:
-        logging.error(f"Error fetching call status: {e}")
-        return jsonify({
-            'call_sid': call_sid,
-            'status': call_log.status,
-            'to_number': call_log.to_number,
-            'from_number': call_log.from_number,
-            'created_at': call_log.created_at.isoformat()
-        })
+    return jsonify({
+        'call_log_id': call_log_id,
+        'status': call_log.status,
+        'approach': 'native_calling',
+        'to_number': call_log.to_number,
+        'from_number': call_log.from_number,
+        'duration_seconds': call_log.duration_seconds,
+        'created_at': call_log.created_at.isoformat(),
+        'native_call_info': {
+            'target_number': call_log.to_number,
+            'spoofed_caller_id': call_log.from_number,
+            'cost': 'carrier_only'
+        }
+    })
+
+@dialer_bp.route('/api/users/<int:user_id>/calls/<int:call_log_id>/complete', methods=['POST'])
+def api_call_complete(user_id, call_log_id):
+    """Update call status when native call completes"""
+    user = MultiUser.query.get_or_404(user_id)
+    
+    call_log = MultiUserCallLog.query.filter_by(
+        user_id=user_id,
+        id=call_log_id
+    ).first()
+    
+    if not call_log:
+        return jsonify({'error': 'Call not found'}), 404
+    
+    data = request.get_json()
+    status = data.get('status', 'completed')
+    duration_seconds = data.get('duration_seconds', 0)
+    
+    # Update call log
+    call_log.status = f'native_{status}'
+    call_log.duration_seconds = duration_seconds
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'call_log_id': call_log_id,
+        'status': call_log.status,
+        'duration_seconds': duration_seconds
+    })
 
 @dialer_bp.route('/api/users/<int:user_id>/calls', methods=['GET'])
 def api_call_history(user_id):

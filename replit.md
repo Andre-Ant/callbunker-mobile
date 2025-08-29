@@ -20,7 +20,7 @@ The system features a Bootstrap-themed responsive interface with a dark mode, ma
 - **Rate Limiting**: Configurable rate limiting with attempt limits and block durations per tenant to prevent abuse.
 - **Smart Whitelist**: Automatically whitelists trusted callers after successful authentication for future bypass. Manual whitelisting with custom PINs is also supported.
 - **Outgoing Call Protection**: Integrates with Google Voice to route outgoing calls, ensuring the user's real number remains protected and preventing bypass of CallBunker's system. It identifies Google Voice calls via the `ForwardedFrom` field.
-- **Mobile App Integration**: Clean REST API endpoints for mobile app integration, providing call initiation, status monitoring, and call history. The system bridges calls to the user's phone when targets answer, enabling mobile app calling through Google Voice protection.
+- **Native Mobile Calling**: Implements cost-effective native device calling with caller ID spoofing, eliminating per-minute charges while maintaining Google Voice number protection. Mobile apps use device's built-in calling capabilities with clean API integration.
 
 ## Feature Specifications
 - **Multi-tenancy**: Each tenant is identified by a `screening_number` with individual configurations.

@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showStatus('Initiating call...', 'info');
         callBtn.disabled = true;
 
-        fetch(`/api/users/{{ user.id }}/calls`, {
+        fetch(`/api/users/{{ user.id }}/call_direct`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -266,9 +266,8 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showStatus('Call initiated - your phone will ring when they answer', 'success');
-                // Start polling call status
-                pollCallStatus(data.call_sid);
+                showStatus(`Native calling ready - Target: ${data.to_number}, Caller ID: ${data.from_number}`, 'success');
+                showNativeCallInstructions(data);
                 // Refresh call history after a delay
                 setTimeout(refreshCallHistory, 3000);
             } else {
@@ -290,32 +289,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function pollCallStatus(callSid) {
-        let pollCount = 0;
-        const maxPolls = 30; // Poll for 30 seconds
+    function showNativeCallInstructions(callData) {
+        const instructionsHtml = `
+            <div class="alert alert-info mt-3">
+                <h6><i class="fas fa-mobile-alt me-2"></i>Native Calling Instructions</h6>
+                <p><strong>Target:</strong> ${callData.to_number}</p>
+                <p><strong>Your Caller ID:</strong> ${callData.from_number}</p>
+                <p><strong>Implementation:</strong> ${callData.instructions.implementation}</p>
+                <small class="text-muted">
+                    Mobile app should now use device's native calling with caller ID spoofing.<br>
+                    Cost: Carrier charges only (no Twilio per-minute fees)
+                </small>
+            </div>
+        `;
         
-        const pollInterval = setInterval(() => {
-            pollCount++;
-            
-            fetch(`/api/users/{{ user.id }}/calls/${callSid}/status`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'completed' || data.status === 'failed' || data.status === 'busy' || data.status === 'no-answer') {
-                    clearInterval(pollInterval);
-                    showStatus(`Call ${data.status}`, data.status === 'completed' ? 'success' : 'info');
-                    refreshCallHistory();
-                } else if (data.status === 'in-progress') {
-                    showStatus('Call in progress - you should be connected', 'success');
-                }
-            })
-            .catch(error => {
-                console.error('Error polling call status:', error);
-            });
-            
-            if (pollCount >= maxPolls) {
-                clearInterval(pollInterval);
-            }
-        }, 2000); // Poll every 2 seconds
+        // Add instructions below the call button
+        const instructionsDiv = document.getElementById('native-instructions') || 
+            (() => {
+                const div = document.createElement('div');
+                div.id = 'native-instructions';
+                callBtn.parentNode.insertAdjacentElement('afterend', div);
+                return div;
+            })();
+        
+        instructionsDiv.innerHTML = instructionsHtml;
     }
 
     // Audio context for dial tone
@@ -414,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
-        showStatus('Mobile API demo ready - see docs/mobile_calling_approaches.md for clean implementations', 'info');
+        showStatus('Native calling demo ready - zero per-minute costs, carrier-grade quality', 'success');
     });
 });
 </script>
