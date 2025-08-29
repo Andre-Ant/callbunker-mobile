@@ -98,10 +98,15 @@ def initiate_call(user_id):
             }), 400
         
         # Create a direct call to the target number showing Google Voice as caller ID
+        import os
+        public_url = os.environ.get('PUBLIC_APP_URL', f"https://{request.host}")
+        webhook_url = f"{public_url}/dialer/{user_id}/bridge?user_phone={user.real_phone_number}"
+        logging.info(f"Using webhook URL: {webhook_url}")
+        
         call = client.calls.create(
             to=normalized_to,  # Call target number directly
             from_=from_number,  # Show Google Voice number as caller ID
-            url=f"{request.url_root}dialer/{user_id}/bridge?user_phone={user.real_phone_number}",
+            url=webhook_url,
             method='POST'
         )
         
@@ -156,7 +161,7 @@ def bridge_call(user_id):
         caller_id=user.google_voice_number,  # Show Google Voice as caller ID to user too
         timeout=30
     )
-    # Connect to user's real phone
+    # Connect to user's real phone (ensure proper formatting)
     dial.number(user_phone)
     
     # If user doesn't answer, leave voicemail option
