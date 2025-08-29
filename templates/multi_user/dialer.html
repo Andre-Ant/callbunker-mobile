@@ -3,8 +3,7 @@
 {% block title %}CallBunker Dialer{% endblock %}
 
 {% block extra_head %}
-<!-- Twilio Client SDK -->
-<script src="https://sdk.twilio.com/js/client/releases/1.14.0/twilio.min.js"></script>
+<!-- No Twilio SDK needed for mobile API -->
 {% endblock %}
 
 {% block content %}
@@ -250,109 +249,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Twilio Device setup
-    let twilioDevice;
-    let currentCall;
-
-    // Initialize Twilio Device
-    function initializeTwilio() {
-        fetch(`/dialer/{{ user.id }}/get_access_token`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.token) {
-                twilioDevice = new Twilio.Device(data.token, {
-                    logLevel: 1,
-                    answerOnBridge: true
-                });
-
-                twilioDevice.ready(function(device) {
-                    console.log('Twilio Device Ready');
-                    showStatus('Ready to make calls', 'success');
-                });
-
-                twilioDevice.error(function(error) {
-                    console.error('Twilio Device Error:', error);
-                    showStatus('Device error: ' + error.message, 'danger');
-                });
-
-                twilioDevice.connect(function(conn) {
-                    currentCall = conn;
-                    showStatus('Call connected', 'success');
-                    callBtn.innerHTML = '<i class="fas fa-phone-slash me-2"></i>Hang Up';
-                    callBtn.className = 'btn btn-danger btn-lg w-100';
-                    callBtn.onclick = hangUpCall;
-                });
-
-                twilioDevice.disconnect(function(conn) {
-                    currentCall = null;
-                    showStatus('Call ended', 'info');
-                    resetCallButton();
-                });
-
-                twilioDevice.incoming(function(conn) {
-                    if (confirm('Incoming call. Accept?')) {
-                        conn.accept();
-                    } else {
-                        conn.ignore();
-                    }
-                });
-            } else {
-                showStatus('Failed to get access token', 'danger');
-            }
-        })
-        .catch(error => {
-            console.error('Token fetch error:', error);
-            showStatus('Failed to initialize calling', 'danger');
-        });
-    }
-
     function initiateCall(phoneNumber) {
-        if (!twilioDevice) {
-            showStatus('Device not ready. Please wait...', 'warning');
-            return;
-        }
-
-        if (currentCall) {
-            hangUpCall();
-            return;
-        }
-
-        // Play dial tone immediately
-        playDialTone();
-        showStatus('Connecting...', 'info');
+        // Simple mobile app API call
+        showStatus('Initiating call...', 'info');
         callBtn.disabled = true;
 
-        // Make call using Twilio Device
-        const params = {
-            To: '+1' + phoneNumber.replace(/\D/g, ''),  // Ensure proper format
-            url: `/dialer/{{ user.id }}/make_call_twiml`  // TwiML endpoint
-        };
-
-        currentCall = twilioDevice.connect(params);
-        
-        currentCall.on('accept', function() {
-            stopDialTone();
-            showStatus('Call connected - you can now talk', 'success');
-            callBtn.disabled = false;
-            callBtn.innerHTML = '<i class="fas fa-phone-slash me-2"></i>Hang Up';
-            callBtn.className = 'btn btn-danger btn-lg w-100';
-            callBtn.onclick = hangUpCall;
-        });
-
-        currentCall.on('disconnect', function() {
-            stopDialTone();
-            resetCallButton();
-            refreshCallHistory();
-        });
-
-        currentCall.on('error', function(error) {
-            stopDialTone();
-            showStatus('Call failed: ' + error.message, 'danger');
-            resetCallButton();
-        });
-
-        // Legacy fetch for logging (keeping for compatibility)
-        fetch(`/dialer/{{ user.id }}/call`, {
+        fetch(`/api/users/{{ user.id }}/calls`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -363,7 +265,13 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            if (!data.success) {
+            if (data.success) {
+                showStatus('Call initiated - your phone will ring when they answer', 'success');
+                // Start polling call status
+                pollCallStatus(data.call_sid);
+                // Refresh call history after a delay
+                setTimeout(refreshCallHistory, 3000);
+            } else {
                 // Handle different error types
                 if (data.error_type === 'twilio_verification') {
                     showStatus('✅ Verification Complete! Your Google Voice number is now verified for CallBunker Dialer.', 'success');
@@ -375,29 +283,39 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
-            console.error('Logging error:', error);
+            showStatus('Network error. Please try again.', 'danger');
+        })
+        .finally(() => {
+            callBtn.disabled = false;
         });
     }
 
-    function hangUpCall() {
-        if (currentCall) {
-            currentCall.disconnect();
-        }
-        resetCallButton();
-    }
-
-    function resetCallButton() {
-        callBtn.innerHTML = '<i class="fas fa-phone me-2"></i>Call';
-        callBtn.className = 'btn btn-success btn-lg w-100';
-        callBtn.onclick = function() {
-            const phoneNumber = phoneInput.value.replace(/\D/g, '');
-            if (phoneNumber.length === 10 || phoneNumber.length === 11) {
-                initiateCall(phoneNumber);
-            } else {
-                showStatus('Please enter a valid phone number', 'danger');
+    function pollCallStatus(callSid) {
+        let pollCount = 0;
+        const maxPolls = 30; // Poll for 30 seconds
+        
+        const pollInterval = setInterval(() => {
+            pollCount++;
+            
+            fetch(`/api/users/{{ user.id }}/calls/${callSid}/status`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'completed' || data.status === 'failed' || data.status === 'busy' || data.status === 'no-answer') {
+                    clearInterval(pollInterval);
+                    showStatus(`Call ${data.status}`, data.status === 'completed' ? 'success' : 'info');
+                    refreshCallHistory();
+                } else if (data.status === 'in-progress') {
+                    showStatus('Call in progress - you should be connected', 'success');
+                }
+            })
+            .catch(error => {
+                console.error('Error polling call status:', error);
+            });
+            
+            if (pollCount >= maxPolls) {
+                clearInterval(pollInterval);
             }
-        };
-        callBtn.disabled = false;
+        }, 2000); // Poll every 2 seconds
     }
 
     // Audio context for dial tone
@@ -459,7 +377,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function refreshCallHistory() {
-        fetch(`/dialer/{{ user.id }}/history`)
+        fetch(`/api/users/{{ user.id }}/calls?limit=10`)
         .then(response => response.json())
         .then(calls => {
             const historyDiv = document.getElementById('call-history');
@@ -494,9 +412,9 @@ document.addEventListener('DOMContentLoaded', function() {
         phoneInput.dispatchEvent(new Event('input'));
     };
 
-    // Initialize Twilio when page loads
+    // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
-        initializeTwilio();
+        showStatus('Ready to make calls via mobile bridge', 'success');
     });
 });
 </script>

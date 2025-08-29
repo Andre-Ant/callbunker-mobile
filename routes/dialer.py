@@ -97,25 +97,38 @@ def initiate_call(user_id):
                 'error_type': 'no_verified_numbers'
             }), 400
         
-        # For web-based calling, we'll use Twilio's client-side SDK
-        # Just return the normalized number for the frontend to handle
-        logging.info(f"Preparing web call from {from_number} to {normalized_to}")
+        # Mobile app integration - create direct call connection
+        import os
+        public_url = os.environ.get('PUBLIC_APP_URL', f"https://{request.host}")
         
-        # Log the call attempt
+        # When target answers, immediately bridge to user's phone
+        bridge_webhook_url = f"{public_url}/dialer/{user_id}/bridge_mobile?user_phone={user.real_phone_number}"
+        logging.info(f"Bridge webhook URL: {bridge_webhook_url}")
+        
+        call = client.calls.create(
+            to=normalized_to,  # Call target number directly
+            from_=from_number,  # Show Google Voice number as caller ID
+            url=bridge_webhook_url,
+            method='POST'
+        )
+        
+        # Log the call
         call_log = MultiUserCallLog()
         call_log.user_id = user_id
         call_log.from_number = from_number
         call_log.to_number = normalized_to
         call_log.direction = 'outbound'
-        call_log.status = 'web_initiated'
+        call_log.status = 'initiated'
+        call_log.twilio_call_sid = call.sid
         db.session.add(call_log)
         db.session.commit()
         
         return jsonify({
             'success': True,
+            'call_sid': call.sid,
             'to_number': normalized_to,
             'from_number': from_number,
-            'message': 'Ready for web calling'
+            'message': 'Call initiated - target phone is ringing'
         })
         
     except Exception as e:
@@ -139,59 +152,187 @@ def initiate_call(user_id):
                 'error_type': 'general'
             }), 500
 
-@dialer_bp.route('/dialer/<int:user_id>/get_access_token', methods=['GET'])
-def get_access_token(user_id):
-    """Generate Twilio access token for client-side calling"""
+@dialer_bp.route('/dialer/<int:user_id>/bridge_mobile', methods=['POST'])
+def bridge_mobile(user_id):
+    """TwiML to bridge target caller to user's mobile phone"""
     user = MultiUser.query.get_or_404(user_id)
-    
-    try:
-        from twilio.jwt.access_token import AccessToken
-        from twilio.jwt.access_token.grants import VoiceGrant
-        import os
-        
-        # Get Twilio credentials
-        account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
-        auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
-        
-        # Create identity for this user
-        identity = f"user_{user_id}"
-        
-        # Create access token using auth token as secret for simplicity
-        token = AccessToken(account_sid, account_sid, auth_token, identity=identity)
-        
-        # Create voice grant - need to create a TwiML app for this to work
-        public_url = os.environ.get('PUBLIC_APP_URL', 'https://example.com')
-        voice_grant = VoiceGrant(
-            outgoing_application_sid=None,  # We'll use direct calling
-            incoming_allow=False
-        )
-        token.add_grant(voice_grant)
-        
-        return jsonify({
-            'token': token.to_jwt(),
-            'identity': identity
-        })
-        
-    except Exception as e:
-        logging.error(f"Error generating access token: {e}")
-        return jsonify({'error': 'Failed to generate access token'}), 500
-
-@dialer_bp.route('/dialer/<int:user_id>/make_call_twiml', methods=['POST'])
-def make_call_twiml(user_id):
-    """TwiML for outgoing calls from web client"""
-    user = MultiUser.query.get_or_404(user_id)
-    to_number = request.form.get('To')
+    user_phone = request.args.get('user_phone')
     
     response = VoiceResponse()
     
-    if to_number:
-        # Use the user's Google Voice number as caller ID
-        dial = response.dial(caller_id=user.google_voice_number)
-        dial.number(to_number)
-    else:
-        response.say("Invalid number. Please try again.", voice='alice')
+    # When target answers, immediately dial the user's phone
+    dial = response.dial(
+        caller_id=user.google_voice_number,  # Show Google Voice as caller ID to user
+        timeout=30,
+        action=f"/dialer/{user_id}/call_complete",
+        method="POST"
+    )
+    dial.number(user_phone)
+    
+    # If user doesn't answer
+    response.say("The person you called is not available. Please try again later.", voice='alice')
     
     return str(response), 200, {'Content-Type': 'application/xml'}
+
+@dialer_bp.route('/dialer/<int:user_id>/call_complete', methods=['POST'])
+def call_complete(user_id):
+    """Handle call completion for mobile app"""
+    call_status = request.form.get('DialCallStatus')
+    call_sid = request.form.get('CallSid')
+    
+    # Update call log
+    if call_sid:
+        call_log = MultiUserCallLog.query.filter_by(twilio_call_sid=call_sid).first()
+        if call_log:
+            call_log.status = call_status or 'completed'
+            db.session.commit()
+    
+    response = VoiceResponse()
+    
+    if call_status == 'no-answer':
+        response.say("No answer. Please try again later.", voice='alice')
+    elif call_status == 'busy':
+        response.say("The line is busy. Please try again later.", voice='alice')
+    elif call_status == 'failed':
+        response.say("Call failed. Please try again later.", voice='alice')
+    
+    return str(response), 200, {'Content-Type': 'application/xml'}
+
+# Mobile API endpoints
+@dialer_bp.route('/api/users/<int:user_id>/calls', methods=['POST'])
+def api_initiate_call(user_id):
+    """API endpoint for mobile app to initiate calls"""
+    user = MultiUser.query.get_or_404(user_id)
+    
+    data = request.get_json()
+    to_number = data.get('to_number')
+    
+    if not to_number:
+        return jsonify({'error': 'Phone number is required'}), 400
+    
+    # Normalize the phone number
+    normalized_to = normalize_phone_number(to_number)
+    if not normalized_to:
+        return jsonify({'error': 'Invalid phone number format'}), 400
+    
+    try:
+        client = twilio_client()
+        
+        # Get verified number
+        try:
+            outgoing_caller_ids = client.outgoing_caller_ids.list()
+            verified_numbers = [caller_id.phone_number for caller_id in outgoing_caller_ids]
+        except Exception as e:
+            logging.error(f"Failed to get verified numbers: {e}")
+            verified_numbers = []
+        
+        from_number = None
+        if user.google_voice_number in verified_numbers:
+            from_number = user.google_voice_number
+        elif verified_numbers:
+            from_number = verified_numbers[0]
+        else:
+            return jsonify({
+                'error': 'No verified phone numbers available',
+                'error_code': 'NO_VERIFIED_NUMBERS'
+            }), 400
+        
+        # Create call
+        import os
+        public_url = os.environ.get('PUBLIC_APP_URL', f"https://{request.host}")
+        bridge_webhook_url = f"{public_url}/dialer/{user_id}/bridge_mobile?user_phone={user.real_phone_number}"
+        
+        call = client.calls.create(
+            to=normalized_to,
+            from_=from_number,
+            url=bridge_webhook_url,
+            method='POST'
+        )
+        
+        # Log the call
+        call_log = MultiUserCallLog()
+        call_log.user_id = user_id
+        call_log.from_number = from_number
+        call_log.to_number = normalized_to
+        call_log.direction = 'outbound'
+        call_log.status = 'initiated'
+        call_log.twilio_call_sid = call.sid
+        db.session.add(call_log)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'call_sid': call.sid,
+            'to_number': normalized_to,
+            'from_number': from_number,
+            'status': 'initiated'
+        })
+        
+    except Exception as e:
+        logging.error(f"API call initiation error: {e}")
+        return jsonify({
+            'error': str(e),
+            'error_code': 'CALL_FAILED'
+        }), 500
+
+@dialer_bp.route('/api/users/<int:user_id>/calls/<call_sid>/status', methods=['GET'])
+def api_call_status(user_id, call_sid):
+    """API endpoint to get call status for mobile app"""
+    user = MultiUser.query.get_or_404(user_id)
+    
+    call_log = MultiUserCallLog.query.filter_by(
+        user_id=user_id,
+        twilio_call_sid=call_sid
+    ).first()
+    
+    if not call_log:
+        return jsonify({'error': 'Call not found'}), 404
+    
+    # Get live status from Twilio
+    try:
+        client = twilio_client()
+        twilio_call = client.calls(call_sid).fetch()
+        
+        return jsonify({
+            'call_sid': call_sid,
+            'status': twilio_call.status,
+            'duration': twilio_call.duration,
+            'to_number': call_log.to_number,
+            'from_number': call_log.from_number,
+            'created_at': call_log.created_at.isoformat()
+        })
+        
+    except Exception as e:
+        logging.error(f"Error fetching call status: {e}")
+        return jsonify({
+            'call_sid': call_sid,
+            'status': call_log.status,
+            'to_number': call_log.to_number,
+            'from_number': call_log.from_number,
+            'created_at': call_log.created_at.isoformat()
+        })
+
+@dialer_bp.route('/api/users/<int:user_id>/calls', methods=['GET'])
+def api_call_history(user_id):
+    """API endpoint to get call history for mobile app"""
+    user = MultiUser.query.get_or_404(user_id)
+    
+    limit = request.args.get('limit', 50, type=int)
+    offset = request.args.get('offset', 0, type=int)
+    
+    calls = MultiUserCallLog.query.filter_by(user_id=user_id)\
+        .order_by(MultiUserCallLog.created_at.desc())\
+        .limit(limit).offset(offset).all()
+    
+    return jsonify([{
+        'call_sid': call.twilio_call_sid,
+        'to_number': call.to_number,
+        'from_number': call.from_number,
+        'direction': call.direction,
+        'status': call.status,
+        'duration_seconds': call.duration_seconds,
+        'created_at': call.created_at.isoformat()
+    } for call in calls])
 
 @dialer_bp.route('/dialer/<int:user_id>/dial_status', methods=['POST'])
 def dial_status(user_id):
