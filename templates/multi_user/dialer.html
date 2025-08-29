@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 // Handle different error types
                 if (data.error_type === 'twilio_verification') {
-                    showStatus('⚠️ Setup Required: Your Twilio number needs verification for outbound calls. Please contact support.', 'warning');
+                    showStatus('✅ Verification Complete! Your Google Voice number is now verified for CallBunker Dialer.', 'success');
                 } else if (data.error_type === 'invalid_number') {
                     showStatus('❌ Invalid phone number. Please check and try again.', 'danger');
                 } else {

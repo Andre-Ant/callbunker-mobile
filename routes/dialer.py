@@ -103,7 +103,7 @@ def initiate_call(user_id):
         # Handle specific Twilio errors
         if "21210" in error_msg or "not yet verified" in error_msg:
             return jsonify({
-                'error': 'Twilio number not verified for outbound calls. Contact admin to verify the Twilio number for outbound calling.',
+                'error': 'Google Voice number not verified in Twilio. Please complete verification first.',
                 'error_type': 'twilio_verification'
             }), 400
         elif "21211" in error_msg or "Invalid 'To' Phone Number" in error_msg:
