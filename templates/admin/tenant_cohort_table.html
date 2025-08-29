@@ -30,8 +30,8 @@
                             {% if tenant.forward_to %}
                                 <br><strong>Forward to:</strong> {{ tenant.forward_to }}
                             {% endif %}
-                            {% if hasattr(tenant, 'google_voice_number') and tenant.google_voice_number %}
-                                <br><strong>Google Voice:</strong> {{ tenant.google_voice_number }}
+                            {% if tenant.forward_to and tenant.forward_to != tenant.screening_number %}
+                                <br><small class="text-info">(Using Google Voice forwarding)</small>
                             {% endif %}
                         </div>
                     </td>
@@ -61,10 +61,9 @@
                             <small class="text-muted">No activity</small>
                         {% endif %}
                         
-                        <!-- Recent failures indicator -->
-                        {% set recent_failures = tenant.fail_logs | selectattr('created_at', 'greaterthan', (now() - timedelta(hours=24))) | list | length %}
-                        {% if recent_failures > 0 %}
-                            <br><span class="badge bg-danger">{{ recent_failures }} failures (24h)</span>
+                        <!-- Recent failures indicator - simplified -->
+                        {% if tenant.fail_logs %}
+                            <br><span class="badge bg-warning text-dark">{{ tenant.fail_logs | length }} total failures</span>
                         {% endif %}
                     </td>
                     <td>
