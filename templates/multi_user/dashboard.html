@@ -128,5 +128,28 @@
             </div>
         </div>
     </div>
+
+    <!-- Support Contact Section -->
+    <div class="card border-info mt-4" style="background: rgba(13, 202, 240, 0.05);">
+        <div class="card-body text-center py-3">
+            <div class="d-flex justify-content-center gap-4 flex-wrap align-items-center">
+                <small class="text-muted">
+                    <a href="{{ url_for('main.how_it_works') }}" class="text-info text-decoration-none">
+                        <i class="fas fa-question-circle me-1"></i>How It Works Guide
+                    </a>
+                </small>
+                <small class="text-muted">
+                    <a href="{{ url_for('multi_user.contact_support') }}" class="text-warning text-decoration-none">
+                        <i class="fas fa-life-ring me-1"></i>Need Help? Contact Support
+                    </a>
+                </small>
+                {% if not tenant.test_verified_at %}
+                <small class="text-danger">
+                    <i class="fas fa-exclamation-triangle me-1"></i>Setup incomplete? Get help above
+                </small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

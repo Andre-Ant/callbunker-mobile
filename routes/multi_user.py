@@ -152,3 +152,7 @@ def setup_twilio_webhook(phone_number):
     except Exception as e:
         print(f"Failed to configure Twilio webhook for {phone_number}: {e}")
         return False
+@multi_user_bp.route('/contact-support')
+def contact_support():
+    """Support contact page for users needing help"""
+    return render_template('multi_user/contact_support.html')
