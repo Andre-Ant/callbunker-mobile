@@ -1,6 +1,6 @@
 # Overview
 
-CallBunker is a comprehensive communication security platform featuring both backend call screening services and a complete mobile application. The system protects users from unwanted calls through PIN/verbal authentication while providing cost-effective native mobile calling with caller ID spoofing. It integrates with Twilio for voice services and Google Voice for privacy protection, offering a complete solution for secure business and personal communications.
+CallBunker is a comprehensive communication security platform featuring both backend call screening services and a complete mobile application. The system protects users from unwanted calls through PIN/verbal authentication while providing cost-effective native mobile calling with caller ID spoofing. It integrates with Twilio for voice services and Google Voice for privacy protection, offering a complete solution for secure business and personal communications, now including protected texting functionality.
 
 # User Preferences
 
@@ -21,7 +21,7 @@ The system features a Bootstrap-themed responsive interface with a dark mode, ma
 - **Smart Whitelist**: Automatically whitelists trusted callers after successful authentication for future bypass. Manual whitelisting with custom PINs is also supported.
 - **Outgoing Call Protection**: Integrates with Google Voice to route outgoing calls, ensuring the user's real number remains protected and preventing bypass of CallBunker's system. It identifies Google Voice calls via the `ForwardedFrom` field.
 - **Native Mobile Calling**: Implements cost-effective native device calling with caller ID spoofing, eliminating per-minute charges while maintaining Google Voice number protection. Mobile apps use device's built-in calling capabilities with clean API integration.
-- **Complete Mobile Application**: Full-featured React Native app with protected dialer, call history, trusted contacts management, and native calling integration. Provides intuitive user interface for all CallBunker features.
+- **Complete Mobile Application**: Full-featured React Native app with protected dialer, messaging system, call history, trusted contacts management, and native calling integration. Provides intuitive user interface for all CallBunker features including anonymous texting through Google Voice.
 
 ## Feature Specifications
 - **Multi-tenancy**: Each tenant is identified by a `screening_number` with individual configurations.

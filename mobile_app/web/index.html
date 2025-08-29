@@ -425,10 +425,10 @@
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center;">
-                                <div style="width: 20px; margin-right: 12px;">💰</div>
+                                <div style="width: 20px; margin-right: 12px;">💬</div>
                                 <div>
-                                    <div style="font-weight: 500; margin-bottom: 2px;">Cost Effective</div>
-                                    <div style="font-size: 14px; color: #8E8E93;">Native calling with zero per-minute charges</div>
+                                    <div style="font-weight: 500; margin-bottom: 2px;">Protected Texting</div>
+                                    <div style="font-size: 14px; color: #8E8E93;">Anonymous messaging through Google Voice</div>
                                 </div>
                             </div>
                         </div>
@@ -506,10 +506,11 @@
                             </div>
                         </div>
                         
-                        <div style="display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 20px;">
-                            <button onclick="backspace()" style="background: #F2F2F7; border: none; width: 60px; height: 60px; border-radius: 30px; cursor: pointer;">⌫</button>
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 20px;">
+                            <button onclick="backspace()" style="background: #F2F2F7; border: none; width: 50px; height: 50px; border-radius: 25px; cursor: pointer;">⌫</button>
                             <button class="call-button" id="call-btn" onclick="makeCall()" disabled>📞</button>
-                            <button onclick="showScreen('contacts')" style="background: #E3F2FD; border: none; width: 60px; height: 60px; border-radius: 30px; cursor: pointer;">👥</button>
+                            <button onclick="sendMessage()" id="message-btn" style="background: #34C759; border: none; width: 50px; height: 50px; border-radius: 25px; cursor: pointer; color: white; font-size: 18px;" disabled>💬</button>
+                            <button onclick="showScreen('contacts')" style="background: #E3F2FD; border: none; width: 50px; height: 50px; border-radius: 25px; cursor: pointer;">👥</button>
                         </div>
                         
                         <div class="features-info">
@@ -518,8 +519,8 @@
                                 <div class="feature-text">Real number hidden</div>
                             </div>
                             <div class="feature-item">
-                                <div>💰</div>
-                                <div class="feature-text">Carrier rates only</div>
+                                <div>💬</div>
+                                <div class="feature-text">Protected texting</div>
                             </div>
                             <div class="feature-item">
                                 <div>🛡️</div>
@@ -530,10 +531,23 @@
                 </div>
                 
                 <!-- Other Screens -->
-                <div id="history-screen" class="screen-content screen-hidden">
-                    <h2>Call History</h2>
+                <div id="messages-screen" class="screen-content screen-hidden">
+                    <h2>Protected Messages</h2>
                     <div class="status-card">
-                        <p>Your protected calls will appear here with detailed privacy information.</p>
+                        <div class="section-title">CallBunker Texting</div>
+                        <div class="feature-item" style="margin: 15px 0;">
+                            <div>🔒</div>
+                            <div class="feature-text">Anonymous texting through Google Voice</div>
+                        </div>
+                        <div class="feature-item" style="margin: 15px 0;">
+                            <div>💬</div>
+                            <div class="feature-text">Real number stays hidden</div>
+                        </div>
+                        <div class="feature-item" style="margin: 15px 0;">
+                            <div>📱</div>
+                            <div class="feature-text">Native messaging integration</div>
+                        </div>
+                        <p style="color: #666; font-size: 14px; margin-top: 20px;">Enter a number in the dialer and tap the message button to send protected texts.</p>
                     </div>
                 </div>
                 
@@ -561,9 +575,9 @@
                     <div class="tab-icon">📞</div>
                     <div class="tab-text">Dialer</div>
                 </div>
-                <div class="tab-item" onclick="showScreen('history')">
-                    <div class="tab-icon">📋</div>
-                    <div class="tab-text">History</div>
+                <div class="tab-item" onclick="showScreen('messages')">
+                    <div class="tab-icon">💬</div>
+                    <div class="tab-text">Messages</div>
                 </div>
                 <div class="tab-item" onclick="showScreen('contacts')">
                     <div class="tab-icon">👥</div>
@@ -588,13 +602,21 @@
             });
             
             // Show selected screen
-            document.getElementById(screenName + '-screen').classList.remove('screen-hidden');
+            const targetScreen = document.getElementById(screenName + '-screen');
+            if (targetScreen) {
+                targetScreen.classList.remove('screen-hidden');
+            }
             
             // Update tab bar
             document.querySelectorAll('.tab-item').forEach(tab => {
                 tab.classList.remove('active');
             });
-            event.target.closest('.tab-item').classList.add('active');
+            
+            // Find the clicked tab and make it active
+            const clickedTab = document.querySelector(`[onclick="showScreen('${screenName}')"]`);
+            if (clickedTab) {
+                clickedTab.classList.add('active');
+            }
             
             activeScreen = screenName;
         }
@@ -614,13 +636,16 @@
         function updateDisplay() {
             const display = document.getElementById('phone-display');
             const callBtn = document.getElementById('call-btn');
+            const messageBtn = document.getElementById('message-btn');
             
             if (currentNumber) {
                 display.textContent = formatPhoneNumber(currentNumber);
                 callBtn.disabled = false;
+                if (messageBtn) messageBtn.disabled = false;
             } else {
                 display.textContent = 'Enter number';
                 callBtn.disabled = true;
+                if (messageBtn) messageBtn.disabled = true;
             }
         }
 
@@ -653,6 +678,32 @@
                 );
                 
                 // Reset for next call
+                currentNumber = '';
+                updateDisplay();
+            }
+        }
+
+        function sendMessage() {
+            if (!currentNumber) return;
+            
+            const message = prompt(
+                `Protected Message to ${formatPhoneNumber(currentNumber)}\n\n` +
+                `Your Google Voice number (+16179421250) will be shown as sender.\n` +
+                `Your real number stays hidden.\n\n` +
+                `Enter your message:`
+            );
+            
+            if (message && message.trim()) {
+                alert(
+                    `Message Sent!\n\n` +
+                    `To: ${formatPhoneNumber(currentNumber)}\n` +
+                    `From: +1 (617) 942-1250\n` +
+                    `Message: "${message.trim()}"\n` +
+                    `Status: Simulation Mode\n\n` +
+                    `In the real app, this would route through Google Voice for complete privacy protection.`
+                );
+                
+                // Reset for next message
                 currentNumber = '';
                 updateDisplay();
             }
