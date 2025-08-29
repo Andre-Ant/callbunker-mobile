@@ -73,11 +73,34 @@ def initiate_call(user_id):
         # Debug logging
         logging.info(f"Making call - From: {user.google_voice_number}, To: {user.real_phone_number}")
         
+        # Get available verified numbers from Twilio
+        try:
+            outgoing_caller_ids = client.outgoing_caller_ids.list()
+            verified_numbers = [caller_id.phone_number for caller_id in outgoing_caller_ids]
+            logging.info(f"Available verified numbers: {verified_numbers}")
+        except Exception as e:
+            logging.error(f"Failed to get verified numbers: {e}")
+            verified_numbers = []
+        
+        # Try to find a verified number to use
+        from_number = None
+        if user.google_voice_number in verified_numbers:
+            from_number = user.google_voice_number
+            logging.info(f"Using Google Voice number: {from_number}")
+        elif verified_numbers:
+            from_number = verified_numbers[0]  # Use first available verified number
+            logging.info(f"Google Voice number not available, using: {from_number}")
+        else:
+            # If no verified numbers, provide clear guidance
+            return jsonify({
+                'error': 'No verified phone numbers found in Twilio account. Please verify your Google Voice number in the Twilio Console.',
+                'error_type': 'no_verified_numbers'
+            }), 400
+        
         # Create a call that will connect the user's real phone to the target number
-        # Use the verified Google Voice number as the 'from' number
         call = client.calls.create(
             to=user.real_phone_number,  # Call user's real phone first
-            from_=user.google_voice_number,  # Use verified Google Voice number
+            from_=from_number,  # Use available verified number
             url=f"{request.url_root}dialer/{user_id}/connect?to={normalized_to}",
             method='POST'
         )
