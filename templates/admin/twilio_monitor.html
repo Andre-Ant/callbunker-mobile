@@ -198,27 +198,37 @@
                     <div class="tab-content mt-3" id="cohortTabContent">
                         <!-- All Tenants -->
                         <div class="tab-pane fade show active" id="all-cohort" role="tabpanel">
-                            {% include 'admin/tenant_cohort_table.html' with tenants=all_tenants, cohort_name='all' %}
+                            {% set tenants = all_tenants %}
+                            {% set cohort_name = 'all' %}
+                            {% include 'admin/tenant_cohort_table.html' %}
                         </div>
                         
                         <!-- Verified Tenants -->
                         <div class="tab-pane fade" id="verified-cohort" role="tabpanel">
-                            {% include 'admin/tenant_cohort_table.html' with tenants=verified_tenants, cohort_name='verified' %}
+                            {% set tenants = verified_tenants %}
+                            {% set cohort_name = 'verified' %}
+                            {% include 'admin/tenant_cohort_table.html' %}
                         </div>
                         
                         <!-- Unverified Tenants -->
                         <div class="tab-pane fade" id="unverified-cohort" role="tabpanel">
-                            {% include 'admin/tenant_cohort_table.html' with tenants=unverified_tenants, cohort_name='unverified' %}
+                            {% set tenants = unverified_tenants %}
+                            {% set cohort_name = 'unverified' %}
+                            {% include 'admin/tenant_cohort_table.html' %}
                         </div>
                         
                         <!-- Active Today -->
                         <div class="tab-pane fade" id="active-cohort" role="tabpanel">
-                            {% include 'admin/tenant_cohort_table.html' with tenants=active_today_tenants, cohort_name='active' %}
+                            {% set tenants = active_today_tenants %}
+                            {% set cohort_name = 'active' %}
+                            {% include 'admin/tenant_cohort_table.html' %}
                         </div>
                         
                         <!-- Google Voice Users -->
                         <div class="tab-pane fade" id="google-voice-cohort" role="tabpanel">
-                            {% include 'admin/tenant_cohort_table.html' with tenants=google_voice_tenants, cohort_name='google_voice' %}
+                            {% set tenants = google_voice_tenants %}
+                            {% set cohort_name = 'google_voice' %}
+                            {% include 'admin/tenant_cohort_table.html' %}
                         </div>
                     </div>
                 </div>
