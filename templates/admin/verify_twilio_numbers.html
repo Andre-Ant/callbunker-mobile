@@ -11,7 +11,12 @@
 
     <div class="alert alert-warning">
         <i class="fas fa-exclamation-triangle me-2"></i>
-        <strong>Action Required:</strong> Twilio numbers need verification before they can make outbound calls through the CallBunker Dialer.
+        <strong>Action Required:</strong> Your Google Voice number needs verification in Twilio before the CallBunker Dialer can make protected outbound calls using your Google Voice caller ID.
+    </div>
+
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>How CallBunker Dialer Works:</strong> When you make calls through the dialer, it routes through Twilio but shows your Google Voice number as the caller ID - giving you maximum protection while maintaining your trusted identity.
     </div>
 
     <div class="card border-info mb-4" style="background: rgba(13, 202, 240, 0.1);">
@@ -19,22 +24,28 @@
             <h5 class="text-info mb-0">Steps to Verify Twilio Numbers</h5>
         </div>
         <div class="card-body">
+            <div class="alert alert-primary mb-3">
+                <h6 class="text-primary mb-2">🎯 Main Task: Verify Your Google Voice Number</h6>
+                <p class="mb-1"><strong>Google Voice Number:</strong> <code class="text-success">+1 (617) 942-1250</code></p>
+                <p class="mb-0">This is what people will see when you call them through CallBunker Dialer</p>
+            </div>
+
             <ol class="text-light">
                 <li class="mb-2">
                     <strong>Log into Twilio Console:</strong> 
                     <a href="https://console.twilio.com/" target="_blank" class="text-info">https://console.twilio.com/</a>
                 </li>
                 <li class="mb-2">
-                    <strong>Navigate to Phone Numbers:</strong> Go to Phone Numbers → Manage → Active Numbers
+                    <strong>Go to Verified Caller IDs:</strong> Navigate to Phone Numbers → Manage → Verified Caller IDs
                 </li>
                 <li class="mb-2">
-                    <strong>Select Each Number:</strong> Click on each CallBunker number below
+                    <strong>Add Your Google Voice Number:</strong> Click "Add a new Caller ID" and enter <code class="text-success">+16174921250</code>
                 </li>
                 <li class="mb-2">
-                    <strong>Enable Voice:</strong> Ensure "Voice" capability is enabled for outbound calls
+                    <strong>Complete Verification:</strong> Twilio will call your Google Voice number - answer and enter the verification code
                 </li>
                 <li class="mb-2">
-                    <strong>Verify for Outbound:</strong> Follow Twilio's verification process for outbound calling
+                    <strong>Enable for CallBunker:</strong> Once verified, the CallBunker Dialer will work with your Google Voice caller ID
                 </li>
             </ol>
         </div>
@@ -42,41 +53,23 @@
 
     <div class="card border-primary">
         <div class="card-header">
-            <h5 class="text-primary mb-0">CallBunker Twilio Numbers to Verify</h5>
+            <h5 class="text-primary mb-0">Quick Link to Twilio Verification</h5>
         </div>
-        <div class="card-body">
-            {% if twilio_numbers %}
-                <div class="row">
-                    {% for number in twilio_numbers %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card border-secondary" style="background: rgba(255, 255, 255, 0.05);">
-                            <div class="card-body">
-                                <h6 class="text-warning">{{ format_phone(number.phone_number) }}</h6>
-                                <small class="text-muted">
-                                    {% if number.assigned_to_user_id %}
-                                        Assigned to User ID: {{ number.assigned_to_user_id }}
-                                    {% else %}
-                                        Unassigned (Available)
-                                    {% endif %}
-                                </small>
-                                <div class="mt-2">
-                                    <a href="https://console.twilio.com/us1/develop/phone-numbers/manage/incoming" 
-                                       target="_blank" class="btn btn-sm btn-info">
-                                        <i class="fas fa-external-link-alt me-1"></i>Verify in Twilio
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="text-center py-4">
-                    <i class="fas fa-phone-slash fa-3x text-muted mb-3"></i>
-                    <h5 class="text-light">No Twilio Numbers Found</h5>
-                    <p class="text-muted">Add Twilio numbers to the phone pool first</p>
-                </div>
-            {% endif %}
+        <div class="card-body text-center">
+            <div class="mb-3">
+                <i class="fas fa-phone-check fa-3x text-success mb-3"></i>
+                <h5 class="text-light">Verify Your Google Voice Number</h5>
+                <p class="text-muted">Add <code class="text-success">+1 (617) 942-1250</code> as a verified caller ID in Twilio</p>
+            </div>
+            
+            <a href="https://console.twilio.com/us1/develop/phone-numbers/manage/verified-caller-ids" 
+               target="_blank" class="btn btn-success btn-lg">
+                <i class="fas fa-external-link-alt me-2"></i>Verify Google Voice in Twilio
+            </a>
+            
+            <div class="mt-3">
+                <small class="text-muted">This will allow CallBunker Dialer to make calls showing your Google Voice number</small>
+            </div>
         </div>
     </div>
 
