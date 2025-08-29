@@ -51,7 +51,7 @@
                         {% set whitelist_count = tenant.whitelists | length %}
                         <span class="badge bg-light text-dark">{{ whitelist_count }} contacts</span>
                         {% if whitelist_count > 0 %}
-                            <br><small class="text-muted">Last: {{ tenant.whitelists[0].created_at.strftime('%m/%d') if tenant.whitelists else 'N/A' }}</small>
+                            <br><small class="text-success">Auto-whitelist active</small>
                         {% endif %}
                     </td>
                     <td>
