@@ -97,15 +97,15 @@ def initiate_call(user_id):
                 'error_type': 'no_verified_numbers'
             }), 400
         
-        # Create a call that first calls the user, then dials out to target when user answers
+        # Create a direct outbound call - target hears dial tone, then gets connected
         import os
         public_url = os.environ.get('PUBLIC_APP_URL', f"https://{request.host}")
-        webhook_url = f"{public_url}/dialer/{user_id}/dial_target?target={normalized_to}&from_number={from_number}"
+        webhook_url = f"{public_url}/dialer/{user_id}/connect_direct?user_phone={user.real_phone_number}"
         logging.info(f"Using webhook URL: {webhook_url}")
         
         call = client.calls.create(
-            to=user.real_phone_number,  # Call user first
-            from_=from_number,  # Show Google Voice number as caller ID to user
+            to=normalized_to,  # Call target number directly
+            from_=from_number,  # Show Google Voice number as caller ID
             url=webhook_url,
             method='POST'
         )
@@ -124,7 +124,7 @@ def initiate_call(user_id):
         return jsonify({
             'success': True,
             'call_sid': call.sid,
-            'message': 'Calling your phone now - answer to place the call'
+            'message': 'Calling... listen for ringing'
         })
         
     except Exception as e:
@@ -148,27 +148,23 @@ def initiate_call(user_id):
                 'error_type': 'general'
             }), 500
 
-@dialer_bp.route('/dialer/<int:user_id>/dial_target', methods=['POST'])
-def dial_target(user_id):
-    """TwiML to dial the target number when user answers"""
+@dialer_bp.route('/dialer/<int:user_id>/connect_direct', methods=['POST'])
+def connect_direct(user_id):
+    """TwiML to immediately connect target to user when target answers"""
     user = MultiUser.query.get_or_404(user_id)
-    target_number = request.args.get('target')
-    from_number = request.args.get('from_number')
+    user_phone = request.args.get('user_phone')
     
     response = VoiceResponse()
     
-    # Play a brief message to the user
-    response.say("Placing your call now...", voice='alice')
-    
-    # Dial the target number
+    # When target answers, immediately connect to user's phone (no announcement)
     dial = response.dial(
-        caller_id=from_number,  # Show Google Voice number as caller ID to target
+        caller_id=user.google_voice_number,  # Show Google Voice as caller ID to user
         timeout=30
     )
-    dial.number(target_number)
+    dial.number(user_phone)
     
-    # If call doesn't connect
-    response.say("Call could not be completed. Please try again later.", voice='alice')
+    # If user doesn't answer
+    response.say("The person you called is not available. Please try again later.", voice='alice')
     
     return str(response), 200, {'Content-Type': 'application/xml'}
 

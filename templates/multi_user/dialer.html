@@ -246,7 +246,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function initiateCall(phoneNumber) {
-        showStatus('Initiating call...', 'info');
+        // Play dial tone audio immediately for user feedback
+        playDialTone();
+        showStatus('Dialing...', 'info');
         callBtn.disabled = true;
 
         fetch(`/dialer/{{ user.id }}/call`, {
@@ -260,6 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
+            stopDialTone();
             if (data.success) {
                 showStatus(data.message, 'success');
                 // Refresh call history after a delay
@@ -276,11 +279,56 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
+            stopDialTone();
             showStatus('Network error. Please try again.', 'danger');
         })
         .finally(() => {
             callBtn.disabled = false;
         });
+    }
+
+    // Audio context for dial tone
+    let audioContext;
+    let oscillator;
+    let gainNode;
+
+    function playDialTone() {
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            oscillator = audioContext.createOscillator();
+            gainNode = audioContext.createGain();
+            
+            // Create dial tone (350Hz + 440Hz)
+            oscillator.frequency.setValueAtTime(350, audioContext.currentTime);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            
+            oscillator.start();
+            
+            // Add second tone
+            const oscillator2 = audioContext.createOscillator();
+            oscillator2.frequency.setValueAtTime(440, audioContext.currentTime);
+            oscillator2.connect(gainNode);
+            oscillator2.start();
+        } catch (e) {
+            console.log('Audio not supported');
+        }
+    }
+
+    function stopDialTone() {
+        try {
+            if (oscillator) {
+                oscillator.stop();
+                oscillator = null;
+            }
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+        } catch (e) {
+            console.log('Error stopping dial tone');
+        }
     }
 
     function showStatus(message, type) {
