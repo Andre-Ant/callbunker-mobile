@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Twilio Verification Troubleshooting{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-white mb-4">
+        <i class="fas fa-tools me-2 text-warning"></i>
+        Verification Call Not Ringing?
+    </h1>
+
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>The Problem:</strong> Your Google Voice forwards to your Defense Number, which triggers CallBunker authentication before reaching you!
+    </div>
+
+    <div class="card border-info mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-lightbulb me-2"></i>
+                What's Happening
+            </h5>
+        </div>
+        <div class="card-body">
+            <ol class="text-white fs-6">
+                <li class="mb-2">Twilio calls your Google Voice: <code class="text-success">+1 (617) 942-1250</code></li>
+                <li class="mb-2">Google Voice forwards to your Defense Number: <code class="text-warning">+1 (631) 641-7728</code></li>
+                <li class="mb-2">CallBunker intercepts and asks for PIN authentication</li>
+                <li class="mb-2">Twilio (automated system) can't enter PIN, so call fails</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="card border-success mb-4">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">
+                <i class="fas fa-wrench me-2"></i>
+                Quick Fix Solutions
+            </h4>
+        </div>
+        <div class="card-body">
+            
+            <!-- Solution 1 -->
+            <div class="card border-primary mb-3" style="background: rgba(13, 110, 253, 0.1);">
+                <div class="card-header">
+                    <h6 class="text-primary mb-0">Option 1: Temporarily Forward Directly (Recommended)</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-white mb-2">Temporarily change Google Voice to forward directly to your real phone:</p>
+                    <ol class="text-light">
+                        <li>Go to <a href="https://voice.google.com/settings" target="_blank" class="text-info">voice.google.com/settings</a></li>
+                        <li>Find your current forwarding number: <code class="text-warning">+1 (631) 641-7728</code></li>
+                        <li>Change it to your real phone: <code class="text-success">+1 (508) 638-8084</code></li>
+                        <li>Try Twilio verification again</li>
+                        <li><strong>Important:</strong> Change it back to Defense Number after verification!</li>
+                    </ol>
+                    <div class="mt-3">
+                        <a href="https://voice.google.com/settings" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-external-link-alt me-2"></i>Google Voice Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solution 2 -->
+            <div class="card border-warning mb-3" style="background: rgba(255, 193, 7, 0.1);">
+                <div class="card-header">
+                    <h6 class="text-warning mb-0">Option 2: Add Twilio to Whitelist</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-white mb-2">Add Twilio's verification number to your whitelist (if you know it):</p>
+                    <ol class="text-light">
+                        <li>Look at your recent missed calls for a Twilio number</li>
+                        <li>Add that number to your CallBunker whitelist</li>
+                        <li>Try verification again</li>
+                    </ol>
+                    <div class="alert alert-info">
+                        <small><i class="fas fa-info-circle me-1"></i>This is trickier because Twilio uses different numbers for verification calls</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solution 3 -->
+            <div class="card border-info mb-3" style="background: rgba(13, 202, 240, 0.1);">
+                <div class="card-header">
+                    <h6 class="text-info mb-0">Option 3: Alternative Verification Method</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-white mb-2">Try SMS verification instead:</p>
+                    <ol class="text-light">
+                        <li>In Twilio verification popup, look for "Text me instead" option</li>
+                        <li>SMS will go directly to your Google Voice (bypasses CallBunker)</li>
+                        <li>Enter the code from the SMS</li>
+                    </ol>
+                    <div class="alert alert-success">
+                        <small><i class="fas fa-check-circle me-1"></i>SMS verification often works better since it doesn't need call forwarding</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-success">
+        <div class="card-body text-center">
+            <h6 class="text-success mb-3">
+                <i class="fas fa-undo me-2"></i>
+                After Verification is Complete
+            </h6>
+            <p class="text-light mb-3">Remember to change your Google Voice forwarding back to your Defense Number:</p>
+            <p class="text-warning fs-5 fw-bold">+1 (631) 641-7728</p>
+            <p class="text-muted">This ensures CallBunker continues protecting your incoming calls</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

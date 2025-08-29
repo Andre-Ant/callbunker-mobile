@@ -511,3 +511,8 @@ def verify_twilio_numbers():
 def verification_walkthrough():
     """Step-by-step walkthrough for Google Voice verification"""
     return render_template('admin/verification_walkthrough.html')
+
+@admin_bp.route('/verification-troubleshooting')
+def verification_troubleshooting():
+    """Troubleshooting guide for verification call issues"""
+    return render_template('admin/verification_troubleshooting.html')

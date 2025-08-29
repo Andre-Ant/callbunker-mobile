@@ -125,9 +125,14 @@
                 <li class="mb-2">The call should work and show your Google Voice number as caller ID</li>
             </ol>
             <div class="text-center mt-3">
-                <a href="/multi/user/1/dashboard" class="btn btn-success">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-                </a>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{{ url_for('admin.verification_troubleshooting') }}" class="btn btn-warning">
+                        <i class="fas fa-tools me-2"></i>Call Not Ringing?
+                    </a>
+                    <a href="/multi/user/1/dashboard" class="btn btn-success">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
             </div>
         </div>
     </div>
