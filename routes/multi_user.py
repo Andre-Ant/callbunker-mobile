@@ -9,6 +9,14 @@ import re
 
 multi_user_bp = Blueprint('multi_user', __name__, url_prefix='/multi')
 
+@multi_user_bp.route('/')
+def user_list():
+    """List all users for easy dashboard access"""
+    users = User.query.all()
+    return render_template('multi_user/user_list.html', 
+                         users=users,
+                         format_phone=format_phone_display)
+
 def normalize_phone(phone):
     """Normalize phone number to digits only"""
     return re.sub(r'[^\d]', '', phone)

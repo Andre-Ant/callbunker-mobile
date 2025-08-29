@@ -5,8 +5,8 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    """Main dashboard - redirect to multi-user signup"""
-    return redirect(url_for('multi_user.signup'))
+    """Main dashboard - redirect to multi-user list"""
+    return redirect(url_for('multi_user.user_list'))
 
 @main_bp.route('/signup')
 def signup():

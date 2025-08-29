@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}CallBunker Users{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-4">
+                <h1 class="text-white">
+                    <i class="fas fa-users me-2 text-success"></i>
+                    CallBunker Users
+                </h1>
+                <p class="text-light">Select a user to access their dashboard</p>
+            </div>
+
+            <div class="card border-primary" style="background: rgba(13, 110, 253, 0.1);">
+                <div class="card-body">
+                    <h4 class="card-title text-primary mb-4">
+                        <i class="fas fa-list me-2"></i>Active Users
+                    </h4>
+
+                    {% if users %}
+                        {% for user in users %}
+                        <div class="card mb-3 border-secondary" style="background: rgba(255, 255, 255, 0.05);">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <h6 class="text-light mb-1">{{ user.name }}</h6>
+                                        <small class="text-muted">{{ user.email }}</small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-light">Google Voice:</small><br>
+                                        <code class="text-success">{{ format_phone(user.google_voice_number) }}</code>
+                                    </div>
+                                    <div class="col-md-2 text-end">
+                                        <a href="{{ url_for('multi_user.user_dashboard', user_id=user.id) }}" 
+                                           class="btn btn-primary">
+                                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-user-plus fa-3x text-muted mb-3"></i>
+                            <h5 class="text-light">No users yet</h5>
+                            <p class="text-muted">Create your first CallBunker account to get started</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('multi_user.signup') }}" class="btn btn-success btn-lg">
+                            <i class="fas fa-plus me-2"></i>Add New User
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
