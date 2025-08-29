@@ -490,3 +490,10 @@ def test_tenant_config(screening_number):
     except Exception as e:
         return jsonify({"success": False, "message": f"Test failed: {str(e)}"})
 
+
+@admin_bp.route('/tenant/list')
+@require_admin_web
+def tenant_list():
+    """Simple tenant list view"""
+    tenants = Tenant.query.order_by(Tenant.created_at.desc()).all()
+    return render_template('tenant_list.html', tenants=tenants)
