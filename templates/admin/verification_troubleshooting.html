@@ -40,10 +40,35 @@
         </div>
         <div class="card-body">
             
-            <!-- Solution 1 -->
+            <!-- Solution 1 - SMS (Now Recommended) -->
+            <div class="card border-success mb-3" style="background: rgba(25, 135, 84, 0.1);">
+                <div class="card-header">
+                    <h6 class="text-success mb-0">Option 1: Use SMS Verification (Recommended - No Forwarding Issues!)</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-white mb-2">SMS goes directly to Google Voice - bypasses CallBunker completely:</p>
+                    <ol class="text-light">
+                        <li>In the Twilio verification popup, look for <strong>"Send text message instead"</strong> or <strong>"SMS"</strong> option</li>
+                        <li>Click that instead of the "Call me" button</li>
+                        <li>Check your Google Voice for the SMS with verification code</li>
+                        <li>Enter the code in Twilio</li>
+                    </ol>
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Perfect Solution:</strong> SMS doesn't trigger call forwarding or CallBunker authentication!
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('admin.sms_verification_guide') }}" class="btn btn-success">
+                            <i class="fas fa-sms me-2"></i>Detailed SMS Guide
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solution 2 -->
             <div class="card border-primary mb-3" style="background: rgba(13, 110, 253, 0.1);">
                 <div class="card-header">
-                    <h6 class="text-primary mb-0">Option 1: Temporarily Forward Directly (Recommended)</h6>
+                    <h6 class="text-primary mb-0">Option 2: Temporarily Forward Directly</h6>
                 </div>
                 <div class="card-body">
                     <p class="text-white mb-2">Temporarily change Google Voice to forward directly to your real phone:</p>
@@ -62,10 +87,10 @@
                 </div>
             </div>
 
-            <!-- Solution 2 -->
+            <!-- Solution 3 -->
             <div class="card border-warning mb-3" style="background: rgba(255, 193, 7, 0.1);">
                 <div class="card-header">
-                    <h6 class="text-warning mb-0">Option 2: Add Twilio to Whitelist</h6>
+                    <h6 class="text-warning mb-0">Option 3: Add Twilio to Whitelist</h6>
                 </div>
                 <div class="card-body">
                     <p class="text-white mb-2">Add Twilio's verification number to your whitelist (if you know it):</p>
@@ -80,23 +105,7 @@
                 </div>
             </div>
 
-            <!-- Solution 3 -->
-            <div class="card border-info mb-3" style="background: rgba(13, 202, 240, 0.1);">
-                <div class="card-header">
-                    <h6 class="text-info mb-0">Option 3: Alternative Verification Method</h6>
-                </div>
-                <div class="card-body">
-                    <p class="text-white mb-2">Try SMS verification instead:</p>
-                    <ol class="text-light">
-                        <li>In Twilio verification popup, look for "Text me instead" option</li>
-                        <li>SMS will go directly to your Google Voice (bypasses CallBunker)</li>
-                        <li>Enter the code from the SMS</li>
-                    </ol>
-                    <div class="alert alert-success">
-                        <small><i class="fas fa-check-circle me-1"></i>SMS verification often works better since it doesn't need call forwarding</small>
-                    </div>
-                </div>
-            </div>
+
         </div>
     </div>
 

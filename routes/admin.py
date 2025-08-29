@@ -516,3 +516,8 @@ def verification_walkthrough():
 def verification_troubleshooting():
     """Troubleshooting guide for verification call issues"""
     return render_template('admin/verification_troubleshooting.html')
+
+@admin_bp.route('/sms-verification-guide')
+def sms_verification_guide():
+    """SMS verification guide - the easy way"""
+    return render_template('admin/sms_verification_guide.html')
