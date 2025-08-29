@@ -17,19 +17,21 @@
     <!-- Step 1 -->
     <div class="card border-primary mb-4">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">
-                <span class="badge bg-light text-primary me-2">1</span>
+            <h4 class="mb-0">
+                <span class="badge bg-light text-primary me-2 fs-5">1</span>
                 Open Twilio Console
-            </h5>
+            </h4>
         </div>
         <div class="card-body">
-            <p class="text-light">Click the button below to open Twilio's Verified Caller IDs page:</p>
-            <a href="https://console.twilio.com/us1/develop/phone-numbers/manage/verified-caller-ids" 
-               target="_blank" class="btn btn-primary">
-                <i class="fas fa-external-link-alt me-2"></i>Open Twilio Verified Caller IDs
-            </a>
+            <p class="text-white fs-5 mb-3">Click the button below to open Twilio's Verified Caller IDs page:</p>
+            <div class="d-grid">
+                <a href="https://console.twilio.com/us1/develop/phone-numbers/manage/verified-caller-ids" 
+                   target="_blank" class="btn btn-primary btn-lg py-3">
+                    <i class="fas fa-external-link-alt me-2"></i>Open Twilio Verified Caller IDs
+                </a>
+            </div>
             <div class="mt-3">
-                <small class="text-muted">This will open in a new tab. You'll need to log into your Twilio account if you're not already logged in.</small>
+                <small class="text-light">This will open in a new tab. You'll need to log into your Twilio account if you're not already logged in.</small>
             </div>
         </div>
     </div>
@@ -37,21 +39,21 @@
     <!-- Step 2 -->
     <div class="card border-info mb-4">
         <div class="card-header bg-info text-white">
-            <h5 class="mb-0">
-                <span class="badge bg-light text-info me-2">2</span>
+            <h4 class="mb-0">
+                <span class="badge bg-light text-info me-2 fs-5">2</span>
                 Add New Caller ID
-            </h5>
+            </h4>
         </div>
         <div class="card-body">
-            <p class="text-light">In the Twilio console:</p>
-            <ol class="text-light">
-                <li>Look for a red button that says <strong>"Add a new Caller ID"</strong></li>
-                <li>Click that button</li>
-                <li>A popup will appear asking for a phone number</li>
+            <p class="text-white fs-5 mb-3">In the Twilio console:</p>
+            <ol class="text-white fs-6">
+                <li class="mb-2">Look for a red button that says <strong>"Add a new Caller ID"</strong></li>
+                <li class="mb-2">Click that button</li>
+                <li class="mb-2">A popup will appear asking for a phone number</li>
             </ol>
             <div class="alert alert-warning mt-3">
                 <i class="fas fa-exclamation-triangle me-2"></i>
-                If you don't see "Add a new Caller ID" button, look for "Verify a new number" or similar
+                <strong>Note:</strong> If you don't see "Add a new Caller ID" button, look for "Verify a new number" or similar
             </div>
         </div>
     </div>
@@ -59,24 +61,25 @@
     <!-- Step 3 -->
     <div class="card border-warning mb-4">
         <div class="card-header bg-warning text-dark">
-            <h5 class="mb-0">
-                <span class="badge bg-dark text-warning me-2">3</span>
+            <h4 class="mb-0">
+                <span class="badge bg-dark text-warning me-2 fs-5">3</span>
                 Enter Your Google Voice Number
-            </h5>
+            </h4>
         </div>
         <div class="card-body">
-            <p class="text-light">In the phone number field, enter:</p>
-            <div class="input-group mb-3">
-                <span class="input-group-text bg-success text-white">Enter This:</span>
-                <input type="text" class="form-control bg-dark text-success fw-bold fs-5" 
-                       value="+16174921250" readonly>
-                <button class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText('+16174921250')">
-                    <i class="fas fa-copy"></i> Copy
-                </button>
+            <p class="text-white fs-5 mb-3">In the phone number field, enter:</p>
+            <div class="alert alert-success mb-3">
+                <h5 class="text-dark mb-2">Copy This Number:</h5>
+                <div class="d-grid">
+                    <button class="btn btn-dark btn-lg py-3" onclick="copyToClipboard('+16174921250')">
+                        <span class="fs-4 fw-bold text-success">+16174921250</span>
+                        <br><small class="text-light">Tap to Copy</small>
+                    </button>
+                </div>
             </div>
             <div class="alert alert-info">
                 <i class="fas fa-info-circle me-2"></i>
-                <strong>Important:</strong> Use the format <code class="text-dark">+16174921250</code> (with + and no spaces)
+                <strong>Important:</strong> Use the exact format <code class="text-dark">+16174921250</code> (with + and no spaces)
             </div>
         </div>
     </div>
@@ -84,19 +87,19 @@
     <!-- Step 4 -->
     <div class="card border-success mb-4">
         <div class="card-header bg-success text-white">
-            <h5 class="mb-0">
-                <span class="badge bg-light text-success me-2">4</span>
+            <h4 class="mb-0">
+                <span class="badge bg-light text-success me-2 fs-5">4</span>
                 Complete Verification Call
-            </h5>
+            </h4>
         </div>
         <div class="card-body">
-            <p class="text-light">After clicking "Call me now" in Twilio:</p>
-            <ol class="text-light">
-                <li class="mb-2">Twilio will call your Google Voice number <code class="text-success">+1 (617) 942-1250</code></li>
-                <li class="mb-2"><strong>Answer the call</strong> - it will be from a Twilio number</li>
-                <li class="mb-2">Listen for a <strong>6-digit verification code</strong></li>
-                <li class="mb-2">Enter that code in the Twilio web page</li>
-                <li class="mb-2">Click "Verify" to complete the process</li>
+            <p class="text-white fs-5 mb-3">After clicking "Call me now" in Twilio:</p>
+            <ol class="text-white fs-6">
+                <li class="mb-3">Twilio will call your Google Voice number <code class="text-success fs-5">+1 (617) 942-1250</code></li>
+                <li class="mb-3"><strong>Answer the call</strong> - it will be from a Twilio number</li>
+                <li class="mb-3">Listen for a <strong>6-digit verification code</strong></li>
+                <li class="mb-3">Enter that code in the Twilio web page</li>
+                <li class="mb-3">Click "Verify" to complete the process</li>
             </ol>
             <div class="alert alert-success">
                 <i class="fas fa-check-circle me-2"></i>
@@ -145,9 +148,30 @@
 
 <script>
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(function() {
-        alert('Phone number copied to clipboard!');
-    });
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+            alert('Phone number copied! Now switch to Twilio tab and paste it.');
+        }).catch(function() {
+            // Fallback for older browsers
+            fallbackCopy(text);
+        });
+    } else {
+        fallbackCopy(text);
+    }
+}
+
+function fallbackCopy(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        alert('Phone number copied! Now switch to Twilio tab and paste it.');
+    } catch (err) {
+        alert('Copy failed. Please manually enter: +16174921250');
+    }
+    document.body.removeChild(textArea);
 }
 </script>
 {% endblock %}
