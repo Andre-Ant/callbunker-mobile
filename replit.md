@@ -1,6 +1,6 @@
 # Overview
 
-CallBunker is a business call screening service designed to protect recipients from unwanted calls by requiring callers to authenticate via PIN or verbal codes. It integrates with Twilio for voice services and supports multi-tenant configurations, offering features like rate limiting, whitelisting, and various forwarding modes. The system provides webhook endpoints for Twilio integration and a web-based admin interface for managing tenants, whitelists, and overall system configuration. Its core purpose is to provide a robust, protective layer for incoming and outgoing calls, integrating with Google Voice to maintain user privacy and security.
+CallBunker is a comprehensive communication security platform featuring both backend call screening services and a complete mobile application. The system protects users from unwanted calls through PIN/verbal authentication while providing cost-effective native mobile calling with caller ID spoofing. It integrates with Twilio for voice services and Google Voice for privacy protection, offering a complete solution for secure business and personal communications.
 
 # User Preferences
 
@@ -21,6 +21,7 @@ The system features a Bootstrap-themed responsive interface with a dark mode, ma
 - **Smart Whitelist**: Automatically whitelists trusted callers after successful authentication for future bypass. Manual whitelisting with custom PINs is also supported.
 - **Outgoing Call Protection**: Integrates with Google Voice to route outgoing calls, ensuring the user's real number remains protected and preventing bypass of CallBunker's system. It identifies Google Voice calls via the `ForwardedFrom` field.
 - **Native Mobile Calling**: Implements cost-effective native device calling with caller ID spoofing, eliminating per-minute charges while maintaining Google Voice number protection. Mobile apps use device's built-in calling capabilities with clean API integration.
+- **Complete Mobile Application**: Full-featured React Native app with protected dialer, call history, trusted contacts management, and native calling integration. Provides intuitive user interface for all CallBunker features.
 
 ## Feature Specifications
 - **Multi-tenancy**: Each tenant is identified by a `screening_number` with individual configurations.
@@ -41,9 +42,12 @@ The architecture prioritizes clear separation of concerns, robust security measu
 - **PostgreSQL**: An optional database for production deployments, specified via `DATABASE_URL`.
 
 ## Frontend Dependencies
-- **Bootstrap**: CSS framework for responsive UI.
-- **Font Awesome**: Icon library for interface elements.
-- **Vanilla JavaScript**: Used for form validation, phone number formatting, and UI enhancements.
+- **Bootstrap**: CSS framework for responsive web UI.
+- **Font Awesome**: Icon library for web interface elements.
+- **Vanilla JavaScript**: Used for form validation, phone number formatting, and web UI enhancements.
+- **React Native**: Cross-platform mobile framework for iOS and Android applications.
+- **React Navigation**: Mobile app navigation and routing system.
+- **Native Modules**: iOS CallKit and Android TelecomManager integration for native calling.
 
 ## Python Libraries
 - **Flask Ecosystem**: Includes `Flask-SQLAlchemy` for ORM.
