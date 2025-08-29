@@ -14,6 +14,8 @@ export class CallBunkerNative {
         this.baseUrl = baseUrl;
         this.userId = userId;
         this.activeCalls = new Map();
+        this.simulationMode = Platform.OS === 'web' || !CallManager;
+        this.googleVoiceNumber = '+16179421250'; // Your Google Voice number
     }
 
     /**
@@ -23,7 +25,34 @@ export class CallBunkerNative {
      */
     async makeCall(targetNumber) {
         try {
-            console.log(`[CallBunker] Initiating native call to ${targetNumber}`);
+            console.log(`[CallBunker] Initiating call to ${targetNumber}`);
+            
+            // Simulation mode for web/testing
+            if (this.simulationMode) {
+                console.log('[CallBunker] Running in simulation mode');
+                
+                const callLogId = Date.now();
+                const callInfo = {
+                    callLogId,
+                    targetNumber: targetNumber,
+                    callerIdShown: this.googleVoiceNumber,
+                    status: 'simulated',
+                    config: {
+                        target_number: targetNumber,
+                        spoofed_caller_id: this.googleVoiceNumber
+                    }
+                };
+                
+                // Store simulated call
+                this.activeCalls.set(callLogId, {
+                    ...callInfo,
+                    startTime: Date.now(),
+                    status: 'initiating'
+                });
+                
+                console.log('[CallBunker] Simulated call setup:', callInfo);
+                return callInfo;
+            }
             
             // Get call configuration from CallBunker API
             const response = await fetch(`${this.baseUrl}/api/users/${this.userId}/call_direct`, {
