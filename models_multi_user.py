@@ -62,6 +62,25 @@ class TwilioPhonePool(db.Model):
     # Relationships
     assigned_user = relationship("User", foreign_keys=[assigned_to_user_id])
 
+class MultiUserCallLog(db.Model):
+    """Call logs for multi-user system"""
+    __tablename__ = 'multi_user_call_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, ForeignKey('users.id'), nullable=False, index=True)
+    from_number = db.Column(db.String(20), nullable=False)
+    to_number = db.Column(db.String(20), nullable=False)
+    direction = db.Column(db.String(10), nullable=False)  # 'inbound' or 'outbound'
+    status = db.Column(db.String(20), nullable=False)
+    twilio_call_sid = db.Column(db.String(50), nullable=True)
+    duration_seconds = db.Column(db.Integer, nullable=True)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id])
+
 class UserWhitelist(db.Model):
     """Per-user whitelisted numbers"""
     __tablename__ = 'user_whitelist'

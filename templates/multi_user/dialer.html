@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}CallBunker Dialer{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Dialer Interface -->
+        <div class="col-lg-8">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-phone-alt me-2"></i>CallBunker Dialer
+                    </h4>
+                    <small>Make calls using your Google Voice number: {{ format_phone(user.google_voice_number) }}</small>
+                </div>
+                <div class="card-body">
+                    <!-- Phone Number Input -->
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <label for="phone-input" class="form-label">Phone Number</label>
+                            <input type="tel" 
+                                   class="form-control form-control-lg" 
+                                   id="phone-input" 
+                                   placeholder="(555) 123-4567"
+                                   autocomplete="tel">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button id="call-btn" class="btn btn-success btn-lg w-100">
+                                <i class="fas fa-phone me-2"></i>Call
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Keypad -->
+                    <div class="row g-2 mb-4">
+                        <div class="col-12">
+                            <h6 class="text-center mb-3">Keypad</h6>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-light w-100 keypad-btn" data-digit="1">
+                                1<br><small></small>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-light w-100 keypad-btn" data-digit="2">
+                                2<br><small>ABC</small>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-light w-100 keypad-btn" data-digit="3">
+                                3<br><small>DEF</small>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-light w-100 keypad-btn" data-digit="4">
+                                4<br><small>GHI</small>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-light w-100 keypad-btn" data-digit="5">
+                                5<br><small>JKL</small>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-light w-100 keypad-btn" data-digit="6">
+                                6<br><small>MNO</small>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-light w-100 keypad-btn" data-digit="7">
+                                7<br><small>PQRS</small>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-light w-100 keypad-btn" data-digit="8">
+                                8<br><small>TUV</small>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-light w-100 keypad-btn" data-digit="9">
+                                9<br><small>WXYZ</small>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-light w-100 keypad-btn" data-digit="*">
+                                *<br><small></small>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-light w-100 keypad-btn" data-digit="0">
+                                0<br><small></small>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-outline-light w-100 keypad-btn" data-digit="#">
+                                #<br><small></small>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Clear Button -->
+                    <div class="text-center mb-3">
+                        <button id="clear-btn" class="btn btn-outline-secondary">
+                            <i class="fas fa-backspace me-2"></i>Clear
+                        </button>
+                    </div>
+
+                    <!-- Call Status -->
+                    <div id="call-status" class="alert alert-info d-none">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span id="status-text"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Call History & User Info -->
+        <div class="col-lg-4">
+            <!-- User Info -->
+            <div class="card border-info mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-user me-2"></i>Your CallBunker Details
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column gap-2">
+                        <div>
+                            <strong>Google Voice:</strong><br>
+                            <code class="text-success">{{ format_phone(user.google_voice_number) }}</code>
+                        </div>
+                        <div>
+                            <strong>Defense Number:</strong><br>
+                            <code class="text-warning">{{ format_phone(user.twilio_phone_number) }}</code>
+                        </div>
+                        <div>
+                            <strong>Status:</strong><br>
+                            <span class="badge bg-success">Protected Calling</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <a href="{{ url_for('multi_user.user_dashboard', user_id=user.id) }}" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-dashboard me-1"></i>Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Calls -->
+            <div class="card border-secondary">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Recent Calls
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="call-history">
+                        {% if recent_calls %}
+                            {% for call in recent_calls %}
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom">
+                                <div>
+                                    <div class="fw-bold">
+                                        {% if call.direction == 'outbound' %}
+                                            <i class="fas fa-arrow-up text-success me-1"></i>
+                                            {{ format_phone(call.to_number) }}
+                                        {% else %}
+                                            <i class="fas fa-arrow-down text-info me-1"></i>
+                                            {{ format_phone(call.from_number) }}
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">
+                                        {{ call.created_at.strftime('%m/%d %I:%M %p') }}
+                                    </small>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-success" onclick="callNumber('{{ call.to_number if call.direction == 'outbound' else call.from_number }}')">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted text-center">No recent calls</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('phone-input');
+    const callBtn = document.getElementById('call-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const keypadBtns = document.querySelectorAll('.keypad-btn');
+    const callStatus = document.getElementById('call-status');
+    const statusText = document.getElementById('status-text');
+
+    // Format phone number as user types
+    phoneInput.addEventListener('input', function() {
+        let value = this.value.replace(/\D/g, '');
+        if (value.length >= 6) {
+            value = `(${value.slice(0,3)}) ${value.slice(3,6)}-${value.slice(6,10)}`;
+        } else if (value.length >= 3) {
+            value = `(${value.slice(0,3)}) ${value.slice(3)}`;
+        }
+        this.value = value;
+    });
+
+    // Keypad functionality
+    keypadBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const digit = this.dataset.digit;
+            const currentValue = phoneInput.value.replace(/\D/g, '');
+            if (currentValue.length < 10) {
+                phoneInput.value = currentValue + digit;
+                phoneInput.dispatchEvent(new Event('input'));
+            }
+        });
+    });
+
+    // Clear button
+    clearBtn.addEventListener('click', function() {
+        phoneInput.value = '';
+    });
+
+    // Call button
+    callBtn.addEventListener('click', function() {
+        const phoneNumber = phoneInput.value.replace(/\D/g, '');
+        if (phoneNumber.length === 10 || phoneNumber.length === 11) {
+            initiateCall(phoneNumber);
+        } else {
+            showStatus('Please enter a valid phone number', 'danger');
+        }
+    });
+
+    // Enter key to call
+    phoneInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            callBtn.click();
+        }
+    });
+
+    function initiateCall(phoneNumber) {
+        showStatus('Initiating call...', 'info');
+        callBtn.disabled = true;
+
+        fetch(`/dialer/{{ user.id }}/call`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                to_number: phoneNumber
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showStatus(data.message, 'success');
+                // Refresh call history after a delay
+                setTimeout(refreshCallHistory, 2000);
+            } else {
+                showStatus(data.error || 'Call failed', 'danger');
+            }
+        })
+        .catch(error => {
+            showStatus('Network error. Please try again.', 'danger');
+        })
+        .finally(() => {
+            callBtn.disabled = false;
+        });
+    }
+
+    function showStatus(message, type) {
+        statusText.textContent = message;
+        callStatus.className = `alert alert-${type}`;
+        callStatus.classList.remove('d-none');
+        
+        if (type === 'success') {
+            setTimeout(() => {
+                callStatus.classList.add('d-none');
+            }, 5000);
+        }
+    }
+
+    function refreshCallHistory() {
+        fetch(`/dialer/{{ user.id }}/history`)
+        .then(response => response.json())
+        .then(calls => {
+            const historyDiv = document.getElementById('call-history');
+            if (calls.length > 0) {
+                historyDiv.innerHTML = calls.slice(0, 10).map(call => `
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border-bottom">
+                        <div>
+                            <div class="fw-bold">
+                                ${call.direction === 'outbound' ? 
+                                    `<i class="fas fa-arrow-up text-success me-1"></i>${call.to_number}` :
+                                    `<i class="fas fa-arrow-down text-info me-1"></i>${call.from_number}`
+                                }
+                            </div>
+                            <small class="text-muted">${call.created_at}</small>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-success" onclick="callNumber('${call.direction === 'outbound' ? call.to_number : call.from_number}')">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                historyDiv.innerHTML = '<p class="text-muted text-center">No recent calls</p>';
+            }
+        });
+    }
+
+    // Global function for call history buttons
+    window.callNumber = function(number) {
+        phoneInput.value = number;
+        phoneInput.dispatchEvent(new Event('input'));
+    };
+});
+</script>
+{% endblock %}
