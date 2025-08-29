@@ -506,3 +506,8 @@ def verify_twilio_numbers():
     return render_template('admin/verify_twilio_numbers.html', 
                          twilio_numbers=twilio_numbers,
                          format_phone=format_phone)
+
+@admin_bp.route('/verification-walkthrough')
+def verification_walkthrough():
+    """Step-by-step walkthrough for Google Voice verification"""
+    return render_template('admin/verification_walkthrough.html')

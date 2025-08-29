@@ -62,10 +62,15 @@
                 <p class="text-muted">Add <code class="text-success">+1 (617) 942-1250</code> as a verified caller ID in Twilio</p>
             </div>
             
-            <a href="https://console.twilio.com/us1/develop/phone-numbers/manage/verified-caller-ids" 
-               target="_blank" class="btn btn-success btn-lg">
-                <i class="fas fa-external-link-alt me-2"></i>Verify Google Voice in Twilio
-            </a>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a href="{{ url_for('admin.verification_walkthrough') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-route me-2"></i>Step-by-Step Guide
+                </a>
+                <a href="https://console.twilio.com/us1/develop/phone-numbers/manage/verified-caller-ids" 
+                   target="_blank" class="btn btn-success btn-lg">
+                    <i class="fas fa-external-link-alt me-2"></i>Go to Twilio
+                </a>
+            </div>
             
             <div class="mt-3">
                 <small class="text-muted">This will allow CallBunker Dialer to make calls showing your Google Voice number</small>
