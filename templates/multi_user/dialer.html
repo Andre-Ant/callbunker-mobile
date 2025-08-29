@@ -16,7 +16,7 @@
                     <h4 class="mb-0">
                         <i class="fas fa-phone-alt me-2"></i>CallBunker Dialer
                     </h4>
-                    <small>Make calls using your Google Voice number: {{ format_phone(user.google_voice_number) }}</small>
+                    <small>Demonstrates mobile API - calls show your Google Voice number: {{ format_phone(user.google_voice_number) }}</small>
                 </div>
                 <div class="card-body">
                     <!-- Phone Number Input -->
@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
-        showStatus('Ready to make calls via mobile bridge', 'success');
+        showStatus('Mobile API demo ready - see docs/mobile_calling_approaches.md for clean implementations', 'info');
     });
 });
 </script>

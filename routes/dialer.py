@@ -97,19 +97,12 @@ def initiate_call(user_id):
                 'error_type': 'no_verified_numbers'
             }), 400
         
-        # Mobile app integration - create direct call connection
-        import os
-        public_url = os.environ.get('PUBLIC_APP_URL', f"https://{request.host}")
-        
-        # When target answers, immediately bridge to user's phone
-        bridge_webhook_url = f"{public_url}/dialer/{user_id}/bridge_mobile?user_phone={user.real_phone_number}"
-        logging.info(f"Bridge webhook URL: {bridge_webhook_url}")
-        
+        # Clean approach: Direct call with status tracking (no bridge needed)
+        # The mobile app will handle audio through device's native calling
         call = client.calls.create(
             to=normalized_to,  # Call target number directly
             from_=from_number,  # Show Google Voice number as caller ID
-            url=bridge_webhook_url,
-            method='POST'
+            # No webhook URL needed - just initiate the call
         )
         
         # Log the call
@@ -128,7 +121,8 @@ def initiate_call(user_id):
             'call_sid': call.sid,
             'to_number': normalized_to,
             'from_number': from_number,
-            'message': 'Call initiated - target phone is ringing'
+            'message': 'Direct call initiated',
+            'instructions': 'Target will see your Google Voice number. Mobile app should now initiate native call to connect you.'
         })
         
     except Exception as e:
@@ -152,51 +146,46 @@ def initiate_call(user_id):
                 'error_type': 'general'
             }), 500
 
-@dialer_bp.route('/dialer/<int:user_id>/bridge_mobile', methods=['POST'])
-def bridge_mobile(user_id):
-    """TwiML to bridge target caller to user's mobile phone"""
+@dialer_bp.route('/api/users/<int:user_id>/call_direct', methods=['POST'])
+def api_call_direct(user_id):
+    """Cleanest approach: Just notify target, let mobile app handle native calling"""
     user = MultiUser.query.get_or_404(user_id)
-    user_phone = request.args.get('user_phone')
     
-    response = VoiceResponse()
+    data = request.get_json()
+    to_number = data.get('to_number')
     
-    # When target answers, immediately dial the user's phone
-    dial = response.dial(
-        caller_id=user.google_voice_number,  # Show Google Voice as caller ID to user
-        timeout=30,
-        action=f"/dialer/{user_id}/call_complete",
-        method="POST"
-    )
-    dial.number(user_phone)
+    if not to_number:
+        return jsonify({'error': 'Phone number is required'}), 400
     
-    # If user doesn't answer
-    response.say("The person you called is not available. Please try again later.", voice='alice')
+    # Normalize the phone number
+    normalized_to = normalize_phone_number(to_number)
+    if not normalized_to:
+        return jsonify({'error': 'Invalid phone number format'}), 400
     
-    return str(response), 200, {'Content-Type': 'application/xml'}
-
-@dialer_bp.route('/dialer/<int:user_id>/call_complete', methods=['POST'])
-def call_complete(user_id):
-    """Handle call completion for mobile app"""
-    call_status = request.form.get('DialCallStatus')
-    call_sid = request.form.get('CallSid')
+    # CLEANEST APPROACH: Just log the call intent
+    # Mobile app will use device's native calling with spoofed caller ID
+    call_log = MultiUserCallLog()
+    call_log.user_id = user_id
+    call_log.from_number = user.google_voice_number
+    call_log.to_number = normalized_to
+    call_log.direction = 'outbound'
+    call_log.status = 'mobile_initiated'
+    db.session.add(call_log)
+    db.session.commit()
     
-    # Update call log
-    if call_sid:
-        call_log = MultiUserCallLog.query.filter_by(twilio_call_sid=call_sid).first()
-        if call_log:
-            call_log.status = call_status or 'completed'
-            db.session.commit()
-    
-    response = VoiceResponse()
-    
-    if call_status == 'no-answer':
-        response.say("No answer. Please try again later.", voice='alice')
-    elif call_status == 'busy':
-        response.say("The line is busy. Please try again later.", voice='alice')
-    elif call_status == 'failed':
-        response.say("Call failed. Please try again later.", voice='alice')
-    
-    return str(response), 200, {'Content-Type': 'application/xml'}
+    return jsonify({
+        'success': True,
+        'approach': 'native_calling',
+        'instructions': {
+            'method': 'Use device native calling with caller ID spoofing',
+            'caller_id': user.google_voice_number,
+            'target': normalized_to,
+            'implementation': 'Mobile app should use platform-specific APIs to make call with spoofed caller ID'
+        },
+        'call_log_id': call_log.id,
+        'to_number': normalized_to,
+        'from_number': user.google_voice_number
+    })
 
 # Mobile API endpoints
 @dialer_bp.route('/api/users/<int:user_id>/calls', methods=['POST'])
@@ -237,16 +226,11 @@ def api_initiate_call(user_id):
                 'error_code': 'NO_VERIFIED_NUMBERS'
             }), 400
         
-        # Create call
-        import os
-        public_url = os.environ.get('PUBLIC_APP_URL', f"https://{request.host}")
-        bridge_webhook_url = f"{public_url}/dialer/{user_id}/bridge_mobile?user_phone={user.real_phone_number}"
-        
+        # Create direct call - clean approach
         call = client.calls.create(
             to=normalized_to,
-            from_=from_number,
-            url=bridge_webhook_url,
-            method='POST'
+            from_=from_number
+            # Mobile app handles the connection natively
         )
         
         # Log the call
