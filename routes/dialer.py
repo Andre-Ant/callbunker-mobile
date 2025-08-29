@@ -97,8 +97,25 @@ def initiate_call(user_id):
         })
         
     except Exception as e:
+        error_msg = str(e)
         logging.error(f"Call initiation error: {e}")
-        return jsonify({'error': 'Failed to initiate call'}), 500
+        
+        # Handle specific Twilio errors
+        if "21210" in error_msg or "not yet verified" in error_msg:
+            return jsonify({
+                'error': 'Twilio number not verified for outbound calls. Contact admin to verify the Twilio number for outbound calling.',
+                'error_type': 'twilio_verification'
+            }), 400
+        elif "21211" in error_msg or "Invalid 'To' Phone Number" in error_msg:
+            return jsonify({
+                'error': 'Invalid phone number format. Please check the number and try again.',
+                'error_type': 'invalid_number'
+            }), 400
+        else:
+            return jsonify({
+                'error': f'Call failed: {error_msg}',
+                'error_type': 'general'
+            }), 500
 
 @dialer_bp.route('/dialer/<int:user_id>/connect', methods=['POST'])
 def connect_call(user_id):

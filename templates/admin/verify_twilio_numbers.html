@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Twilio Numbers for Outbound Calls{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-white mb-4">
+        <i class="fas fa-phone-check me-2 text-warning"></i>
+        Twilio Number Verification
+    </h1>
+
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Action Required:</strong> Twilio numbers need verification before they can make outbound calls through the CallBunker Dialer.
+    </div>
+
+    <div class="card border-info mb-4" style="background: rgba(13, 202, 240, 0.1);">
+        <div class="card-header">
+            <h5 class="text-info mb-0">Steps to Verify Twilio Numbers</h5>
+        </div>
+        <div class="card-body">
+            <ol class="text-light">
+                <li class="mb-2">
+                    <strong>Log into Twilio Console:</strong> 
+                    <a href="https://console.twilio.com/" target="_blank" class="text-info">https://console.twilio.com/</a>
+                </li>
+                <li class="mb-2">
+                    <strong>Navigate to Phone Numbers:</strong> Go to Phone Numbers → Manage → Active Numbers
+                </li>
+                <li class="mb-2">
+                    <strong>Select Each Number:</strong> Click on each CallBunker number below
+                </li>
+                <li class="mb-2">
+                    <strong>Enable Voice:</strong> Ensure "Voice" capability is enabled for outbound calls
+                </li>
+                <li class="mb-2">
+                    <strong>Verify for Outbound:</strong> Follow Twilio's verification process for outbound calling
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="card border-primary">
+        <div class="card-header">
+            <h5 class="text-primary mb-0">CallBunker Twilio Numbers to Verify</h5>
+        </div>
+        <div class="card-body">
+            {% if twilio_numbers %}
+                <div class="row">
+                    {% for number in twilio_numbers %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-secondary" style="background: rgba(255, 255, 255, 0.05);">
+                            <div class="card-body">
+                                <h6 class="text-warning">{{ format_phone(number.phone_number) }}</h6>
+                                <small class="text-muted">
+                                    {% if number.assigned_to_user_id %}
+                                        Assigned to User ID: {{ number.assigned_to_user_id }}
+                                    {% else %}
+                                        Unassigned (Available)
+                                    {% endif %}
+                                </small>
+                                <div class="mt-2">
+                                    <a href="https://console.twilio.com/us1/develop/phone-numbers/manage/incoming" 
+                                       target="_blank" class="btn btn-sm btn-info">
+                                        <i class="fas fa-external-link-alt me-1"></i>Verify in Twilio
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-phone-slash fa-3x text-muted mb-3"></i>
+                    <h5 class="text-light">No Twilio Numbers Found</h5>
+                    <p class="text-muted">Add Twilio numbers to the phone pool first</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card border-success mt-4">
+        <div class="card-body">
+            <h6 class="text-success">
+                <i class="fas fa-lightbulb me-2"></i>Pro Tip
+            </h6>
+            <p class="text-light mb-0">
+                After verification, users will be able to make outbound calls through the CallBunker Dialer using their Google Voice caller ID for maximum protection.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

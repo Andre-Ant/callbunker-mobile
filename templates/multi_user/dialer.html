@@ -265,7 +265,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Refresh call history after a delay
                 setTimeout(refreshCallHistory, 2000);
             } else {
-                showStatus(data.error || 'Call failed', 'danger');
+                // Handle different error types
+                if (data.error_type === 'twilio_verification') {
+                    showStatus('⚠️ Setup Required: Your Twilio number needs verification for outbound calls. Please contact support.', 'warning');
+                } else if (data.error_type === 'invalid_number') {
+                    showStatus('❌ Invalid phone number. Please check and try again.', 'danger');
+                } else {
+                    showStatus(data.error || 'Call failed', 'danger');
+                }
             }
         })
         .catch(error => {

@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, render_template, redirect, url_fo
 from datetime import datetime, timedelta
 from app import db
 from models import Tenant, Whitelist, FailLog, Blocklist
+from models_multi_user import TwilioPhonePool
 from models_multi_user import User, TwilioPhonePool, UserWhitelist
 from utils.auth import require_admin_web, parse_annotated_number, norm_digits
 from utils.sendgrid_helper import send_notification_email
@@ -497,3 +498,11 @@ def tenant_list():
     """Simple tenant list view"""
     tenants = Tenant.query.order_by(Tenant.created_at.desc()).all()
     return render_template('tenant_list.html', tenants=tenants)
+
+@admin_bp.route('/verify-twilio-numbers')
+def verify_twilio_numbers():
+    """Guide for verifying Twilio numbers for outbound calls"""
+    twilio_numbers = TwilioPhonePool.query.all()
+    return render_template('admin/verify_twilio_numbers.html', 
+                         twilio_numbers=twilio_numbers,
+                         format_phone=format_phone)
