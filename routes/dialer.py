@@ -70,6 +70,9 @@ def initiate_call(user_id):
     try:
         client = twilio_client()
         
+        # Debug logging
+        logging.info(f"Making call - From: {user.google_voice_number}, To: {user.real_phone_number}")
+        
         # Create a call that will connect the user's real phone to the target number
         # Use the verified Google Voice number as the 'from' number
         call = client.calls.create(
