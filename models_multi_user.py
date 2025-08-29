@@ -73,6 +73,7 @@ class MultiUserCallLog(db.Model):
     direction = db.Column(db.String(10), nullable=False)  # 'inbound' or 'outbound'
     status = db.Column(db.String(20), nullable=False)
     twilio_call_sid = db.Column(db.String(50), nullable=True)
+    conference_name = db.Column(db.String(100), nullable=True)
     duration_seconds = db.Column(db.Integer, nullable=True)
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
