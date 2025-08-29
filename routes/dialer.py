@@ -97,11 +97,11 @@ def initiate_call(user_id):
                 'error_type': 'no_verified_numbers'
             }), 400
         
-        # Create a call that will connect the user's real phone to the target number
+        # Create a direct call to the target number showing Google Voice as caller ID
         call = client.calls.create(
-            to=user.real_phone_number,  # Call user's real phone first
-            from_=from_number,  # Use available verified number
-            url=f"{request.url_root}dialer/{user_id}/connect?to={normalized_to}",
+            to=normalized_to,  # Call target number directly
+            from_=from_number,  # Show Google Voice number as caller ID
+            url=f"{request.url_root}dialer/{user_id}/bridge?user_phone={user.real_phone_number}",
             method='POST'
         )
         
@@ -119,7 +119,7 @@ def initiate_call(user_id):
         return jsonify({
             'success': True,
             'call_sid': call.sid,
-            'message': 'Call initiated - please answer your phone'
+            'message': 'Call connecting directly to target - answer when they pick up'
         })
         
     except Exception as e:
@@ -143,27 +143,24 @@ def initiate_call(user_id):
                 'error_type': 'general'
             }), 500
 
-@dialer_bp.route('/dialer/<int:user_id>/connect', methods=['POST'])
-def connect_call(user_id):
-    """TwiML to connect the outgoing call"""
+@dialer_bp.route('/dialer/<int:user_id>/bridge', methods=['POST'])
+def bridge_call(user_id):
+    """TwiML to bridge the call directly to user's phone when target answers"""
     user = MultiUser.query.get_or_404(user_id)
-    to_number = request.args.get('to')
+    user_phone = request.args.get('user_phone')
     
     response = VoiceResponse()
     
-    # Play a brief message to the user
-    response.say("Connecting your call through CallBunker...", voice='alice')
-    
-    # Connect to the target number
+    # When target answers, immediately bridge to user's real phone
     dial = response.dial(
-        caller_id=user.google_voice_number,  # Show Google Voice number as caller ID
+        caller_id=user.google_voice_number,  # Show Google Voice as caller ID to user too
         timeout=30
     )
-    # Add the target number to dial
-    dial.number(to_number)
+    # Connect to user's real phone
+    dial.number(user_phone)
     
-    # If call fails, leave a message
-    response.say("Call could not be completed. Please try again later.")
+    # If user doesn't answer, leave voicemail option
+    response.say("The person you're trying to reach is not available. Please try again later.", voice='alice')
     
     return str(response), 200, {'Content-Type': 'application/xml'}
 
