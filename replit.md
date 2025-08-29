@@ -10,6 +10,14 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## August 28, 2025 - Fixed Call Bridging Issue (Line Still Ringing After Pickup)
+- **Critical Bug Fix**: Resolved issue where authenticated calls would continue ringing after user picked up
+- **Root Cause**: TwiML statements after `dial` command were interfering with proper call bridging
+- **Solution**: Removed "Connecting now" message and fallback statements that executed after dial operation
+- **Impact**: Calls now bridge cleanly - when user picks up, caller connects immediately without continued ringing
+- **Technical Details**: Streamlined `on_verified` function in voice.py to use direct dial without additional TwiML complexity
+- **User Verification**: Successfully tested with whitelisted caller - call bridges properly after pickup
+
 ## August 28, 2025 - How It Works Page Complete Update
 - **Google Voice Migration**: Updated entire "How It Works" page from outdated TextNow to current Google Voice system
 - **Critical Setup Warning**: Added prominent red alert warning users to forward Google Voice to Defense Number (not real phone)
