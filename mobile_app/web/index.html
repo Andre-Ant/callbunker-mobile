@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="theme-color" content="#F8F9FA" />
+    <title>CallBunker Mobile - Web Testing</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .phone-container {
+            width: 375px;
+            height: 667px;
+            background: #000;
+            border-radius: 25px;
+            padding: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #F8F9FA;
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .status-bar {
+            height: 44px;
+            background: #F8F9FA;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1C1C1E;
+        }
+        
+        .app-container {
+            height: calc(100% - 44px);
+            overflow-y: auto;
+            background: #F8F9FA;
+        }
+        
+        .tab-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: #FFFFFF;
+            border-top: 1px solid #E5E5EA;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding-bottom: 8px;
+        }
+        
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .tab-item.active {
+            color: #007AFF;
+        }
+        
+        .tab-item:not(.active) {
+            color: #8E8E93;
+        }
+        
+        .tab-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+        }
+        
+        .tab-text {
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .screen-content {
+            padding: 16px;
+            padding-bottom: 90px;
+            min-height: calc(100% - 120px);
+        }
+        
+        .home-screen {
+            display: block;
+        }
+        
+        .screen-hidden {
+            display: none;
+        }
+        
+        .status-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .status-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .status-icon {
+            width: 32px;
+            height: 32px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: white;
+            font-size: 18px;
+        }
+        
+        .status-text h2 {
+            margin: 0 0 4px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1C1C1E;
+        }
+        
+        .status-text p {
+            margin: 0;
+            font-size: 14px;
+            color: #8E8E93;
+        }
+        
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007AFF;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #8E8E93;
+        }
+        
+        .stat-divider {
+            width: 1px;
+            height: 40px;
+            background: #E5E5EA;
+        }
+        
+        .section {
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1C1C1E;
+            margin-bottom: 12px;
+        }
+        
+        .action-grid {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .action-card {
+            flex: 1;
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .action-icon {
+            width: 28px;
+            height: 28px;
+            margin: 0 auto 8px;
+            background: #007AFF;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+        
+        .action-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1C1C1E;
+            margin-bottom: 4px;
+        }
+        
+        .action-subtitle {
+            font-size: 12px;
+            color: #8E8E93;
+        }
+        
+        .dialer-screen {
+            text-align: center;
+            padding-top: 20px;
+        }
+        
+        .number-display {
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .phone-number {
+            font-size: 32px;
+            font-weight: 300;
+            color: #1C1C1E;
+            margin-bottom: 8px;
+        }
+        
+        .privacy-indicator {
+            display: flex;
+            align-items: center;
+            background: #E8F5E8;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            color: #4CAF50;
+            font-weight: 500;
+        }
+        
+        .dialpad {
+            max-width: 280px;
+            margin: 0 auto 30px;
+        }
+        
+        .dialpad-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .dialpad-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 40px;
+            background: #FFFFFF;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .dialpad-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        .dialpad-number {
+            font-size: 28px;
+            font-weight: 300;
+            color: #1C1C1E;
+        }
+        
+        .dialpad-letters {
+            font-size: 10px;
+            color: #8E8E93;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+        
+        .call-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 40px;
+            background: #4CAF50;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            transition: all 0.2s;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .call-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .call-button:disabled {
+            background: #C7C7CC;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        
+        .features-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding: 0 20px;
+        }
+        
+        .feature-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .feature-text {
+            font-size: 11px;
+            color: #8E8E93;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="screen">
+            <div class="status-bar">
+                <span>9:41</span>
+                <span>CallBunker</span>
+                <span>100%</span>
+            </div>
+            
+            <div class="app-container">
+                <!-- Home Screen -->
+                <div id="home-screen" class="screen-content home-screen">
+                    <div class="status-card">
+                        <div class="status-header">
+                            <div class="status-icon">🛡️</div>
+                            <div class="status-text">
+                                <h2>Privacy Protected</h2>
+                                <p>Your real number is hidden and secure</p>
+                            </div>
+                        </div>
+                        <div class="stats-container">
+                            <div class="stat-item">
+                                <div class="stat-number">3</div>
+                                <div class="stat-label">Protected Calls</div>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-item">
+                                <div class="stat-number">5</div>
+                                <div class="stat-label">Total Calls</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">Quick Actions</div>
+                        <div class="action-grid">
+                            <div class="action-card" onclick="showScreen('dialer')">
+                                <div class="action-icon">📞</div>
+                                <div class="action-title">Make Protected Call</div>
+                                <div class="action-subtitle">Hide your real number</div>
+                            </div>
+                            <div class="action-card" onclick="showScreen('contacts')">
+                                <div class="action-icon">👥</div>
+                                <div class="action-title">Trusted Contacts</div>
+                                <div class="action-subtitle">Manage whitelist</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">CallBunker Features</div>
+                        <div class="status-card">
+                            <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                <div style="width: 20px; margin-right: 12px;">🔒</div>
+                                <div>
+                                    <div style="font-weight: 500; margin-bottom: 2px;">Number Privacy</div>
+                                    <div style="font-size: 14px; color: #8E8E93;">Your real number stays hidden from all contacts</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                                <div style="width: 20px; margin-right: 12px;">🛡️</div>
+                                <div>
+                                    <div style="font-weight: 500; margin-bottom: 2px;">Call Screening</div>
+                                    <div style="font-size: 14px; color: #8E8E93;">Incoming calls require PIN or verbal authentication</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <div style="width: 20px; margin-right: 12px;">💰</div>
+                                <div>
+                                    <div style="font-weight: 500; margin-bottom: 2px;">Cost Effective</div>
+                                    <div style="font-size: 14px; color: #8E8E93;">Native calling with zero per-minute charges</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dialer Screen -->
+                <div id="dialer-screen" class="screen-content screen-hidden">
+                    <div class="dialer-screen">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <h2 style="margin: 0 0 4px 0; font-size: 24px; color: #1C1C1E;">Protected Dialer</h2>
+                            <p style="margin: 0; color: #8E8E93;">Your number stays hidden</p>
+                        </div>
+                        
+                        <div class="number-display">
+                            <div class="phone-number" id="phone-display">Enter number</div>
+                            <div class="privacy-indicator">
+                                🛡️ Privacy Protected
+                            </div>
+                        </div>
+                        
+                        <div class="dialpad">
+                            <div class="dialpad-row">
+                                <button class="dialpad-button" onclick="addDigit('1')">
+                                    <span class="dialpad-number">1</span>
+                                </button>
+                                <button class="dialpad-button" onclick="addDigit('2')">
+                                    <span class="dialpad-number">2</span>
+                                    <span class="dialpad-letters">ABC</span>
+                                </button>
+                                <button class="dialpad-button" onclick="addDigit('3')">
+                                    <span class="dialpad-number">3</span>
+                                    <span class="dialpad-letters">DEF</span>
+                                </button>
+                            </div>
+                            <div class="dialpad-row">
+                                <button class="dialpad-button" onclick="addDigit('4')">
+                                    <span class="dialpad-number">4</span>
+                                    <span class="dialpad-letters">GHI</span>
+                                </button>
+                                <button class="dialpad-button" onclick="addDigit('5')">
+                                    <span class="dialpad-number">5</span>
+                                    <span class="dialpad-letters">JKL</span>
+                                </button>
+                                <button class="dialpad-button" onclick="addDigit('6')">
+                                    <span class="dialpad-number">6</span>
+                                    <span class="dialpad-letters">MNO</span>
+                                </button>
+                            </div>
+                            <div class="dialpad-row">
+                                <button class="dialpad-button" onclick="addDigit('7')">
+                                    <span class="dialpad-number">7</span>
+                                    <span class="dialpad-letters">PQRS</span>
+                                </button>
+                                <button class="dialpad-button" onclick="addDigit('8')">
+                                    <span class="dialpad-number">8</span>
+                                    <span class="dialpad-letters">TUV</span>
+                                </button>
+                                <button class="dialpad-button" onclick="addDigit('9')">
+                                    <span class="dialpad-number">9</span>
+                                    <span class="dialpad-letters">WXYZ</span>
+                                </button>
+                            </div>
+                            <div class="dialpad-row">
+                                <button class="dialpad-button" onclick="addDigit('*')">
+                                    <span class="dialpad-number">*</span>
+                                </button>
+                                <button class="dialpad-button" onclick="addDigit('0')">
+                                    <span class="dialpad-number">0</span>
+                                    <span class="dialpad-letters">+</span>
+                                </button>
+                                <button class="dialpad-button" onclick="addDigit('#')">
+                                    <span class="dialpad-number">#</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 20px;">
+                            <button onclick="backspace()" style="background: #F2F2F7; border: none; width: 60px; height: 60px; border-radius: 30px; cursor: pointer;">⌫</button>
+                            <button class="call-button" id="call-btn" onclick="makeCall()" disabled>📞</button>
+                            <button onclick="showScreen('contacts')" style="background: #E3F2FD; border: none; width: 60px; height: 60px; border-radius: 30px; cursor: pointer;">👥</button>
+                        </div>
+                        
+                        <div class="features-info">
+                            <div class="feature-item">
+                                <div>🔒</div>
+                                <div class="feature-text">Real number hidden</div>
+                            </div>
+                            <div class="feature-item">
+                                <div>💰</div>
+                                <div class="feature-text">Carrier rates only</div>
+                            </div>
+                            <div class="feature-item">
+                                <div>🛡️</div>
+                                <div class="feature-text">Google Voice caller ID</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Other Screens -->
+                <div id="history-screen" class="screen-content screen-hidden">
+                    <h2>Call History</h2>
+                    <div class="status-card">
+                        <p>Your protected calls will appear here with detailed privacy information.</p>
+                    </div>
+                </div>
+                
+                <div id="contacts-screen" class="screen-content screen-hidden">
+                    <h2>Trusted Contacts</h2>
+                    <div class="status-card">
+                        <p>Manage contacts who can bypass call screening.</p>
+                    </div>
+                </div>
+                
+                <div id="settings-screen" class="screen-content screen-hidden">
+                    <h2>Settings</h2>
+                    <div class="status-card">
+                        <p>Configure your CallBunker privacy and security preferences.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-bar">
+                <div class="tab-item active" onclick="showScreen('home')">
+                    <div class="tab-icon">🏠</div>
+                    <div class="tab-text">Home</div>
+                </div>
+                <div class="tab-item" onclick="showScreen('dialer')">
+                    <div class="tab-icon">📞</div>
+                    <div class="tab-text">Dialer</div>
+                </div>
+                <div class="tab-item" onclick="showScreen('history')">
+                    <div class="tab-icon">📋</div>
+                    <div class="tab-text">History</div>
+                </div>
+                <div class="tab-item" onclick="showScreen('contacts')">
+                    <div class="tab-icon">👥</div>
+                    <div class="tab-text">Contacts</div>
+                </div>
+                <div class="tab-item" onclick="showScreen('settings')">
+                    <div class="tab-icon">⚙️</div>
+                    <div class="tab-text">Settings</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentNumber = '';
+        let activeScreen = 'home';
+
+        function showScreen(screenName) {
+            // Hide all screens
+            document.querySelectorAll('.screen-content').forEach(screen => {
+                screen.classList.add('screen-hidden');
+            });
+            
+            // Show selected screen
+            document.getElementById(screenName + '-screen').classList.remove('screen-hidden');
+            
+            // Update tab bar
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.closest('.tab-item').classList.add('active');
+            
+            activeScreen = screenName;
+        }
+
+        function addDigit(digit) {
+            if (currentNumber.length < 15) {
+                currentNumber += digit;
+                updateDisplay();
+            }
+        }
+
+        function backspace() {
+            currentNumber = currentNumber.slice(0, -1);
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const display = document.getElementById('phone-display');
+            const callBtn = document.getElementById('call-btn');
+            
+            if (currentNumber) {
+                display.textContent = formatPhoneNumber(currentNumber);
+                callBtn.disabled = false;
+            } else {
+                display.textContent = 'Enter number';
+                callBtn.disabled = true;
+            }
+        }
+
+        function formatPhoneNumber(number) {
+            const cleaned = number.replace(/\D/g, '');
+            const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+            if (match) {
+                return [match[1], match[2], match[3]].filter(Boolean).join('-');
+            }
+            return number;
+        }
+
+        function makeCall() {
+            if (!currentNumber) return;
+            
+            const confirmed = confirm(
+                `Protected Call to ${formatPhoneNumber(currentNumber)}\n\n` +
+                `Your Google Voice number (+16179421250) will be shown as caller ID.\n` +
+                `Your real number stays hidden.\n\n` +
+                `Proceed with call?`
+            );
+            
+            if (confirmed) {
+                alert(
+                    `Call Initiated!\n\n` +
+                    `Target: ${formatPhoneNumber(currentNumber)}\n` +
+                    `Caller ID Shown: +1 (617) 942-1250\n` +
+                    `Status: Simulation Mode\n\n` +
+                    `In the real app, this would use native calling with carrier rates only.`
+                );
+                
+                // Reset for next call
+                currentNumber = '';
+                updateDisplay();
+            }
+        }
+
+        // Initialize display
+        updateDisplay();
+    </script>
+</body>
+</html>
