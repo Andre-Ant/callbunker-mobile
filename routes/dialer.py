@@ -243,7 +243,8 @@ def api_initiate_call(user_id):
         call_log.to_number = normalized_to
         call_log.direction = 'outbound'
         call_log.status = 'initiated'
-        call_log.twilio_call_sid = call.sid
+        # Native calling doesn't use Twilio call SID
+        call_log.twilio_call_sid = None
         db.session.add(call_log)
         db.session.commit()
         
