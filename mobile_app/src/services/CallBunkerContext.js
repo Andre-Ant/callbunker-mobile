@@ -11,7 +11,7 @@ const CallBunkerContext = createContext();
 
 const initialState = {
   user: null,
-  apiUrl: 'https://your-callbunker-api.com', // Replace with your API URL
+  apiUrl: window.location.origin || 'https://your-replit-url.replit.app', // Auto-detect or set your Replit URL
   userId: 1, // Replace with dynamic user ID
   callHistory: [],
   contacts: [],
