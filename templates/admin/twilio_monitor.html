@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}Twilio Numbers & Tenant Monitor - CallBunker Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>
+                    <i class="fas fa-chart-line me-2"></i>System Monitor
+                </h1>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-success" onclick="refreshData()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh Data
+                    </button>
+                    <a href="{{ url_for('admin.tenant_list') }}" class="btn btn-outline-info">
+                        <i class="fas fa-users me-1"></i>Tenant Management
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Overview Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-phone fa-2x mb-2"></i>
+                    <h4>{{ twilio_stats.total_numbers }}</h4>
+                    <small>Total Twilio Numbers</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                    <h4>{{ twilio_stats.active_numbers }}</h4>
+                    <small>Active Numbers</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-2x mb-2"></i>
+                    <h4>{{ tenant_stats.total_tenants }}</h4>
+                    <small>Total Tenants</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                    <h4>{{ tenant_stats.verified_tenants }}</h4>
+                    <small>Verified Tenants</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Twilio Numbers Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-phone me-2"></i>Twilio Numbers Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Phone Number</th>
+                                    <th>Status</th>
+                                    <th>Assigned Tenant</th>
+                                    <th>Monthly Cost</th>
+                                    <th>Calls Today</th>
+                                    <th>Last Activity</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for number in twilio_numbers %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ number.phone_number }}</strong>
+                                        {% if number.tenant and number.tenant.test_verified_at %}
+                                            <span class="badge bg-success ms-1">Verified</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if number.tenant %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Available</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if number.tenant %}
+                                            <a href="{{ url_for('admin.tenant_detail', screening_number=number.tenant.screening_number) }}" 
+                                               class="text-decoration-none">
+                                                {{ number.tenant.owner_label or 'Unnamed' }}
+                                            </a>
+                                            <br><small class="text-muted">{{ number.tenant.screening_number }}</small>
+                                        {% else %}
+                                            <em class="text-muted">Unassigned</em>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">${{ "%.2f"|format(number.monthly_cost or 1.00) }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ number.calls_today or 0 }}</span>
+                                    </td>
+                                    <td>
+                                        {% if number.last_activity %}
+                                            <small>{{ number.last_activity.strftime('%m/%d %H:%M') }}</small>
+                                        {% else %}
+                                            <small class="text-muted">Never</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" onclick="testNumber('{{ number.phone_number }}')" 
+                                                    title="Test webhook">
+                                                <i class="fas fa-vial"></i>
+                                            </button>
+                                            {% if number.tenant %}
+                                                <a href="{{ url_for('admin.tenant_detail', screening_number=number.tenant.screening_number) }}" 
+                                                   class="btn btn-outline-info" title="View tenant">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tenant Cohorts Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-layer-group me-2"></i>Tenant Cohorts
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Cohort Filter Tabs -->
+                    <ul class="nav nav-tabs" id="cohortTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#all-cohort" type="button" role="tab">
+                                All Tenants ({{ tenant_stats.total_tenants }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="verified-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#verified-cohort" type="button" role="tab">
+                                Verified ({{ tenant_stats.verified_tenants }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="unverified-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#unverified-cohort" type="button" role="tab">
+                                Unverified ({{ tenant_stats.total_tenants - tenant_stats.verified_tenants }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="active-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#active-cohort" type="button" role="tab">
+                                Active Today ({{ tenant_stats.active_today }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="google-voice-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#google-voice-cohort" type="button" role="tab">
+                                Google Voice ({{ tenant_stats.google_voice_users }})
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Cohort Content -->
+                    <div class="tab-content mt-3" id="cohortTabContent">
+                        <!-- All Tenants -->
+                        <div class="tab-pane fade show active" id="all-cohort" role="tabpanel">
+                            {% include 'admin/tenant_cohort_table.html' with tenants=all_tenants, cohort_name='all' %}
+                        </div>
+                        
+                        <!-- Verified Tenants -->
+                        <div class="tab-pane fade" id="verified-cohort" role="tabpanel">
+                            {% include 'admin/tenant_cohort_table.html' with tenants=verified_tenants, cohort_name='verified' %}
+                        </div>
+                        
+                        <!-- Unverified Tenants -->
+                        <div class="tab-pane fade" id="unverified-cohort" role="tabpanel">
+                            {% include 'admin/tenant_cohort_table.html' with tenants=unverified_tenants, cohort_name='unverified' %}
+                        </div>
+                        
+                        <!-- Active Today -->
+                        <div class="tab-pane fade" id="active-cohort" role="tabpanel">
+                            {% include 'admin/tenant_cohort_table.html' with tenants=active_today_tenants, cohort_name='active' %}
+                        </div>
+                        
+                        <!-- Google Voice Users -->
+                        <div class="tab-pane fade" id="google-voice-cohort" role="tabpanel">
+                            {% include 'admin/tenant_cohort_table.html' with tenants=google_voice_tenants, cohort_name='google_voice' %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Number Modal -->
+<div class="modal fade" id="testNumberModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Test Twilio Number</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Testing webhook for: <strong id="testNumberDisplay"></strong></p>
+                <div class="mb-3">
+                    <label class="form-label">Test from number:</label>
+                    <input type="tel" class="form-control" id="testFromNumber" placeholder="+1234567890" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="executeTest()">Run Test</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshData() {
+    window.location.reload();
+}
+
+function testNumber(phoneNumber) {
+    document.getElementById('testNumberDisplay').textContent = phoneNumber;
+    document.getElementById('testFromNumber').value = '+15551234567'; // Default test number
+    new bootstrap.Modal(document.getElementById('testNumberModal')).show();
+    window.currentTestNumber = phoneNumber;
+}
+
+function executeTest() {
+    const fromNumber = document.getElementById('testFromNumber').value;
+    if (!fromNumber) {
+        alert('Please enter a test from number');
+        return;
+    }
+    
+    // Make test call to webhook
+    fetch(`/admin/test-webhook/${encodeURIComponent(window.currentTestNumber)}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            from_number: fromNumber
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || 'Test completed');
+        bootstrap.Modal.getInstance(document.getElementById('testNumberModal')).hide();
+        refreshData();
+    })
+    .catch(error => {
+        alert('Test failed: ' + error.message);
+    });
+}
+</script>
+{% endblock %}

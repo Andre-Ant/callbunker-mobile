@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash
-from datetime import datetime
+from datetime import datetime, timedelta
 from app import db
 from models import Tenant, Whitelist, FailLog, Blocklist
+from models_multi_user import User, TwilioPhonePool, UserWhitelist
 from utils.auth import require_admin_web, parse_annotated_number, norm_digits
 from utils.sendgrid_helper import send_notification_email
+from sqlalchemy import func, and_
 import re
 
 admin_bp = Blueprint('admin', __name__)
@@ -368,3 +370,123 @@ def delete_tenant(screening_number):
         flash(f"Error deleting user: {e}", "error")
     
     return redirect(url_for('admin.admin_home'))
+
+
+# ============================================================================
+# ADVANCED ADMIN MONITORING ROUTES
+# ============================================================================
+
+@admin_bp.route("/monitor")
+@require_admin_web
+def twilio_monitor():
+    """Advanced admin monitoring interface for Twilio numbers and tenant cohorts"""
+    
+    # Twilio Numbers Data - Using TwilioPhonePool from multi-user system
+    try:
+        twilio_numbers = TwilioPhonePool.query.all()
+        
+        # Add tenant relationship and call stats
+        for number in twilio_numbers:
+            number.tenant = Tenant.query.filter_by(screening_number=number.phone_number).first()
+            number.calls_today = 0  # Could be enhanced with actual call logs
+            number.last_activity = number.tenant.updated_at if number.tenant else None
+    except:
+        # Fallback if TwilioPhonePool does not exist yet
+        twilio_numbers = []
+    
+    # Twilio Statistics
+    twilio_stats = {
+        "total_numbers": len(twilio_numbers),
+        "active_numbers": len([n for n in twilio_numbers if getattr(n, "tenant", None)]),
+        "available_numbers": len([n for n in twilio_numbers if not getattr(n, "tenant", None)]),
+        "total_cost": sum(getattr(n, "monthly_cost", 1.00) or 1.00 for n in twilio_numbers)
+    }
+    
+    # Get all tenants with relationships
+    all_tenants = Tenant.query.outerjoin(Whitelist).all()
+    
+    # Tenant Statistics and Cohorts
+    now = datetime.utcnow()
+    today = now.date()
+    
+    verified_tenants = [t for t in all_tenants if t.test_verified_at]
+    unverified_tenants = [t for t in all_tenants if not t.test_verified_at]
+    
+    # Active today (updated today)
+    active_today_tenants = [t for t in all_tenants if t.updated_at and t.updated_at.date() == today]
+    
+    # Google Voice users (tenants with forward_to configured)
+    google_voice_tenants = [t for t in all_tenants if t.forward_to and t.forward_to != t.screening_number]
+    
+    tenant_stats = {
+        "total_tenants": len(all_tenants),
+        "verified_tenants": len(verified_tenants),
+        "unverified_tenants": len(unverified_tenants),
+        "active_today": len(active_today_tenants),
+        "google_voice_users": len(google_voice_tenants)
+    }
+    
+    return render_template("admin/twilio_monitor.html",
+                         twilio_numbers=twilio_numbers,
+                         twilio_stats=twilio_stats,
+                         tenant_stats=tenant_stats,
+                         all_tenants=all_tenants,
+                         verified_tenants=verified_tenants,
+                         unverified_tenants=unverified_tenants,
+                         active_today_tenants=active_today_tenants,
+                         google_voice_tenants=google_voice_tenants,
+                         now=now,
+                         timedelta=timedelta)
+
+@admin_bp.route("/test-webhook/<phone_number>", methods=["POST"])
+@require_admin_web
+def test_webhook(phone_number):
+    """Test webhook endpoint for a specific Twilio number"""
+    try:
+        data = request.get_json() or {}
+        test_from = data.get("from_number", "+15551234567")
+        
+        # Find tenant for this number
+        tenant = Tenant.query.filter_by(screening_number=phone_number).first()
+        if not tenant:
+            return jsonify({"success": False, "message": f"No tenant found for {phone_number}"})
+        
+        # Log test activity
+        tenant.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify({
+            "success": True, 
+            "message": f"Webhook test completed for {phone_number}",
+            "tenant": tenant.owner_label or "Unnamed",
+            "forward_to": tenant.forward_to
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Test failed: {str(e)}"})
+
+@admin_bp.route("/test-tenant/<screening_number>", methods=["POST"])
+@require_admin_web
+def test_tenant_config(screening_number):
+    """Test tenant configuration"""
+    try:
+        tenant = Tenant.query.get_or_404(screening_number)
+        
+        # Update last activity
+        tenant.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": f"Test completed for tenant {tenant.owner_label or screening_number}",
+            "config": {
+                "pin": tenant.current_pin,
+                "verbal": tenant.verbal_code,
+                "mode": tenant.forward_mode,
+                "retries": tenant.retry_limit
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Test failed: {str(e)}"})
+

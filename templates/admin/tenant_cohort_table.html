@@ -1,0 +1,127 @@
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Tenant</th>
+                <th>Phone Numbers</th>
+                <th>Status</th>
+                <th>Whitelist</th>
+                <th>Recent Activity</th>
+                <th>Auth Settings</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if tenants %}
+                {% for tenant in tenants %}
+                <tr>
+                    <td>
+                        <div>
+                            <strong>{{ tenant.owner_label or 'Unnamed Tenant' }}</strong>
+                            <br><small class="text-muted">{{ tenant.screening_number }}</small>
+                            {% if tenant.created_at %}
+                                <br><small class="text-muted">Created: {{ tenant.created_at.strftime('%m/%d/%Y') }}</small>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            <strong>Defense:</strong> {{ tenant.screening_number }}
+                            {% if tenant.forward_to %}
+                                <br><strong>Forward to:</strong> {{ tenant.forward_to }}
+                            {% endif %}
+                            {% if hasattr(tenant, 'google_voice_number') and tenant.google_voice_number %}
+                                <br><strong>Google Voice:</strong> {{ tenant.google_voice_number }}
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if tenant.test_verified_at %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-check-circle me-1"></i>Verified
+                            </span>
+                            <br><small class="text-muted">{{ tenant.test_verified_at.strftime('%m/%d %H:%M') }}</small>
+                        {% else %}
+                            <span class="badge bg-warning">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Unverified
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% set whitelist_count = tenant.whitelists | length %}
+                        <span class="badge bg-light text-dark">{{ whitelist_count }} contacts</span>
+                        {% if whitelist_count > 0 %}
+                            <br><small class="text-muted">Last: {{ tenant.whitelists[0].created_at.strftime('%m/%d') if tenant.whitelists else 'N/A' }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if tenant.updated_at %}
+                            <small>{{ tenant.updated_at.strftime('%m/%d/%Y %H:%M') }}</small>
+                        {% else %}
+                            <small class="text-muted">No activity</small>
+                        {% endif %}
+                        
+                        <!-- Recent failures indicator -->
+                        {% set recent_failures = tenant.fail_logs | selectattr('created_at', 'greaterthan', (now() - timedelta(hours=24))) | list | length %}
+                        {% if recent_failures > 0 %}
+                            <br><span class="badge bg-danger">{{ recent_failures }} failures (24h)</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div>
+                            <small><strong>PIN:</strong> {{ tenant.current_pin }}</small>
+                            <br><small><strong>Verbal:</strong> "{{ tenant.verbal_code }}"</small>
+                            <br><small><strong>Mode:</strong> {{ tenant.forward_mode }}</small>
+                            <br><small><strong>Retries:</strong> {{ tenant.retry_limit }}</small>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="btn-group-vertical btn-group-sm">
+                            <a href="{{ url_for('admin.tenant_detail', screening_number=tenant.screening_number) }}" 
+                               class="btn btn-outline-primary btn-sm" title="View Details">
+                                <i class="fas fa-eye me-1"></i>Details
+                            </a>
+                            <a href="{{ url_for('admin.edit_tenant', screening_number=tenant.screening_number) }}" 
+                               class="btn btn-outline-secondary btn-sm" title="Edit">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                            <button class="btn btn-outline-info btn-sm" 
+                                    onclick="testTenant('{{ tenant.screening_number }}')" title="Test">
+                                <i class="fas fa-vial me-1"></i>Test
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                        <br>No tenants in this cohort
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function testTenant(screeningNumber) {
+    // Simple test - could be expanded with more detailed testing
+    if (confirm(`Test webhook for tenant ${screeningNumber}?`)) {
+        fetch(`/admin/test-tenant/${encodeURIComponent(screeningNumber)}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || 'Test completed');
+        })
+        .catch(error => {
+            alert('Test failed: ' + error.message);
+        });
+    }
+}
+</script>

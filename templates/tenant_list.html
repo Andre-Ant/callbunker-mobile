@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Tenant List - CallBunker Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-users me-2"></i>Tenant Management
+            </h1>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin.twilio_monitor') }}" class="btn btn-outline-info">
+                    <i class="fas fa-chart-line me-1"></i>System Monitor
+                </a>
+                <a href="{{ url_for('admin.new_tenant') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>New Tenant
+                </a>
+            </div>
+        </div>
+        
+        <!-- Tenant Summary Stats -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h4>{{ tenants|length }}</h4>
+                        <small>Total Tenants</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h4>{{ tenants|selectattr('test_verified_at')|list|length }}</h4>
+                        <small>Verified Tenants</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body text-center">
+                        <h4>{{ tenants|rejectattr('test_verified_at')|list|length }}</h4>
+                        <small>Unverified Tenants</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tenants Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">All Tenants</h5>
+            </div>
+            <div class="card-body">
+                {% if tenants %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tenant</th>
+                                    <th>Phone Numbers</th>
+                                    <th>Status</th>
+                                    <th>Authentication</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tenant in tenants %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ tenant.owner_label or 'Unnamed Tenant' }}</strong>
+                                        <br><small class="text-muted">{{ tenant.screening_number }}</small>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>Defense:</strong> {{ tenant.screening_number }}
+                                            {% if tenant.forward_to %}
+                                                <br><strong>Forward to:</strong> {{ tenant.forward_to }}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if tenant.test_verified_at %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Verified
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>Unverified
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small><strong>PIN:</strong> {{ tenant.current_pin }}</small>
+                                        <br><small><strong>Verbal:</strong> "{{ tenant.verbal_code }}"</small>
+                                    </td>
+                                    <td>
+                                        {% if tenant.created_at %}
+                                            <small>{{ tenant.created_at.strftime('%m/%d/%Y') }}</small>
+                                        {% else %}
+                                            <small class="text-muted">Unknown</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('admin.tenant_detail', screening_number=tenant.screening_number) }}" 
+                                               class="btn btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('admin.edit_tenant', screening_number=tenant.screening_number) }}" 
+                                               class="btn btn-outline-secondary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Tenants Found</h5>
+                        <p class="text-muted">Start by creating your first tenant.</p>
+                        <a href="{{ url_for('admin.new_tenant') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Create First Tenant
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
