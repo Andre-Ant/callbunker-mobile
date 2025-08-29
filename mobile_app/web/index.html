@@ -506,11 +506,10 @@
                             </div>
                         </div>
                         
-                        <div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 20px;">
-                            <button onclick="backspace()" style="background: #F2F2F7; border: none; width: 50px; height: 50px; border-radius: 25px; cursor: pointer;">⌫</button>
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 20px;">
+                            <button onclick="backspace()" style="background: #F2F2F7; border: none; width: 60px; height: 60px; border-radius: 30px; cursor: pointer;">⌫</button>
                             <button class="call-button" id="call-btn" onclick="makeCall()" disabled>📞</button>
-                            <button onclick="sendMessage()" id="message-btn" style="background: #34C759; border: none; width: 50px; height: 50px; border-radius: 25px; cursor: pointer; color: white; font-size: 18px;" disabled>💬</button>
-                            <button onclick="showScreen('contacts')" style="background: #E3F2FD; border: none; width: 50px; height: 50px; border-radius: 25px; cursor: pointer;">👥</button>
+                            <button onclick="showScreen('contacts')" style="background: #E3F2FD; border: none; width: 60px; height: 60px; border-radius: 30px; cursor: pointer;">👥</button>
                         </div>
                         
                         <div class="features-info">
@@ -530,24 +529,46 @@
                     </div>
                 </div>
                 
-                <!-- Other Screens -->
+                <!-- Messages Screen -->
                 <div id="messages-screen" class="screen-content screen-hidden">
-                    <h2>Protected Messages</h2>
-                    <div class="status-card">
-                        <div class="section-title">CallBunker Texting</div>
-                        <div class="feature-item" style="margin: 15px 0;">
-                            <div>🔒</div>
-                            <div class="feature-text">Anonymous texting through Google Voice</div>
+                    <div style="padding: 20px; height: 100%;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                            <h2 style="margin: 0; font-size: 24px;">Messages</h2>
+                            <button onclick="showNewMessage()" style="background: #007AFF; color: white; border: none; border-radius: 20px; padding: 8px 16px; font-size: 14px; cursor: pointer;">✎ New</button>
                         </div>
-                        <div class="feature-item" style="margin: 15px 0;">
-                            <div>💬</div>
-                            <div class="feature-text">Real number stays hidden</div>
+                        
+                        <div id="conversation-list" style="display: block;">
+                            <div class="status-card" style="text-align: center; margin-top: 50px;">
+                                <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+                                <h3 style="margin: 0 0 8px 0; color: #1C1C1E;">Protected Messaging</h3>
+                                <p style="color: #8E8E93; margin: 0 0 20px 0;">Send anonymous texts through Google Voice</p>
+                                <button onclick="showNewMessage()" style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 16px; cursor: pointer;">Start New Message</button>
+                            </div>
                         </div>
-                        <div class="feature-item" style="margin: 15px 0;">
-                            <div>📱</div>
-                            <div class="feature-text">Native messaging integration</div>
+                        
+                        <div id="new-message-screen" style="display: none; height: 100%;">
+                            <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                                <button onclick="showConversationList()" style="background: none; border: none; font-size: 18px; cursor: pointer; margin-right: 12px;">‹</button>
+                                <h3 style="margin: 0;">New Message</h3>
+                            </div>
+                            
+                            <div style="background: white; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+                                <div style="font-size: 14px; color: #8E8E93; margin-bottom: 8px;">To:</div>
+                                <input type="tel" id="message-recipient" placeholder="Enter phone number" style="border: none; outline: none; font-size: 16px; width: 100%;" oninput="formatRecipientInput(this)">
+                            </div>
+                            
+                            <div style="background: white; border-radius: 8px; padding: 12px; margin-bottom: 16px; min-height: 120px; display: flex; flex-direction: column;">
+                                <textarea id="message-text" placeholder="Type your message..." style="border: none; outline: none; resize: none; flex: 1; font-size: 16px; font-family: inherit;"></textarea>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-size: 12px; color: #8E8E93;">
+                                    From: +1 (617) 942-1250<br>
+                                    🔒 Your real number stays hidden
+                                </div>
+                                <button onclick="sendTextMessage()" id="send-message-btn" style="background: #34C759; color: white; border: none; border-radius: 20px; padding: 10px 20px; font-size: 16px; cursor: pointer;" disabled>Send</button>
+                            </div>
                         </div>
-                        <p style="color: #666; font-size: 14px; margin-top: 20px;">Enter a number in the dialer and tap the message button to send protected texts.</p>
                     </div>
                 </div>
                 
@@ -636,16 +657,13 @@
         function updateDisplay() {
             const display = document.getElementById('phone-display');
             const callBtn = document.getElementById('call-btn');
-            const messageBtn = document.getElementById('message-btn');
             
             if (currentNumber) {
                 display.textContent = formatPhoneNumber(currentNumber);
                 callBtn.disabled = false;
-                if (messageBtn) messageBtn.disabled = false;
             } else {
                 display.textContent = 'Enter number';
                 callBtn.disabled = true;
-                if (messageBtn) messageBtn.disabled = true;
             }
         }
 
@@ -683,31 +701,67 @@
             }
         }
 
-        function sendMessage() {
-            if (!currentNumber) return;
+        function showNewMessage() {
+            document.getElementById('conversation-list').style.display = 'none';
+            document.getElementById('new-message-screen').style.display = 'block';
             
-            const message = prompt(
-                `Protected Message to ${formatPhoneNumber(currentNumber)}\n\n` +
-                `Your Google Voice number (+16179421250) will be shown as sender.\n` +
-                `Your real number stays hidden.\n\n` +
-                `Enter your message:`
-            );
+            // Clear inputs
+            document.getElementById('message-recipient').value = '';
+            document.getElementById('message-text').value = '';
+            updateSendButton();
+        }
+        
+        function showConversationList() {
+            document.getElementById('conversation-list').style.display = 'block';
+            document.getElementById('new-message-screen').style.display = 'none';
+        }
+        
+        function formatRecipientInput(input) {
+            const cleaned = input.value.replace(/\D/g, '');
+            const formatted = formatPhoneNumber(cleaned);
+            input.value = formatted;
+            updateSendButton();
+        }
+        
+        function updateSendButton() {
+            const recipient = document.getElementById('message-recipient').value;
+            const messageText = document.getElementById('message-text').value;
+            const sendBtn = document.getElementById('send-message-btn');
             
-            if (message && message.trim()) {
-                alert(
-                    `Message Sent!\n\n` +
-                    `To: ${formatPhoneNumber(currentNumber)}\n` +
-                    `From: +1 (617) 942-1250\n` +
-                    `Message: "${message.trim()}"\n` +
-                    `Status: Simulation Mode\n\n` +
-                    `In the real app, this would route through Google Voice for complete privacy protection.`
-                );
-                
-                // Reset for next message
-                currentNumber = '';
-                updateDisplay();
+            if (recipient.trim() && messageText.trim()) {
+                sendBtn.disabled = false;
+            } else {
+                sendBtn.disabled = true;
             }
         }
+        
+        function sendTextMessage() {
+            const recipient = document.getElementById('message-recipient').value;
+            const messageText = document.getElementById('message-text').value;
+            
+            if (!recipient.trim() || !messageText.trim()) return;
+            
+            alert(
+                `Protected Message Sent!\n\n` +
+                `To: ${recipient}\n` +
+                `From: +1 (617) 942-1250\n` +
+                `Message: "${messageText.trim()}"\n\n` +
+                `🔒 Your real number stays hidden\n` +
+                `📱 Sent via Google Voice\n\n` +
+                `Status: Simulation Mode`
+            );
+            
+            // Reset and go back to conversation list
+            showConversationList();
+        }
+
+        // Add event listener for message text input
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageTextArea = document.getElementById('message-text');
+            if (messageTextArea) {
+                messageTextArea.addEventListener('input', updateSendButton);
+            }
+        });
 
         // Initialize display
         updateDisplay();
