@@ -71,10 +71,10 @@ def initiate_call(user_id):
         client = twilio_client()
         
         # Create a call that will connect the user's real phone to the target number
-        # This simulates Google Voice behavior through Twilio
+        # Use the verified Google Voice number as the 'from' number
         call = client.calls.create(
             to=user.real_phone_number,  # Call user's real phone first
-            from_=user.assigned_twilio_number,  # From their assigned Twilio number
+            from_=user.google_voice_number,  # Use verified Google Voice number
             url=f"{request.url_root}dialer/{user_id}/connect?to={normalized_to}",
             method='POST'
         )
