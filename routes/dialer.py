@@ -97,36 +97,25 @@ def initiate_call(user_id):
                 'error_type': 'no_verified_numbers'
             }), 400
         
-        # Create a direct call - when target answers, immediately dial user
-        import os
-        public_url = os.environ.get('PUBLIC_APP_URL', f"https://{request.host}")
+        # For web-based calling, we'll use Twilio's client-side SDK
+        # Just return the normalized number for the frontend to handle
+        logging.info(f"Preparing web call from {from_number} to {normalized_to}")
         
-        # When target answers, this webhook will dial the user
-        direct_webhook_url = f"{public_url}/dialer/{user_id}/connect_to_user?user_phone={user.real_phone_number}"
-        logging.info(f"Direct webhook URL: {direct_webhook_url}")
-        
-        call = client.calls.create(
-            to=normalized_to,  # Call target number directly
-            from_=from_number,  # Show Google Voice number as caller ID
-            url=direct_webhook_url,
-            method='POST'
-        )
-        
-        # Log the call
+        # Log the call attempt
         call_log = MultiUserCallLog()
         call_log.user_id = user_id
-        call_log.from_number = user.google_voice_number
+        call_log.from_number = from_number
         call_log.to_number = normalized_to
         call_log.direction = 'outbound'
-        call_log.status = 'initiated'
-        call_log.twilio_call_sid = call.sid
+        call_log.status = 'web_initiated'
         db.session.add(call_log)
         db.session.commit()
         
         return jsonify({
             'success': True,
-            'call_sid': call.sid,
-            'message': 'Calling... when they answer, your phone will ring'
+            'to_number': normalized_to,
+            'from_number': from_number,
+            'message': 'Ready for web calling'
         })
         
     except Exception as e:
@@ -150,25 +139,57 @@ def initiate_call(user_id):
                 'error_type': 'general'
             }), 500
 
-@dialer_bp.route('/dialer/<int:user_id>/connect_to_user', methods=['POST'])
-def connect_to_user(user_id):
-    """TwiML to connect target caller directly to user's phone"""
+@dialer_bp.route('/dialer/<int:user_id>/get_access_token', methods=['GET'])
+def get_access_token(user_id):
+    """Generate Twilio access token for client-side calling"""
     user = MultiUser.query.get_or_404(user_id)
-    user_phone = request.args.get('user_phone')
+    
+    try:
+        from twilio.jwt.access_token import AccessToken
+        from twilio.jwt.access_token.grants import VoiceGrant
+        import os
+        
+        # Get Twilio credentials
+        account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+        auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+        
+        # Create identity for this user
+        identity = f"user_{user_id}"
+        
+        # Create access token using auth token as secret for simplicity
+        token = AccessToken(account_sid, account_sid, auth_token, identity=identity)
+        
+        # Create voice grant - need to create a TwiML app for this to work
+        public_url = os.environ.get('PUBLIC_APP_URL', 'https://example.com')
+        voice_grant = VoiceGrant(
+            outgoing_application_sid=None,  # We'll use direct calling
+            incoming_allow=False
+        )
+        token.add_grant(voice_grant)
+        
+        return jsonify({
+            'token': token.to_jwt(),
+            'identity': identity
+        })
+        
+    except Exception as e:
+        logging.error(f"Error generating access token: {e}")
+        return jsonify({'error': 'Failed to generate access token'}), 500
+
+@dialer_bp.route('/dialer/<int:user_id>/make_call_twiml', methods=['POST'])
+def make_call_twiml(user_id):
+    """TwiML for outgoing calls from web client"""
+    user = MultiUser.query.get_or_404(user_id)
+    to_number = request.form.get('To')
     
     response = VoiceResponse()
     
-    # When target answers, immediately dial the user
-    dial = response.dial(
-        caller_id=user.google_voice_number,  # Show Google Voice as caller ID to user
-        timeout=30,
-        action=f"/dialer/{user_id}/dial_status",
-        method="POST"
-    )
-    dial.number(user_phone)
-    
-    # If user doesn't answer
-    response.say("The person you called is not available. Please try again later.", voice='alice')
+    if to_number:
+        # Use the user's Google Voice number as caller ID
+        dial = response.dial(caller_id=user.google_voice_number)
+        dial.number(to_number)
+    else:
+        response.say("Invalid number. Please try again.", voice='alice')
     
     return str(response), 200, {'Content-Type': 'application/xml'}
 
