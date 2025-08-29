@@ -521,3 +521,8 @@ def verification_troubleshooting():
 def sms_verification_guide():
     """SMS verification guide - the easy way"""
     return render_template('admin/sms_verification_guide.html')
+
+@admin_bp.route('/call-verification-guide')
+def call_verification_guide():
+    """Call verification guide with temporary forwarding"""
+    return render_template('admin/call_verification_guide.html')

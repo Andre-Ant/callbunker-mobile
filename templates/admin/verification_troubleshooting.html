@@ -58,9 +58,14 @@
                         <strong>Perfect Solution:</strong> SMS doesn't trigger call forwarding or CallBunker authentication!
                     </div>
                     <div class="text-center mt-3">
-                        <a href="{{ url_for('admin.sms_verification_guide') }}" class="btn btn-success">
-                            <i class="fas fa-sms me-2"></i>Detailed SMS Guide
-                        </a>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <a href="{{ url_for('admin.sms_verification_guide') }}" class="btn btn-success">
+                                <i class="fas fa-sms me-2"></i>SMS Guide
+                            </a>
+                            <a href="{{ url_for('admin.call_verification_guide') }}" class="btn btn-primary">
+                                <i class="fas fa-phone me-2"></i>Call Guide
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Call Verification Guide{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-white mb-4">
+        <i class="fas fa-phone me-2 text-warning"></i>
+        Call Verification - Temporary Setup
+    </h1>
+
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Quick Setup:</strong> Temporarily change Google Voice forwarding so Twilio's call reaches you directly
+    </div>
+
+    <!-- Step 1 -->
+    <div class="card border-primary mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                <span class="badge bg-light text-primary me-2 fs-5">1</span>
+                Change Google Voice Forwarding
+            </h4>
+        </div>
+        <div class="card-body">
+            <p class="text-white fs-5 mb-3">Temporarily forward directly to your real phone:</p>
+            
+            <div class="d-grid mb-3">
+                <a href="https://voice.google.com/settings" target="_blank" class="btn btn-primary btn-lg py-3">
+                    <i class="fas fa-external-link-alt me-2"></i>Open Google Voice Settings
+                </a>
+            </div>
+
+            <div class="alert alert-info">
+                <h6 class="text-dark mb-2">What to Change:</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Current forwarding:</strong><br>
+                        <code class="text-danger">+1 (631) 641-7728</code><br>
+                        <small class="text-muted">(Defense Number - causes authentication)</small>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Change to:</strong><br>
+                        <code class="text-success">+1 (508) 638-8084</code><br>
+                        <small class="text-muted">(Your real phone - direct access)</small>
+                    </div>
+                </div>
+            </div>
+
+            <ol class="text-light">
+                <li class="mb-2">In Google Voice settings, find "Linked numbers" or "Forwarding phones"</li>
+                <li class="mb-2">Remove or disable: <code class="text-warning">+1 (631) 641-7728</code></li>
+                <li class="mb-2">Add or enable: <code class="text-success">+1 (508) 638-8084</code></li>
+                <li class="mb-2">Save the changes</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="card border-success mb-4">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">
+                <span class="badge bg-light text-success me-2 fs-5">2</span>
+                Try Twilio Verification Call
+            </h4>
+        </div>
+        <div class="card-body">
+            <p class="text-white fs-5 mb-3">Now try the Twilio verification again:</p>
+            
+            <div class="d-grid mb-3">
+                <a href="https://console.twilio.com/us1/develop/phone-numbers/manage/verified-caller-ids" 
+                   target="_blank" class="btn btn-success btn-lg py-3">
+                    <i class="fas fa-external-link-alt me-2"></i>Back to Twilio Verification
+                </a>
+            </div>
+
+            <ol class="text-light">
+                <li class="mb-2">Add new caller ID: <code class="text-success">+16174921250</code></li>
+                <li class="mb-2">Click "Call me now" for voice verification</li>
+                <li class="mb-2">Answer your real phone when Twilio calls</li>
+                <li class="mb-2">Listen for the 6-digit verification code</li>
+                <li class="mb-2">Enter the code in Twilio's webpage</li>
+            </ol>
+
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Should work now:</strong> Call goes directly to your phone without CallBunker authentication
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="card border-warning mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h4 class="mb-0">
+                <span class="badge bg-dark text-warning me-2 fs-5">3</span>
+                IMPORTANT: Restore Protection
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <i class="fas fa-shield-virus me-2"></i>
+                <strong>Critical:</strong> Your CallBunker protection is currently DISABLED while forwarding to your real phone!
+            </div>
+
+            <p class="text-white fs-5 mb-3">After verification succeeds, immediately change back:</p>
+            
+            <div class="d-grid mb-3">
+                <a href="https://voice.google.com/settings" target="_blank" class="btn btn-warning btn-lg py-3">
+                    <i class="fas fa-shield-alt me-2"></i>Restore CallBunker Protection
+                </a>
+            </div>
+
+            <ol class="text-light">
+                <li class="mb-2">Go back to Google Voice settings</li>
+                <li class="mb-2">Remove: <code class="text-danger">+1 (508) 638-8084</code> (your real phone)</li>
+                <li class="mb-2">Add back: <code class="text-success">+1 (631) 641-7728</code> (Defense Number)</li>
+                <li class="mb-2">Save changes to restore call screening</li>
+            </ol>
+
+            <div class="alert alert-success">
+                <i class="fas fa-shield-check me-2"></i>
+                <strong>Protection Restored:</strong> CallBunker will resume screening your incoming calls
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-info">
+        <div class="card-body text-center">
+            <h5 class="text-info mb-3">
+                <i class="fas fa-rocket me-2"></i>
+                Ready for CallBunker Dialer!
+            </h5>
+            <p class="text-light mb-3">Once verification is complete and protection restored:</p>
+            <ul class="text-light text-start">
+                <li>Incoming calls: Protected by CallBunker screening</li>
+                <li>Outgoing calls: Use CallBunker Dialer with Google Voice caller ID</li>
+                <li>Your real number: Completely hidden and protected</li>
+            </ul>
+            <a href="/multi/user/1/dashboard" class="btn btn-info btn-lg mt-3">
+                <i class="fas fa-tachometer-alt me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
