@@ -97,27 +97,20 @@ def initiate_call(user_id):
                 'error_type': 'no_verified_numbers'
             }), 400
         
-        # Create a conference call setup for true web-based calling
+        # Create a direct call - when target answers, immediately dial user
         import os
         public_url = os.environ.get('PUBLIC_APP_URL', f"https://{request.host}")
         
-        # Create a unique conference name for this call
-        import uuid
-        conference_name = f"call_{user_id}_{str(uuid.uuid4())[:8]}"
-        
-        # First, call the target number and put them in conference
-        target_webhook_url = f"{public_url}/dialer/{user_id}/conference_target?conf={conference_name}"
-        logging.info(f"Target webhook URL: {target_webhook_url}")
+        # When target answers, this webhook will dial the user
+        direct_webhook_url = f"{public_url}/dialer/{user_id}/connect_to_user?user_phone={user.real_phone_number}"
+        logging.info(f"Direct webhook URL: {direct_webhook_url}")
         
         call = client.calls.create(
             to=normalized_to,  # Call target number directly
             from_=from_number,  # Show Google Voice number as caller ID
-            url=target_webhook_url,
+            url=direct_webhook_url,
             method='POST'
         )
-        
-        # Return conference details for web client to join
-        call_log.conference_name = conference_name
         
         # Log the call
         call_log = MultiUserCallLog()
@@ -133,8 +126,7 @@ def initiate_call(user_id):
         return jsonify({
             'success': True,
             'call_sid': call.sid,
-            'conference_name': conference_name,
-            'message': 'Connecting...'
+            'message': 'Calling... when they answer, your phone will ring'
         })
         
     except Exception as e:
@@ -158,73 +150,41 @@ def initiate_call(user_id):
                 'error_type': 'general'
             }), 500
 
-@dialer_bp.route('/dialer/<int:user_id>/conference_target', methods=['POST'])
-def conference_target(user_id):
-    """TwiML to put target caller in conference"""
+@dialer_bp.route('/dialer/<int:user_id>/connect_to_user', methods=['POST'])
+def connect_to_user(user_id):
+    """TwiML to connect target caller directly to user's phone"""
     user = MultiUser.query.get_or_404(user_id)
-    conference_name = request.args.get('conf')
+    user_phone = request.args.get('user_phone')
     
     response = VoiceResponse()
     
-    # Put the target caller in a conference
-    dial = response.dial()
-    dial.conference(
-        conference_name,
-        start_conference_on_enter=True,
-        end_conference_on_exit=False,
-        wait_url="http://twimlets.com/holdmusic?Bucket=com.twilio.music.ambient"
+    # When target answers, immediately dial the user
+    dial = response.dial(
+        caller_id=user.google_voice_number,  # Show Google Voice as caller ID to user
+        timeout=30,
+        action=f"/dialer/{user_id}/dial_status",
+        method="POST"
     )
+    dial.number(user_phone)
+    
+    # If user doesn't answer
+    response.say("The person you called is not available. Please try again later.", voice='alice')
     
     return str(response), 200, {'Content-Type': 'application/xml'}
 
-@dialer_bp.route('/dialer/<int:user_id>/join_conference', methods=['POST'])
-def join_conference(user_id):
-    """Create a call to join user to the conference"""
-    user = MultiUser.query.get_or_404(user_id)
-    data = request.get_json()
-    conference_name = data.get('conference_name')
-    
-    if not conference_name:
-        return jsonify({'error': 'Conference name required'}), 400
-    
-    try:
-        client = twilio_client()
-        import os
-        public_url = os.environ.get('PUBLIC_APP_URL', f"https://{request.host}")
-        webhook_url = f"{public_url}/dialer/{user_id}/user_conference?conf={conference_name}"
-        
-        # Call the user and connect them to conference
-        user_call = client.calls.create(
-            to=user.real_phone_number,
-            from_=user.google_voice_number,
-            url=webhook_url,
-            method='POST'
-        )
-        
-        return jsonify({
-            'success': True,
-            'call_sid': user_call.sid,
-            'message': 'Answer your phone to join the call'
-        })
-        
-    except Exception as e:
-        logging.error(f"Failed to join conference: {e}")
-        return jsonify({'error': str(e)}), 500
-
-@dialer_bp.route('/dialer/<int:user_id>/user_conference', methods=['POST'])
-def user_conference(user_id):
-    """TwiML to put user in conference when they answer"""
-    conference_name = request.args.get('conf')
+@dialer_bp.route('/dialer/<int:user_id>/dial_status', methods=['POST'])
+def dial_status(user_id):
+    """Handle call completion status"""
+    dial_status = request.form.get('DialCallStatus')
     
     response = VoiceResponse()
     
-    # Put the user in the same conference
-    dial = response.dial()
-    dial.conference(
-        conference_name,
-        start_conference_on_enter=False,
-        end_conference_on_exit=True  # End conference when user leaves
-    )
+    if dial_status == 'no-answer':
+        response.say("No answer. Please try again later.", voice='alice')
+    elif dial_status == 'busy':
+        response.say("The line is busy. Please try again later.", voice='alice')
+    elif dial_status == 'failed':
+        response.say("Call failed. Please try again later.", voice='alice')
     
     return str(response), 200, {'Content-Type': 'application/xml'}
 
