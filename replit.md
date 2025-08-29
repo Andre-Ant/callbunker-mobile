@@ -10,6 +10,17 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes
 
+## August 29, 2025 - Outgoing Call Protection Implementation
+- **Critical Gap Addressed**: Solved the outgoing call protection vulnerability where users calling from regular phones expose their real numbers
+- **Dashboard Integration**: Added prominent "Making Protected Outgoing Calls" section with three Google Voice methods:
+  1. **Google Voice App**: Primary recommendation for mobile outgoing calls
+  2. **Call-Through Method**: Call Google Voice number first, then dial target number
+  3. **Web Interface**: Use voice.google.com for computer-based calls
+- **How-It-Works Update**: Added comprehensive outgoing call protection guide with visual warnings about exposure risks
+- **User Education**: Clear explanations of why outgoing call protection matters - prevents callback bypass of CallBunker system
+- **Complete Coverage**: CallBunker now protects both incoming AND outgoing call scenarios for full communication security
+- **User Experience**: Maintains clean interface while prominently featuring this critical security requirement
+
 ## August 28, 2025 - Fixed Call Bridging Issue (Line Still Ringing After Pickup)
 - **Critical Bug Fix**: Resolved issue where authenticated calls would continue ringing after user picked up
 - **Root Cause**: TwiML statements after `dial` command were interfering with proper call bridging

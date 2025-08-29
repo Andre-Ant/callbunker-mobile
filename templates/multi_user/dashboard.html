@@ -129,6 +129,54 @@
         </div>
     </div>
 
+    <!-- Outgoing Calls Protection -->
+    <div class="card border-warning mt-4" style="background: rgba(255, 193, 7, 0.1);">
+        <div class="card-header">
+            <h5 class="text-warning mb-0">
+                <i class="fas fa-phone-alt me-2"></i>Making Protected Outgoing Calls
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <p class="text-light mb-3">
+                        <strong>Important:</strong> Always call out using your Google Voice number so people call you back through CallBunker protection.
+                    </p>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge bg-success">Method 1:</span>
+                            <small class="text-light">Use Google Voice app to make all outgoing calls</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge bg-info">Method 2:</span>
+                            <small class="text-light">Call your Google Voice number first, then dial the person you want to reach</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge bg-warning text-dark">Method 3:</span>
+                            <small class="text-light">Use Google Voice web interface at voice.google.com</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <strong class="text-warning">Your Google Voice:</strong>
+                            <br><code class="text-success bg-dark px-2 py-1 rounded">{{ format_phone(user.google_voice_number) }}</code>
+                        </div>
+                        <a href="https://voice.google.com" target="_blank" class="btn btn-warning text-dark">
+                            <i class="fas fa-external-link-alt me-1"></i>Open Google Voice
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-3 border-info" style="background: rgba(13, 202, 240, 0.2);">
+                <i class="fas fa-lightbulb me-2"></i>
+                <strong>Why this matters:</strong> When you call from your regular phone, people see that number and call you back directly - bypassing CallBunker protection completely.
+            </div>
+        </div>
+    </div>
+
     <!-- Support Contact Section -->
     <div class="card border-info mt-4" style="background: rgba(13, 202, 240, 0.05);">
         <div class="card-body text-center py-3">
