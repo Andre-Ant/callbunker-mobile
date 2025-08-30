@@ -419,12 +419,12 @@
     <div class="content">
         <!-- Home Screen -->
         <div class="screen active" id="home">
-            <div class="card">
+            <div class="card" onclick="showAnalytics()" style="cursor: pointer;">
                 <div style="display: flex; align-items: center; margin-bottom: 16px;">
                     <div style="font-size: 32px; color: #4caf50; margin-right: 12px;">🛡️</div>
                     <div>
                         <div style="font-size: 18px; font-weight: 600; color: #1c1c1e;">Privacy Protected</div>
-                        <div style="font-size: 14px; color: #8e8e93;">Your real number is hidden</div>
+                        <div style="font-size: 14px; color: #8e8e93;">Your real number is hidden • Tap for details</div>
                     </div>
                 </div>
                 <div class="stats">
@@ -736,6 +736,114 @@
                 <div style="text-align: center; color: #8e8e93; font-size: 12px; line-height: 1.4;">
                     CallBunker provides comprehensive communication security through advanced call screening, privacy protection, and intelligent contact management. Your real phone number stays completely hidden while maintaining full functionality.
                 </div>
+            </div>
+        </div>
+        
+        <!-- Analytics Detail Screen -->
+        <div class="detail-screen" id="analytics-detail">
+            <div class="detail-header">
+                <button class="back-arrow" onclick="hideAnalytics()">‹</button>
+                <div class="detail-title">Security Analytics</div>
+            </div>
+            
+            <div class="detail-card">
+                <div style="text-align: center; padding: 16px;">
+                    <div style="font-size: 48px; color: #4caf50; margin-bottom: 12px;">🛡️</div>
+                    <div style="font-size: 20px; font-weight: 600; color: #1c1c1e; margin-bottom: 4px;">Privacy Protection Active</div>
+                    <div style="font-size: 14px; color: #8e8e93;">Your real number stays completely hidden</div>
+                </div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Call Statistics (Last 30 Days)</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: bold; color: #4caf50;">5</div>
+                        <div style="font-size: 12px; color: #8e8e93;">Protected Calls</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: bold; color: #007aff;">12</div>
+                        <div style="font-size: 12px; color: #8e8e93;">Total Calls</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: bold; color: #ff9500;">7</div>
+                        <div style="font-size: 12px; color: #8e8e93;">Screened Calls</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: bold; color: #ff3b30;">3</div>
+                        <div style="font-size: 12px; color: #8e8e93;">Blocked Attempts</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Protection Effectiveness</div>
+                <div style="margin-top: 12px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="font-size: 14px; color: #1c1c1e;">Privacy Success Rate</span>
+                        <span style="font-size: 14px; font-weight: 600; color: #4caf50;">100%</span>
+                    </div>
+                    <div style="height: 6px; background: #f2f2f7; border-radius: 3px; overflow: hidden;">
+                        <div style="height: 100%; width: 100%; background: #4caf50; border-radius: 3px;"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 16px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="font-size: 14px; color: #1c1c1e;">Authentication Rate</span>
+                        <span style="font-size: 14px; font-weight: 600; color: #4caf50;">71%</span>
+                    </div>
+                    <div style="height: 6px; background: #f2f2f7; border-radius: 3px; overflow: hidden;">
+                        <div style="height: 100%; width: 71%; background: #4caf50; border-radius: 3px;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Recent Activity</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon" style="color: #4caf50;">📞</span>
+                        <div>
+                            <div class="feature-text">Protected call to (555) 123-4567</div>
+                            <div style="font-size: 12px; color: #8e8e93;">2 hours ago</div>
+                        </div>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon" style="color: #ff9500;">🛡️</span>
+                        <div>
+                            <div class="feature-text">Call screening: PIN verified</div>
+                            <div style="font-size: 12px; color: #8e8e93;">5 hours ago</div>
+                        </div>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon" style="color: #ff3b30;">🚫</span>
+                        <div>
+                            <div class="feature-text">Blocked unknown caller</div>
+                            <div style="font-size: 12px; color: #8e8e93;">1 day ago</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Privacy Features Active</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">🎭</span>
+                        <span class="feature-text">Caller ID Spoofing</span>
+                        <span style="color: #4caf50; margin-left: auto;">✓</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">🔒</span>
+                        <span class="feature-text">Number Concealment</span>
+                        <span style="color: #4caf50; margin-left: auto;">✓</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">🛡️</span>
+                        <span class="feature-text">Call Screening</span>
+                        <span style="color: #4caf50; margin-left: auto;">✓</span>
+                    </li>
+                </ul>
             </div>
         </div>
         
@@ -1072,6 +1180,28 @@
                     item.textContent = `PIN: ${pin}, Verbal: "${verbal}"`;
                 }
             });
+        }
+        
+        function showAnalytics() {
+            // Hide main home screen
+            document.getElementById('home').classList.remove('active');
+            
+            // Show analytics detail screen
+            document.getElementById('analytics-detail').classList.add('active');
+            
+            // Update header title
+            document.getElementById('screen-title').textContent = 'Security Analytics';
+        }
+        
+        function hideAnalytics() {
+            // Hide analytics detail screen
+            document.getElementById('analytics-detail').classList.remove('active');
+            
+            // Show main home screen
+            document.getElementById('home').classList.add('active');
+            
+            // Update header title
+            document.getElementById('screen-title').textContent = 'CallBunker';
         }
     </script>
 </body>
