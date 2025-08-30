@@ -855,6 +855,7 @@
                     <div id="selection-actions" style="display: none;">
                         <span id="selection-count" style="font-size: 12px; color: #8e8e93; margin-right: 8px;">0 selected</span>
                         <button onclick="cancelSelection()" style="background: #8e8e93; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; margin-right: 4px;">Cancel</button>
+                        <button onclick="whitelistSelected()" style="background: #4caf50; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; margin-right: 4px;">Whitelist Selected</button>
                         <button onclick="removeSelected()" style="background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Remove Selected</button>
                     </div>
                 </div>
@@ -1614,7 +1615,13 @@
         function updateSelectionCount() {
             const count = selectedCalls.size;
             document.getElementById('selection-count').textContent = `${count} selected`;
-            document.querySelector('#selection-actions button[onclick="removeSelected()"]').disabled = count === 0;
+            
+            // Disable both buttons when no items selected
+            const removeBtn = document.querySelector('#selection-actions button[onclick="removeSelected()"]');
+            const whitelistBtn = document.querySelector('#selection-actions button[onclick="whitelistSelected()"]');
+            
+            if (removeBtn) removeBtn.disabled = count === 0;
+            if (whitelistBtn) whitelistBtn.disabled = count === 0;
         }
         
         function cancelSelection() {
@@ -1637,6 +1644,29 @@
                     exitSelectionMode();
                     updateBlockedCallsCount();
                     showCustomAlert('Removed', `${count} blocked call${count > 1 ? 's have' : ' has'} been removed.`);
+                }
+            );
+        }
+        
+        function whitelistSelected() {
+            const count = selectedCalls.size;
+            if (count === 0) return;
+            
+            showCustomConfirm(
+                `Add ${count} Selected Call${count > 1 ? 's' : ''} to Trusted Contacts?`,
+                `${count} contact${count > 1 ? 's' : ''} will bypass call screening in future calls.`,
+                `Add ${count} to Trusted`,
+                'Cancel',
+                function() {
+                    selectedCalls.forEach(phoneNumber => {
+                        // Remove from blocked list
+                        removeBlockedCallFromList(phoneNumber);
+                        // Add to trusted contacts
+                        addToTrustedContacts(phoneNumber);
+                    });
+                    exitSelectionMode();
+                    updateBlockedCallsCount();
+                    showCustomAlert('Success!', `${count} contact${count > 1 ? 's have' : ' has'} been added to your trusted contacts.`);
                 }
             );
         }
