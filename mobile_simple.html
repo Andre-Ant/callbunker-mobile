@@ -850,7 +850,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <div class="detail-label">Blocked Calls (6)</div>
                     <div id="blocked-actions" style="display: flex; gap: 8px; align-items: center;">
-                        <button onclick="clearAllBlocked()" style="background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Clear All</button>
+                        <button onclick="selectAllBlocked()" style="background: #007aff; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Select All</button>
                     </div>
                     <div id="selection-actions" style="display: none;">
                         <span id="selection-count" style="font-size: 12px; color: #8e8e93; margin-right: 8px;">0 selected</span>
@@ -1537,29 +1537,29 @@
             }
         }
         
-        function clearAllBlocked() {
-            showCustomConfirm(
-                'Clear All Blocked Calls?',
-                'This will remove all blocked calls from your list. This action cannot be undone.',
-                'Clear All',
-                'Cancel',
-                function() {
-                    const blockedList = document.getElementById('blocked-calls-list');
-                    if (blockedList) {
-                        blockedList.innerHTML = '<div style="text-align: center; padding: 20px; color: #8e8e93; font-size: 14px;">No blocked calls</div>';
-                    }
+        function selectAllBlocked() {
+            // Enter selection mode first
+            if (!isSelectionMode) {
+                enterSelectionMode();
+            }
+            
+            // Select all blocked call items
+            const blockedItems = document.querySelectorAll('.blocked-call-item');
+            blockedItems.forEach(item => {
+                const phoneNumber = item.getAttribute('data-phone');
+                if (phoneNumber && !selectedCalls.has(phoneNumber)) {
+                    selectedCalls.add(phoneNumber);
                     
-                    // Update all counts properly
-                    updateBlockedCallsCount();
-                    
-                    // Exit selection mode if active
-                    if (isSelectionMode) {
-                        exitSelectionMode();
-                    }
-                    
-                    showCustomAlert('Cleared', 'All blocked calls have been removed.');
+                    // Update visual selection
+                    const checkbox = item.querySelector('.selection-checkbox');
+                    const checkmark = checkbox.querySelector('.checkmark');
+                    checkbox.style.backgroundColor = '#007aff';
+                    checkmark.style.display = 'block';
+                    item.style.backgroundColor = '#e3f2fd';
                 }
-            );
+            });
+            
+            updateSelectionCount();
         }
         
         function updateBlockedCallsCount() {
