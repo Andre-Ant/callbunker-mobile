@@ -1021,27 +1021,27 @@
     </div>
     
     <div class="tab-bar">
-        <div class="tab active" onclick="switchTab('home')">
+        <div class="tab active" onclick="switchTab('home'); return false;">
             <div class="tab-icon">🏠</div>
             <div class="tab-label">Home</div>
         </div>
-        <div class="tab" onclick="switchTab('dialer')">
+        <div class="tab" onclick="switchTab('dialer'); return false;">
             <div class="tab-icon">📞</div>
             <div class="tab-label">Dialer</div>
         </div>
-        <div class="tab" onclick="switchTab('messages')">
+        <div class="tab" onclick="switchTab('messages'); return false;">
             <div class="tab-icon">💬</div>
             <div class="tab-label">Messages</div>
         </div>
-        <div class="tab" onclick="switchTab('history')">
+        <div class="tab" onclick="switchTab('history'); return false;">
             <div class="tab-icon">📋</div>
             <div class="tab-label">History</div>
         </div>
-        <div class="tab" onclick="switchTab('contacts')">
+        <div class="tab" onclick="switchTab('contacts'); return false;">
             <div class="tab-icon">👥</div>
             <div class="tab-label">Contacts</div>
         </div>
-        <div class="tab" onclick="switchTab('settings')">
+        <div class="tab" onclick="switchTab('settings'); return false;">
             <div class="tab-icon">⚙️</div>
             <div class="tab-label">Settings</div>
         </div>
@@ -1060,6 +1060,10 @@
         };
         
         function switchTab(tab) {
+            // Prevent any browser navigation
+            event.preventDefault();
+            event.stopPropagation();
+            
             // Hide all screens and detail screens
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.detail-screen').forEach(s => s.classList.remove('active'));
@@ -1071,6 +1075,8 @@
             
             // Update title
             document.getElementById('screen-title').textContent = titles[tab];
+            
+            return false;
         }
         
         function addDigit(digit) {
@@ -1112,6 +1118,10 @@
         }
         
         function showDetail(detailType) {
+            // Prevent any browser navigation
+            event.preventDefault();
+            event.stopPropagation();
+            
             // Hide main settings screen
             document.getElementById('settings').classList.remove('active');
             
@@ -1125,6 +1135,8 @@
                 about: 'About CallBunker'
             };
             document.getElementById('screen-title').textContent = titles[detailType];
+            
+            return false;
         }
         
         function hideDetail() {
@@ -1233,6 +1245,10 @@
         }
         
         function showAnalytics() {
+            // Prevent any browser navigation
+            event.preventDefault();
+            event.stopPropagation();
+            
             // Hide main home screen
             document.getElementById('home').classList.remove('active');
             
@@ -1241,6 +1257,8 @@
             
             // Update header title
             document.getElementById('screen-title').textContent = 'Security Analytics';
+            
+            return false;
         }
         
         function hideAnalytics() {
