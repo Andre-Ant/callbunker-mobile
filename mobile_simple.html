@@ -1317,6 +1317,7 @@
                 'Cancel',
                 function() {
                     removeBlockedCallFromList(phoneNumber);
+                    updateBlockedCallsCount();
                     showCustomAlert('Success!', phoneNumber + ' has been added to your trusted contacts.');
                 }
             );
@@ -1596,6 +1597,8 @@
                 }
             );
         }
+        
+
         
         // Initialize long press when page loads
         document.addEventListener('DOMContentLoaded', function() {
