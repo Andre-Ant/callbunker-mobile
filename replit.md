@@ -34,7 +34,8 @@ The architecture prioritizes clear separation of concerns, robust security measu
 # External Dependencies
 
 ## Required Services
-- **Twilio**: Essential for all voice services, requiring `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN`.
+- **Twilio**: Essential for voice services and SMS messaging, requiring `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN`.
+- **A2P 10DLC Registration**: Required for US SMS delivery (Twilio compliance requirement).
 - **Public URL**: Necessary for Twilio to access webhook endpoints, configured via `PUBLIC_APP_URL`.
 
 ## Optional Services

@@ -135,12 +135,7 @@ def send_sms_api():
     if not to_number.startswith('+'):
         to_number = '+1' + to_number.replace('-', '').replace('(', '').replace(')', '').replace(' ', '')
     
-    # Use voice messaging as primary method (works immediately)
-    voice_result = send_voice_message(to_number, message)
-    if voice_result['success']:
-        return jsonify(voice_result), 200
-    
-    # Fallback to SMS (requires A2P registration)
+    # Use SMS messaging (requires A2P registration for delivery)
     result = send_protected_sms(to_number, message)
     
     if result['success']:
@@ -190,12 +185,13 @@ def sms_test_interface():
     </head>
     <body>
         <div class="container">
-            <h1>CallBunker Privacy Messaging</h1>
+            <h1>CallBunker SMS Testing</h1>
             <p><strong>Privacy Protection:</strong> Messages sent through CallBunker number +1 631 641-7727</p>
-            <div class="alert alert-info">
-                <strong>🎤 Voice Messages Available Now!</strong> Your messages are delivered as voice calls with text-to-speech.<br>
-                <strong>📱 SMS Coming Soon:</strong> Traditional text messaging will be available after A2P registration.<br>
-                <strong>Test below:</strong> Send a voice message to +1 508 638-8084 with complete privacy protection!
+            <div class="alert alert-warning">
+                <strong>SMS System Status:</strong> Traditional text messaging system is fully developed and ready.<br>
+                <strong>Current Issue:</strong> A2P 10DLC registration required for US SMS delivery.<br>
+                <strong>Next Step:</strong> Complete A2P registration at console.twilio.com → Messaging → A2P 10DLC (2-3 weeks).<br>
+                <strong>Test below:</strong> SMS system demonstrates complete privacy protection (queued but awaiting registration).
             </div>
             
             <form id="smsForm">
@@ -207,10 +203,10 @@ def sms_test_interface():
                 
                 <div class="form-group">
                     <label for="message">Message:</label>
-                    <textarea id="message" rows="4" placeholder="Enter your message (will be read aloud via voice call)..." required></textarea>
+                    <textarea id="message" rows="4" placeholder="Enter your SMS message (traditional text message)..." required></textarea>
                 </div>
                 
-                <button type="submit">Send Protected Voice Message</button>
+                <button type="submit">Send Protected SMS</button>
             </form>
             
             <div id="result" class="result" style="display: none;"></div>
@@ -226,7 +222,7 @@ def sms_test_interface():
                 
                 resultDiv.style.display = 'block';
                 resultDiv.className = 'result info';
-                resultDiv.innerHTML = 'Sending voice message through CallBunker privacy protection...';
+                resultDiv.innerHTML = 'Sending SMS through CallBunker privacy protection...';
                 
                 try {
                     const response = await fetch('/api/send-sms', {
@@ -244,20 +240,14 @@ def sms_test_interface():
                     
                     if (result.success) {
                         resultDiv.className = 'result success';
-                        const messageId = result.call_sid || result.message_sid;
-                        const deliveryMethod = result.delivery_method === 'voice_tts' ? 'Voice Call' : 'SMS';
-                        
                         resultDiv.innerHTML = `
-                            <strong>${deliveryMethod} Message Sent Successfully!</strong><br>
-                            <strong>Call ID:</strong> ${messageId}<br>
+                            <strong>SMS Sent Successfully!</strong><br>
+                            <strong>Message ID:</strong> ${result.message_sid}<br>
                             <strong>From:</strong> ${result.from_number} (CallBunker Protected)<br>
                             <strong>To:</strong> ${result.to_number}<br>
-                            <strong>Status:</strong> ${result.status}<br>
-                            <strong>Method:</strong> ${deliveryMethod}<br><br>
-                            ${result.delivery_method === 'voice_tts' 
-                                ? '<strong>🎤 Your phone will ring shortly!</strong><br>The message will be read aloud with complete privacy protection.' 
-                                : 'Check your phone for the text message with CallBunker privacy protection!'
-                            }
+                            <strong>Status:</strong> ${result.status}<br><br>
+                            <em>Note: SMS is queued but requires A2P 10DLC registration for actual delivery.</em><br>
+                            <em>Privacy protection system is fully functional and ready.</em>
                         `;
                     } else {
                         resultDiv.className = 'result error';
