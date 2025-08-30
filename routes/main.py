@@ -3,8 +3,8 @@ from utils.auth import require_admin_web
 
 main_bp = Blueprint('main', __name__)
 
-@main_bp.route('/')
-def index():
+@main_bp.route('/dashboard')
+def dashboard():
     """Main dashboard - redirect to multi-user list"""
     return redirect(url_for('multi_user.user_list'))
 
