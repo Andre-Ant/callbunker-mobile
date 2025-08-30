@@ -1540,10 +1540,12 @@
         }
         
         function updateTrustedContactsCount() {
-            // Count trusted contacts (existing plus dynamically added ones)
-            const existingContacts = 2; // John and Mary
-            const dynamicContacts = document.querySelectorAll('[onclick*="showDynamicContactDetail"]').length;
-            const totalContacts = existingContacts + dynamicContacts;
+            // Count all list items in the contacts screen except the info banner
+            const contactsScreen = document.getElementById('contacts');
+            if (!contactsScreen) return;
+            
+            const allItems = contactsScreen.querySelectorAll('.list-item');
+            const totalContacts = allItems.length;
             
             // Update the home screen stat
             const trustedStatElement = document.getElementById('trusted-contacts-stat');
