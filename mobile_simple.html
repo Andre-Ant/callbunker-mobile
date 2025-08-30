@@ -847,16 +847,21 @@
             </div>
             
             <div class="detail-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div class="detail-label">Blocked Calls (6)</div>
-                    <div id="blocked-actions" style="display: flex; gap: 8px; align-items: center;">
-                        <button onclick="selectAllBlocked()" style="background: #007aff; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Select All</button>
+                <div style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div class="detail-label">Blocked Calls (6)</div>
+                        <div id="blocked-actions" style="display: flex; gap: 8px; align-items: center;">
+                            <button onclick="selectAllBlocked()" style="background: #007aff; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Select All</button>
+                        </div>
+                        <div id="selection-actions" style="display: none;">
+                            <span id="selection-count" style="font-size: 12px; color: #8e8e93; margin-right: 8px;">0 selected</span>
+                            <button onclick="cancelSelection()" style="background: #8e8e93; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; margin-right: 4px;">Cancel</button>
+                            <button onclick="whitelistSelected()" style="background: #4caf50; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; margin-right: 4px;">Whitelist Selected</button>
+                            <button onclick="removeSelected()" style="background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Remove Selected</button>
+                        </div>
                     </div>
-                    <div id="selection-actions" style="display: none;">
-                        <span id="selection-count" style="font-size: 12px; color: #8e8e93; margin-right: 8px;">0 selected</span>
-                        <button onclick="cancelSelection()" style="background: #8e8e93; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; margin-right: 4px;">Cancel</button>
-                        <button onclick="whitelistSelected()" style="background: #4caf50; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; margin-right: 4px;">Whitelist Selected</button>
-                        <button onclick="removeSelected()" style="background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Remove Selected</button>
+                    <div id="multi-select-container" style="text-align: center; padding: 8px 0; border-top: 1px solid #e5e5ea;">
+                        <!-- Multi-select button will be added here dynamically -->
                     </div>
                 </div>
                 <div id="blocked-calls-list">
@@ -1660,18 +1665,18 @@
         let isSelectionMode = false;
         let selectedCalls = new Set();
         
-        // Add a visible multi-select button instead of complex long press
+        // Add a visible multi-select button in its own dedicated container
         function addMultiSelectButton() {
-            const blockedActions = document.getElementById('blocked-actions');
-            if (blockedActions && !document.getElementById('multi-select-btn')) {
+            const multiSelectContainer = document.getElementById('multi-select-container');
+            if (multiSelectContainer && !document.getElementById('multi-select-btn')) {
                 const multiSelectBtn = document.createElement('button');
                 multiSelectBtn.id = 'multi-select-btn';
                 multiSelectBtn.textContent = 'Select Multiple';
-                multiSelectBtn.style.cssText = 'background: #007aff; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; margin-left: 8px;';
+                multiSelectBtn.style.cssText = 'background: #8e8e93; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 12px;';
                 multiSelectBtn.onclick = function() {
                     enterSelectionMode();
                 };
-                blockedActions.appendChild(multiSelectBtn);
+                multiSelectContainer.appendChild(multiSelectBtn);
             }
         }
         
@@ -1711,9 +1716,10 @@
                 item.style.cursor = 'pointer';
             });
             
-            // Switch header actions
+            // Switch header actions and hide multi-select container
             document.getElementById('blocked-actions').style.display = 'none';
             document.getElementById('selection-actions').style.display = 'flex';
+            document.getElementById('multi-select-container').style.display = 'none';
             const selectionHint = document.getElementById('selection-hint');
             if (selectionHint) selectionHint.style.display = 'inline';
             
@@ -1737,9 +1743,10 @@
                 checkmark.style.display = 'none';
             });
             
-            // Switch header actions back
+            // Switch header actions back and show multi-select container
             document.getElementById('blocked-actions').style.display = 'block';
             document.getElementById('selection-actions').style.display = 'none';
+            document.getElementById('multi-select-container').style.display = 'block';
             const selectionHint = document.getElementById('selection-hint');
             if (selectionHint) selectionHint.style.display = 'none';
         }
