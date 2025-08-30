@@ -227,9 +227,10 @@ def sms_test_interface():
                         resultDiv.innerHTML = `
                             <strong>SMS Sent Successfully!</strong><br>
                             <strong>Message ID:</strong> ${result.message_sid}<br>
-                            <strong>From:</strong> ${result.from_number} (Google Voice)<br>
+                            <strong>From:</strong> ${result.from_number} (CallBunker Protected)<br>
                             <strong>To:</strong> ${result.to_number}<br>
                             <strong>Status:</strong> ${result.status}<br><br>
+                            <em>Status "queued" means your message is being processed for delivery.</em><br>
                             Check your phone for the message with CallBunker privacy protection!
                         `;
                     } else {
