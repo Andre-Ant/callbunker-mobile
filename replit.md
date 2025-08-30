@@ -1,6 +1,6 @@
 # Overview
 
-CallBunker is a comprehensive communication security platform featuring both backend call screening services and a complete mobile application. The system protects users from unwanted calls through PIN/verbal authentication while providing cost-effective native mobile calling with caller ID spoofing. It integrates with Twilio for voice services and Google Voice for privacy protection, offering a complete solution for secure business and personal communications. The project now features a production-ready mobile app configured for APK build through Expo Application Services, with traditional SMS messaging awaiting A2P 10DLC registration.
+CallBunker is a comprehensive communication security platform featuring both backend call screening services and a complete mobile application. The system protects users from unwanted calls through PIN/verbal authentication while providing cost-effective native mobile calling with caller ID spoofing. It integrates with Twilio for voice services and Google Voice for privacy protection, offering a complete solution for secure business and personal communications. The project now features a production-ready mobile app configured for both Android and iOS builds through Expo Application Services, with immediate focus on Android APK generation. Traditional SMS messaging system is complete and awaiting A2P 10DLC registration for delivery.
 
 # User Preferences
 
