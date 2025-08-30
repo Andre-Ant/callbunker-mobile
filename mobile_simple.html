@@ -1447,6 +1447,8 @@
                 item.addEventListener('touchend', function(e) {
                     clearTimeout(longPressTimeout);
                     if (isSelectionMode && Date.now() - startTime < 500) {
+                        e.preventDefault();
+                        e.stopPropagation();
                         toggleItemSelection(item);
                     }
                 });
@@ -1478,6 +1480,7 @@
                         e.preventDefault();
                         e.stopPropagation();
                         toggleItemSelection(item);
+                        return false;
                     }
                 });
             });
@@ -1492,6 +1495,14 @@
                 item.querySelector('.selection-checkbox').style.display = 'block';
                 item.querySelector('.item-actions').style.display = 'none';
                 item.style.backgroundColor = '#f8f9fa';
+                
+                // Override any existing click handlers
+                item.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleItemSelection(item);
+                    return false;
+                };
             });
             
             // Switch header actions
@@ -1581,7 +1592,21 @@
         const originalShowAnalytics = showAnalytics;
         showAnalytics = function() {
             originalShowAnalytics();
-            setTimeout(initializeLongPress, 100);
+            setTimeout(() => {
+                initializeLongPress();
+                // Also prevent default click behavior on blocked call items in selection mode
+                document.querySelectorAll('.blocked-call-item').forEach(item => {
+                    // Remove any existing onclick handlers that might interfere
+                    item.onclick = function(e) {
+                        if (isSelectionMode) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleItemSelection(item);
+                            return false;
+                        }
+                    };
+                });
+            }, 100);
         };
     </script>
 </body>
