@@ -9,7 +9,7 @@ Preferred communication style: Simple, everyday language.
 # System Architecture
 
 ## UI/UX Decisions
-The system features a Bootstrap-themed responsive interface with a dark mode, maintaining a clean, professional appearance. It uses defense-themed language and branding ("Defense Number," "Trusted Callers," etc.) to enhance the user experience. Key UI elements include prominent "CallBunker Dialer" buttons and clear, mobile-optimized guides with large buttons and improved readability for various screen sizes. Advanced UX patterns include long press multi-select (700ms activation with haptic feedback), custom modal confirmations replacing browser prompts, and intuitive gesture-based interactions for mobile users.
+The system features a Bootstrap-themed responsive interface with a dark mode, maintaining a clean, professional appearance. It uses defense-themed language and branding ("Defense Number," "Trusted Callers," etc.) to enhance the user experience. Key UI elements include prominent "CallBunker Dialer" buttons and clear, mobile-optimized guides with large buttons and improved readability for various screen sizes. Advanced UX patterns include intuitive "Select Multiple" button for batch operations, custom modal confirmations replacing browser prompts, and clean gesture-based interactions optimized for mobile users. The interface prioritizes smooth scrolling and intentional user actions over complex touch gestures.
 
 ## Technical Implementations
 - **Core Framework**: Flask serves as the web framework for both webhook endpoints and the admin interface.
