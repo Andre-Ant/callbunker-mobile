@@ -6,19 +6,31 @@ from flask_cors import CORS
 # Twilio credentials
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
-GOOGLE_VOICE_NUMBER = "+16179421250"  # Your Google Voice number
 
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+# Get the first available Twilio number
+def get_twilio_number():
+    try:
+        numbers = client.incoming_phone_numbers.list()
+        if numbers:
+            return numbers[0].phone_number
+        else:
+            return None
+    except:
+        return None
+
+TWILIO_PHONE_NUMBER = get_twilio_number() or "+16179421250"  # Fallback to Google Voice
 
 def send_protected_sms(to_number, message_body):
     """
     Send SMS through CallBunker privacy protection using Google Voice
     """
     try:
-        # Send message using Google Voice number as sender
+        # Send message using available Twilio number
         message = client.messages.create(
             body=f"[CallBunker Protected] {message_body}",
-            from_=GOOGLE_VOICE_NUMBER,
+            from_=TWILIO_PHONE_NUMBER,
             to=to_number
         )
         
@@ -26,7 +38,7 @@ def send_protected_sms(to_number, message_body):
             "success": True,
             "message_sid": message.sid,
             "status": message.status,
-            "from_number": GOOGLE_VOICE_NUMBER,
+            "from_number": TWILIO_PHONE_NUMBER,
             "to_number": to_number,
             "message": "SMS sent successfully through CallBunker privacy protection"
         }

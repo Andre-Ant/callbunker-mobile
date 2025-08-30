@@ -175,7 +175,8 @@ def sms_test_interface():
     <body>
         <div class="container">
             <h1>CallBunker Real SMS Testing</h1>
-            <p><strong>Privacy Protection:</strong> Messages sent through Google Voice +1 617 942-1250</p>
+            <p><strong>Privacy Protection:</strong> Messages sent through CallBunker number +1 631 641-7727</p>
+            <p><strong>Quick Test:</strong> Send to +1 508 638-8084 to test immediately</p>
             
             <form id="smsForm">
                 <div class="form-group">
