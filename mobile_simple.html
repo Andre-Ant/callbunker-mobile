@@ -519,21 +519,50 @@
                 <span style="color: #4caf50; font-size: 14px;">Trusted contacts bypass screening</span>
             </div>
             
-            <div class="list-item" onclick="showContactDetail('john')">
-                <div class="list-avatar" style="background: #007aff; color: white; font-weight: 600;">J</div>
-                <div class="list-content">
-                    <div class="list-title">John Smith</div>
-                    <div class="list-subtitle">(555) 123-4567</div>
+            <div style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1c1c1e;">Trusted Contacts (2)</div>
+                    <div id="contacts-actions" style="display: flex; gap: 8px; align-items: center;">
+                        <button onclick="selectAllContacts()" style="background: #007aff; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Select All</button>
+                    </div>
+                    <div id="contacts-selection-actions" style="display: none;">
+                        <span id="contacts-selection-count" style="font-size: 12px; color: #8e8e93; margin-right: 8px;">0 selected</span>
+                        <button onclick="cancelContactsSelection()" style="background: #8e8e93; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; margin-right: 4px;">Cancel</button>
+                        <button onclick="removeSelectedContacts()" style="background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Remove Selected</button>
+                    </div>
                 </div>
-                <div style="color: #4caf50;">✅</div>
+                <div id="contacts-multi-select-container" style="text-align: center; padding: 8px 0; border-top: 1px solid #e5e5ea;">
+                    <!-- Multi-select button will be added here dynamically -->
+                </div>
             </div>
-            <div class="list-item" onclick="showContactDetail('mary')">
-                <div class="list-avatar" style="background: #007aff; color: white; font-weight: 600;">M</div>
-                <div class="list-content">
-                    <div class="list-title">Mary Johnson</div>
-                    <div class="list-subtitle">(555) 987-6543</div>
+            
+            <div id="contacts-list">
+                <div class="list-item contact-item" onclick="showContactDetail('john')" data-contact="john" data-phone="(555) 123-4567">
+                    <div class="contacts-selection-checkbox" style="display: none; margin-right: 12px; width: 20px; height: 20px; border: 2px solid #007aff; border-radius: 4px; position: relative;">
+                        <div class="checkmark" style="display: none; position: absolute; top: 2px; left: 6px; width: 6px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);"></div>
+                    </div>
+                    <div class="list-avatar" style="background: #007aff; color: white; font-weight: 600;">J</div>
+                    <div class="list-content">
+                        <div class="list-title">John Smith</div>
+                        <div class="list-subtitle">(555) 123-4567</div>
+                    </div>
+                    <div class="contact-actions" style="display: flex; gap: 4px;">
+                        <button onclick="event.stopPropagation(); removeContact('john')" style="background: #ff3b30; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
+                    </div>
                 </div>
-                <div style="color: #007aff;">🔧</div>
+                <div class="list-item contact-item" onclick="showContactDetail('mary')" data-contact="mary" data-phone="(555) 987-6543">
+                    <div class="contacts-selection-checkbox" style="display: none; margin-right: 12px; width: 20px; height: 20px; border: 2px solid #007aff; border-radius: 4px; position: relative;">
+                        <div class="checkmark" style="display: none; position: absolute; top: 2px; left: 6px; width: 6px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);"></div>
+                    </div>
+                    <div class="list-avatar" style="background: #007aff; color: white; font-weight: 600;">M</div>
+                    <div class="list-content">
+                        <div class="list-title">Mary Johnson</div>
+                        <div class="list-subtitle">(555) 987-6543</div>
+                    </div>
+                    <div class="contact-actions" style="display: flex; gap: 4px;">
+                        <button onclick="event.stopPropagation(); removeContact('mary')" style="background: #ff3b30; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -1830,10 +1859,214 @@
         
 
         
+        // Contacts selection functionality
+        let isContactsSelectionMode = false;
+        let selectedContacts = new Set();
+        
+        function addContactsMultiSelectButton() {
+            const contactsMultiSelectContainer = document.getElementById('contacts-multi-select-container');
+            if (contactsMultiSelectContainer && !document.getElementById('contacts-multi-select-btn')) {
+                const multiSelectBtn = document.createElement('button');
+                multiSelectBtn.id = 'contacts-multi-select-btn';
+                multiSelectBtn.textContent = 'Select Multiple';
+                multiSelectBtn.style.cssText = 'background: #007aff; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 12px;';
+                multiSelectBtn.onclick = function() {
+                    enterContactsSelectionMode();
+                };
+                contactsMultiSelectContainer.appendChild(multiSelectBtn);
+            }
+        }
+        
+        function selectAllContacts() {
+            if (!isContactsSelectionMode) {
+                enterContactsSelectionMode();
+            }
+            
+            const contactItems = document.querySelectorAll('.contact-item');
+            contactItems.forEach(item => {
+                const contactId = item.getAttribute('data-contact');
+                if (contactId && !selectedContacts.has(contactId)) {
+                    selectedContacts.add(contactId);
+                    
+                    const checkbox = item.querySelector('.contacts-selection-checkbox');
+                    const checkmark = checkbox.querySelector('.checkmark');
+                    checkbox.style.backgroundColor = '#007aff';
+                    checkmark.style.display = 'block';
+                    item.style.backgroundColor = '#e3f2fd';
+                }
+            });
+            
+            updateContactsSelectionCount();
+        }
+        
+        function enterContactsSelectionMode() {
+            isContactsSelectionMode = true;
+            selectedContacts.clear();
+            
+            document.querySelectorAll('.contact-item').forEach(item => {
+                item.querySelector('.contacts-selection-checkbox').style.display = 'block';
+                item.querySelector('.contact-actions').style.display = 'none';
+                item.style.backgroundColor = '#f8f9fa';
+                item.style.cursor = 'pointer';
+            });
+            
+            document.getElementById('contacts-actions').style.display = 'none';
+            document.getElementById('contacts-selection-actions').style.display = 'flex';
+            document.getElementById('contacts-multi-select-container').style.display = 'none';
+            
+            updateContactsSelectionCount();
+        }
+        
+        function cancelContactsSelection() {
+            isContactsSelectionMode = false;
+            selectedContacts.clear();
+            
+            document.querySelectorAll('.contact-item').forEach(item => {
+                item.querySelector('.contacts-selection-checkbox').style.display = 'none';
+                item.querySelector('.contact-actions').style.display = 'flex';
+                item.style.backgroundColor = 'transparent';
+                item.style.cursor = 'default';
+                
+                const checkbox = item.querySelector('.contacts-selection-checkbox');
+                const checkmark = checkbox.querySelector('.checkmark');
+                checkbox.style.backgroundColor = 'transparent';
+                checkmark.style.display = 'none';
+            });
+            
+            document.getElementById('contacts-actions').style.display = 'block';
+            document.getElementById('contacts-selection-actions').style.display = 'none';
+            document.getElementById('contacts-multi-select-container').style.display = 'block';
+        }
+        
+        function updateContactsSelectionCount() {
+            const count = selectedContacts.size;
+            const countElement = document.getElementById('contacts-selection-count');
+            if (countElement) {
+                countElement.textContent = `${count} selected`;
+            }
+        }
+        
+        function removeSelectedContacts() {
+            const count = selectedContacts.size;
+            if (count === 0) return;
+            
+            showCustomConfirm(
+                `Remove ${count} Selected Contact${count > 1 ? 's' : ''}?`,
+                `${count} contact${count > 1 ? 's' : ''} will be removed from your trusted list.`,
+                `Remove ${count}`,
+                'Cancel',
+                function() {
+                    selectedContacts.forEach(contactId => {
+                        removeContactFromList(contactId);
+                    });
+                    cancelContactsSelection();
+                    updateTrustedContactsCount();
+                    showCustomAlert('Removed!', `${count} contact${count > 1 ? 's have' : ' has'} been removed from your trusted contacts.`);
+                }
+            );
+        }
+        
+        function removeContactFromList(contactId) {
+            const contactItem = document.querySelector(`[data-contact="${contactId}"]`);
+            if (contactItem) {
+                contactItem.remove();
+            }
+        }
+        
+        function updateTrustedContactsCount() {
+            const contactItems = document.querySelectorAll('.contact-item');
+            const count = contactItems.length;
+            
+            // Update header count
+            const headerElement = document.querySelector('#contacts div[style*="font-weight: 600"]');
+            if (headerElement) {
+                headerElement.textContent = `Trusted Contacts (${count})`;
+            }
+            
+            // Update home screen stat
+            const trustedContactsStat = document.getElementById('trusted-contacts-stat');
+            if (trustedContactsStat) {
+                trustedContactsStat.textContent = count;
+            }
+            
+            // Hide multi-select button if no contacts
+            const multiSelectContainer = document.getElementById('contacts-multi-select-container');
+            const actionsContainer = document.getElementById('contacts-actions');
+            if (count === 0) {
+                if (multiSelectContainer) multiSelectContainer.style.display = 'none';
+                if (actionsContainer) actionsContainer.style.display = 'none';
+                
+                // Show empty state
+                const contactsList = document.getElementById('contacts-list');
+                if (contactsList && contactsList.children.length === 0) {
+                    contactsList.innerHTML = '<div style="text-align: center; padding: 20px; color: #8e8e93; font-size: 14px;">No trusted contacts</div>';
+                }
+            } else {
+                if (multiSelectContainer) multiSelectContainer.style.display = 'block';
+                if (actionsContainer) actionsContainer.style.display = 'flex';
+            }
+        }
+        
+        function removeContact(contactId) {
+            showCustomConfirm(
+                'Remove Contact?',
+                'This contact will no longer bypass call screening.',
+                'Remove',
+                'Cancel',
+                function() {
+                    removeContactFromList(contactId);
+                    updateTrustedContactsCount();
+                    showCustomAlert('Removed', 'Contact has been removed from trusted contacts.');
+                }
+            );
+        }
+        
+        function initializeContactsClickSelection() {
+            document.querySelectorAll('.contact-item').forEach(item => {
+                const newItem = item.cloneNode(true);
+                item.parentNode.replaceChild(newItem, item);
+                
+                newItem.addEventListener('click', function(e) {
+                    if (!isContactsSelectionMode) {
+                        return; // Normal behavior
+                    }
+                    
+                    if (e.target.tagName !== 'BUTTON' && e.target.closest('.contact-actions') === null) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleContactSelection(newItem);
+                    }
+                });
+            });
+        }
+        
+        function toggleContactSelection(item) {
+            const contactId = item.dataset.contact;
+            const checkbox = item.querySelector('.contacts-selection-checkbox');
+            const checkmark = checkbox.querySelector('.checkmark');
+            
+            if (selectedContacts.has(contactId)) {
+                selectedContacts.delete(contactId);
+                checkbox.style.backgroundColor = 'transparent';
+                checkmark.style.display = 'none';
+                item.style.backgroundColor = '#f8f9fa';
+            } else {
+                selectedContacts.add(contactId);
+                checkbox.style.backgroundColor = '#007aff';
+                checkmark.style.display = 'block';
+                item.style.backgroundColor = '#e3f2fd';
+            }
+            
+            updateContactsSelectionCount();
+        }
+        
         // Initialize multi-select when page loads
         document.addEventListener('DOMContentLoaded', function() {
             addMultiSelectButton();
+            addContactsMultiSelectButton();
             initializeClickSelection();
+            initializeContactsClickSelection();
+            updateTrustedContactsCount();
             
             // Enhance the showAnalytics function after DOM is loaded
             if (typeof showAnalytics === 'function') {
