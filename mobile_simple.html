@@ -1337,6 +1337,9 @@
             newContact.className = 'list-item';
             newContact.style.cursor = 'pointer';
             
+            // Generate a unique contact ID based on phone number
+            const contactId = 'contact_' + phoneNumber.replace(/[^0-9]/g, '');
+            
             // Get first letter for avatar
             const firstLetter = phoneNumber.replace(/[^A-Za-z0-9]/g, '')[0] || '?';
             
@@ -1349,6 +1352,11 @@
                 <div style="color: #4caf50;">✅</div>
             `;
             
+            // Add click handler to show contact detail
+            newContact.onclick = function() {
+                showDynamicContactDetail(phoneNumber, contactId);
+            };
+            
             // Insert after the info banner but before existing contacts
             const infoBanner = contactsScreen.querySelector('div[style*="background: #e8f5e8"]');
             if (infoBanner && infoBanner.nextElementSibling) {
@@ -1356,6 +1364,104 @@
             } else {
                 contactsScreen.appendChild(newContact);
             }
+        }
+        
+        function showDynamicContactDetail(phoneNumber, contactId) {
+            // Hide main contacts screen
+            document.getElementById('contacts').classList.remove('active');
+            
+            // Create or update dynamic contact detail screen
+            let detailScreen = document.getElementById(contactId + '-detail');
+            if (!detailScreen) {
+                detailScreen = createContactDetailScreen(phoneNumber, contactId);
+                document.querySelector('.content').appendChild(detailScreen);
+            }
+            
+            // Show the detail screen
+            detailScreen.classList.add('active');
+            
+            // Update header title
+            document.getElementById('screen-title').textContent = phoneNumber;
+        }
+        
+        function createContactDetailScreen(phoneNumber, contactId) {
+            const detailScreen = document.createElement('div');
+            detailScreen.className = 'detail-screen';
+            detailScreen.id = contactId + '-detail';
+            
+            detailScreen.innerHTML = `
+                <div class="detail-header">
+                    <button class="back-arrow" onclick="hideDynamicContactDetail('${contactId}')">‹</button>
+                    <div class="detail-title">${phoneNumber}</div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-label">Phone Number</div>
+                    <div class="detail-value">${phoneNumber}</div>
+                    <div style="font-size: 12px; color: #8e8e93; margin-top: 4px;">Primary contact number</div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-label">Trust Level</div>
+                    <div class="detail-value">Trusted Contact</div>
+                    <div style="font-size: 12px; color: #8e8e93; margin-top: 4px;">Bypasses call screening automatically</div>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="detail-label">Added to Whitelist</div>
+                    <div class="detail-value">${new Date().toLocaleDateString()}</div>
+                </div>
+                
+                <div style="padding: 16px; display: flex; gap: 12px;">
+                    <button onclick="editContactPin('${phoneNumber}')" style="flex: 1; background: #007aff; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 500;">Set Custom PIN</button>
+                    <button onclick="removeFromTrustedContacts('${phoneNumber}', '${contactId}')" style="flex: 1; background: #ff3b30; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 500;">Remove Contact</button>
+                </div>
+            `;
+            
+            return detailScreen;
+        }
+        
+        function hideDynamicContactDetail(contactId) {
+            // Hide the contact detail screen
+            document.getElementById(contactId + '-detail').classList.remove('active');
+            
+            // Show main contacts screen
+            document.getElementById('contacts').classList.add('active');
+            
+            // Update header title
+            document.getElementById('screen-title').textContent = 'Trusted Contacts';
+        }
+        
+        function editContactPin(phoneNumber) {
+            showCustomAlert('Feature Coming Soon', 'Custom PIN assignment for individual contacts will be available in a future update.');
+        }
+        
+        function removeFromTrustedContacts(phoneNumber, contactId) {
+            showCustomConfirm(
+                'Remove from Trusted Contacts?',
+                phoneNumber + ' will no longer bypass call screening.',
+                'Remove',
+                'Cancel',
+                function() {
+                    // Remove the contact from the list
+                    const contactElement = document.querySelector(`[onclick*="${contactId}"]`);
+                    if (contactElement) {
+                        contactElement.remove();
+                    }
+                    
+                    // Remove the detail screen
+                    const detailScreen = document.getElementById(contactId + '-detail');
+                    if (detailScreen) {
+                        detailScreen.remove();
+                    }
+                    
+                    // Return to contacts screen
+                    document.getElementById('contacts').classList.add('active');
+                    document.getElementById('screen-title').textContent = 'Trusted Contacts';
+                    
+                    showCustomAlert('Removed', phoneNumber + ' has been removed from your trusted contacts.');
+                }
+            );
         }
         
         function removeBlocked(phoneNumber) {
