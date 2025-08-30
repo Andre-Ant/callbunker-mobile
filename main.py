@@ -2,7 +2,7 @@ from app import app
 from flask import send_from_directory, render_template_string, request, jsonify
 import os
 from sms_testing import send_protected_sms, get_sms_status
-# from sms_verify import send_callbunker_verification  # Disabled for now
+from voice_messaging import send_voice_message, get_voice_message_status
 
 # Enable CORS headers manually
 @app.after_request
@@ -135,6 +135,12 @@ def send_sms_api():
     if not to_number.startswith('+'):
         to_number = '+1' + to_number.replace('-', '').replace('(', '').replace(')', '').replace(' ', '')
     
+    # Use voice messaging as primary method (works immediately)
+    voice_result = send_voice_message(to_number, message)
+    if voice_result['success']:
+        return jsonify(voice_result), 200
+    
+    # Fallback to SMS (requires A2P registration)
     result = send_protected_sms(to_number, message)
     
     if result['success']:
@@ -145,6 +151,15 @@ def send_sms_api():
 @app.route('/api/sms-status/<message_sid>')
 def sms_status_api(message_sid):
     result = get_sms_status(message_sid)
+    
+    if result['success']:
+        return jsonify(result), 200
+    else:
+        return jsonify(result), 500
+
+@app.route('/api/voice-status/<call_sid>')
+def voice_status_api(call_sid):
+    result = get_voice_message_status(call_sid)
     
     if result['success']:
         return jsonify(result), 200
@@ -175,11 +190,12 @@ def sms_test_interface():
     </head>
     <body>
         <div class="container">
-            <h1>CallBunker Real SMS Testing</h1>
+            <h1>CallBunker Privacy Messaging</h1>
             <p><strong>Privacy Protection:</strong> Messages sent through CallBunker number +1 631 641-7727</p>
-            <div class="alert alert-success">
-                <strong>✅ SMS Ready:</strong> Your phone number is verified! CallBunker SMS should work immediately.<br>
-                <strong>Test below:</strong> Send a message to +1 508 638-8084 to see privacy protection in action!
+            <div class="alert alert-info">
+                <strong>🎤 Voice Messages Available Now!</strong> Your messages are delivered as voice calls with text-to-speech.<br>
+                <strong>📱 SMS Coming Soon:</strong> Traditional text messaging will be available after A2P registration.<br>
+                <strong>Test below:</strong> Send a voice message to +1 508 638-8084 with complete privacy protection!
             </div>
             
             <form id="smsForm">
@@ -191,10 +207,10 @@ def sms_test_interface():
                 
                 <div class="form-group">
                     <label for="message">Message:</label>
-                    <textarea id="message" rows="4" placeholder="Type your test message here..." required></textarea>
+                    <textarea id="message" rows="4" placeholder="Enter your message (will be read aloud via voice call)..." required></textarea>
                 </div>
                 
-                <button type="submit">Send Protected SMS</button>
+                <button type="submit">Send Protected Voice Message</button>
             </form>
             
             <div id="result" class="result" style="display: none;"></div>
@@ -210,7 +226,7 @@ def sms_test_interface():
                 
                 resultDiv.style.display = 'block';
                 resultDiv.className = 'result info';
-                resultDiv.innerHTML = 'Sending SMS through CallBunker privacy protection...';
+                resultDiv.innerHTML = 'Sending voice message through CallBunker privacy protection...';
                 
                 try {
                     const response = await fetch('/api/send-sms', {
@@ -228,14 +244,20 @@ def sms_test_interface():
                     
                     if (result.success) {
                         resultDiv.className = 'result success';
+                        const messageId = result.call_sid || result.message_sid;
+                        const deliveryMethod = result.delivery_method === 'voice_tts' ? 'Voice Call' : 'SMS';
+                        
                         resultDiv.innerHTML = `
-                            <strong>SMS Sent Successfully!</strong><br>
-                            <strong>Message ID:</strong> ${result.message_sid}<br>
+                            <strong>${deliveryMethod} Message Sent Successfully!</strong><br>
+                            <strong>Call ID:</strong> ${messageId}<br>
                             <strong>From:</strong> ${result.from_number} (CallBunker Protected)<br>
                             <strong>To:</strong> ${result.to_number}<br>
-                            <strong>Status:</strong> ${result.status}<br><br>
-                            <em>Status "queued" means your message is being processed for delivery.</em><br>
-                            Check your phone for the message with CallBunker privacy protection!
+                            <strong>Status:</strong> ${result.status}<br>
+                            <strong>Method:</strong> ${deliveryMethod}<br><br>
+                            ${result.delivery_method === 'voice_tts' 
+                                ? '<strong>🎤 Your phone will ring shortly!</strong><br>The message will be read aloud with complete privacy protection.' 
+                                : 'Check your phone for the text message with CallBunker privacy protection!'
+                            }
                         `;
                     } else {
                         resultDiv.className = 'result error';
