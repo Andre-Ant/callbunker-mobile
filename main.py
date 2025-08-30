@@ -12,9 +12,14 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
-# Add main home route
+# Add main home route - redirect to mobile interface by default
 @app.route('/')
 def home():
+    return mobile_demo()
+
+# Add web info route for those who want the landing page
+@app.route('/web')
+def web_info():
     return render_template_string('''
     <!DOCTYPE html>
     <html>
