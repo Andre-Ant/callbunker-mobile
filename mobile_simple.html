@@ -1485,8 +1485,9 @@
                         longPressTimeout = null;
                     }
                     
-                    // Handle selection in selection mode (but only if long press didn't just trigger)
-                    if (isSelectionMode && !longPressTriggered) {
+                    // Handle selection ONLY if already in selection mode AND it was a quick tap (not the initial long press)
+                    // AND the tap was not on a button
+                    if (isSelectionMode && !longPressTriggered && e.target.tagName !== 'BUTTON') {
                         e.preventDefault();
                         e.stopPropagation();
                         toggleItemSelection(item);
@@ -1498,9 +1499,16 @@
                     }, 50);
                 });
                 
-                // Add click handler for selection mode (separate from long press)
+                // Add click handler for selection mode only (not for entering selection mode)
                 item.addEventListener('click', function(e) {
-                    if (isSelectionMode && !e.target.tagName === 'BUTTON') {
+                    // Only allow normal button clicks when NOT in selection mode
+                    if (!isSelectionMode) {
+                        // Allow normal button clicks to work (whitelist/remove)
+                        return;
+                    }
+                    
+                    // In selection mode: only handle clicks on content area, not buttons
+                    if (e.target.tagName !== 'BUTTON' && e.target.closest('.item-actions') === null) {
                         e.preventDefault();
                         e.stopPropagation();
                         toggleItemSelection(item);
