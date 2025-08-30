@@ -574,12 +574,20 @@
             
             <div class="detail-card">
                 <div class="detail-label">PIN Authentication</div>
-                <div class="detail-value">8322</div>
+                <div style="display: flex; align-items: center; margin-top: 8px;">
+                    <input type="text" id="pin-input" value="8322" style="flex: 1; padding: 8px; border: 1px solid #e5e5ea; border-radius: 6px; font-size: 16px; margin-right: 8px;">
+                    <button onclick="updatePin()" style="background: #007aff; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px;">Save</button>
+                </div>
+                <div style="font-size: 12px; color: #8e8e93; margin-top: 4px;">4-digit numeric code for call authentication</div>
             </div>
             
             <div class="detail-card">
                 <div class="detail-label">Verbal Code</div>
-                <div class="detail-value">"Black widow"</div>
+                <div style="display: flex; align-items: center; margin-top: 8px;">
+                    <input type="text" id="verbal-input" value="Black widow" style="flex: 1; padding: 8px; border: 1px solid #e5e5ea; border-radius: 6px; font-size: 16px; margin-right: 8px;">
+                    <button onclick="updateVerbal()" style="background: #007aff; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px;">Save</button>
+                </div>
+                <div style="font-size: 12px; color: #8e8e93; margin-top: 4px;">Spoken phrase for voice authentication</div>
             </div>
             
             <div class="detail-card">
@@ -986,6 +994,44 @@
             
             // Update header title
             document.getElementById('screen-title').textContent = 'Trusted Contacts';
+        }
+        
+        function updatePin() {
+            const newPin = document.getElementById('pin-input').value;
+            if (newPin && /^\d{4}$/.test(newPin)) {
+                alert('PIN updated successfully!\n\nNew PIN: ' + newPin + '\n\nThis will be used for call authentication.');
+                // Update the settings list display
+                updateSettingsDisplay();
+            } else {
+                alert('Please enter a valid 4-digit PIN');
+                document.getElementById('pin-input').focus();
+            }
+        }
+        
+        function updateVerbal() {
+            const newVerbal = document.getElementById('verbal-input').value.trim();
+            if (newVerbal && newVerbal.length >= 3) {
+                alert('Verbal code updated successfully!\n\nNew code: "' + newVerbal + '"\n\nThis will be used for voice authentication.');
+                // Update the settings list display
+                updateSettingsDisplay();
+            } else {
+                alert('Please enter a verbal code with at least 3 characters');
+                document.getElementById('verbal-input').focus();
+            }
+        }
+        
+        function updateSettingsDisplay() {
+            // Update the PIN and verbal code display in the main settings list
+            const pin = document.getElementById('pin-input').value;
+            const verbal = document.getElementById('verbal-input').value;
+            
+            // Find and update the settings subtitle
+            const settingsItems = document.querySelectorAll('#settings .list-subtitle');
+            settingsItems.forEach(item => {
+                if (item.textContent.includes('PIN:')) {
+                    item.textContent = `PIN: ${pin}, Verbal: "${verbal}"`;
+                }
+            });
         }
     </script>
 </body>
