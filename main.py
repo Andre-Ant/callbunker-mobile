@@ -60,7 +60,18 @@ def mobile_demo():
     try:
         with open('mobile_simple.html', 'r') as f:
             content = f.read()
-        return content
+        
+        # Add cache busting and mobile optimization
+        response = app.response_class(
+            response=content,
+            status=200,
+            mimetype='text/html'
+        )
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        return response
     except FileNotFoundError:
         return render_template_string('''
         <h1>Mobile Demo Loading...</h1>
