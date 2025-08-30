@@ -2108,6 +2108,11 @@
             }
         }
         
+        function getTrustedContactsCount() {
+            const contactItems = document.querySelectorAll('.contact-item');
+            return contactItems.length;
+        }
+        
         function updateTrustedContactsCount() {
             const contactItems = document.querySelectorAll('.contact-item');
             const count = contactItems.length;
