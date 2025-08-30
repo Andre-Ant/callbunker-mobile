@@ -1832,17 +1832,19 @@
         document.addEventListener('DOMContentLoaded', function() {
             addMultiSelectButton();
             initializeClickSelection();
+            
+            // Enhance the showAnalytics function after DOM is loaded
+            if (typeof showAnalytics === 'function') {
+                const originalShowAnalytics = showAnalytics;
+                showAnalytics = function() {
+                    originalShowAnalytics();
+                    setTimeout(() => {
+                        addMultiSelectButton();
+                        initializeClickSelection();
+                    }, 100);
+                };
+            }
         });
-        
-        // Re-initialize when navigating to analytics
-        const originalShowAnalytics = showAnalytics;
-        showAnalytics = function() {
-            originalShowAnalytics();
-            setTimeout(() => {
-                addMultiSelectButton();
-                initializeClickSelection();
-            }, 100);
-        };
     </script>
 </body>
 </html>
