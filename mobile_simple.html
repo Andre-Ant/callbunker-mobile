@@ -519,7 +519,7 @@
                 <span style="color: #4caf50; font-size: 14px;">Trusted contacts bypass screening</span>
             </div>
             
-            <div class="list-item">
+            <div class="list-item" onclick="showContactDetail('john')">
                 <div class="list-avatar" style="background: #007aff; color: white; font-weight: 600;">J</div>
                 <div class="list-content">
                     <div class="list-title">John Smith</div>
@@ -527,7 +527,7 @@
                 </div>
                 <div style="color: #4caf50;">✅</div>
             </div>
-            <div class="list-item">
+            <div class="list-item" onclick="showContactDetail('mary')">
                 <div class="list-avatar" style="background: #007aff; color: white; font-weight: 600;">M</div>
                 <div class="list-content">
                     <div class="list-title">Mary Johnson</div>
@@ -720,6 +720,128 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Contact Detail Screens -->
+        <div class="detail-screen" id="john-detail">
+            <div class="detail-header">
+                <button class="back-arrow" onclick="hideContactDetail()">‹</button>
+                <div class="detail-title">John Smith</div>
+            </div>
+            
+            <div class="detail-card">
+                <div style="text-align: center; padding: 16px;">
+                    <div class="list-avatar" style="background: #007aff; color: white; font-weight: 600; font-size: 24px; width: 60px; height: 60px; margin: 0 auto 12px;">J</div>
+                    <div style="font-size: 18px; font-weight: 600; color: #1c1c1e; margin-bottom: 4px;">John Smith</div>
+                    <div style="font-size: 14px; color: #8e8e93;">(555) 123-4567</div>
+                </div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Trust Status</div>
+                <div style="display: flex; align-items: center; margin-top: 8px;">
+                    <span style="color: #4caf50; font-size: 18px; margin-right: 8px;">✅</span>
+                    <span style="color: #4caf50; font-weight: 500;">Trusted Contact</span>
+                </div>
+                <div style="font-size: 12px; color: #8e8e93; margin-top: 4px;">Bypasses call screening automatically</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Contact Settings</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">🛡️</span>
+                        <span class="feature-text">Auto-bypass call screening</span>
+                        <span style="color: #4caf50; margin-left: auto;">ON</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">📞</span>
+                        <span class="feature-text">Direct call forwarding</span>
+                        <span style="color: #4caf50; margin-left: auto;">ON</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">💬</span>
+                        <span class="feature-text">SMS notifications</span>
+                        <span style="color: #4caf50; margin-left: auto;">ON</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Custom PIN</div>
+                <div class="detail-value">Not Set</div>
+                <div style="font-size: 12px; color: #8e8e93; margin-top: 4px;">Optional override PIN for this contact</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Added to Whitelist</div>
+                <div class="detail-value">March 15, 2024</div>
+            </div>
+            
+            <div style="padding: 16px;">
+                <button style="width: 100%; background: #ff3b30; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500;">Remove from Trusted Contacts</button>
+            </div>
+        </div>
+        
+        <div class="detail-screen" id="mary-detail">
+            <div class="detail-header">
+                <button class="back-arrow" onclick="hideContactDetail()">‹</button>
+                <div class="detail-title">Mary Johnson</div>
+            </div>
+            
+            <div class="detail-card">
+                <div style="text-align: center; padding: 16px;">
+                    <div class="list-avatar" style="background: #007aff; color: white; font-weight: 600; font-size: 24px; width: 60px; height: 60px; margin: 0 auto 12px;">M</div>
+                    <div style="font-size: 18px; font-weight: 600; color: #1c1c1e; margin-bottom: 4px;">Mary Johnson</div>
+                    <div style="font-size: 14px; color: #8e8e93;">(555) 987-6543</div>
+                </div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Trust Status</div>
+                <div style="display: flex; align-items: center; margin-top: 8px;">
+                    <span style="color: #ff9500; font-size: 18px; margin-right: 8px;">⚙️</span>
+                    <span style="color: #ff9500; font-weight: 500;">Partial Trust</span>
+                </div>
+                <div style="font-size: 12px; color: #8e8e93; margin-top: 4px;">Requires PIN verification to bypass screening</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Contact Settings</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">🛡️</span>
+                        <span class="feature-text">Auto-bypass call screening</span>
+                        <span style="color: #8e8e93; margin-left: auto;">OFF</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">📞</span>
+                        <span class="feature-text">PIN-based forwarding</span>
+                        <span style="color: #4caf50; margin-left: auto;">ON</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">💬</span>
+                        <span class="feature-text">SMS notifications</span>
+                        <span style="color: #4caf50; margin-left: auto;">ON</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Custom PIN</div>
+                <div class="detail-value">1234</div>
+                <div style="font-size: 12px; color: #8e8e93; margin-top: 4px;">Required for call screening bypass</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Added to Whitelist</div>
+                <div class="detail-value">April 2, 2024</div>
+            </div>
+            
+            <div style="padding: 16px; display: flex; gap: 12px;">
+                <button style="flex: 1; background: #4caf50; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 500;">Grant Full Trust</button>
+                <button style="flex: 1; background: #ff3b30; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 500;">Remove Contact</button>
+            </div>
+        </div>
     </div>
     
     <div class="tab-bar">
@@ -838,6 +960,32 @@
             
             // Update header title
             document.getElementById('screen-title').textContent = 'Settings';
+        }
+        
+        function showContactDetail(contactId) {
+            // Hide main contacts screen
+            document.getElementById('contacts').classList.remove('active');
+            
+            // Show contact detail screen
+            document.getElementById(contactId + '-detail').classList.add('active');
+            
+            // Update header title
+            const titles = {
+                john: 'John Smith',
+                mary: 'Mary Johnson'
+            };
+            document.getElementById('screen-title').textContent = titles[contactId];
+        }
+        
+        function hideContactDetail() {
+            // Hide all contact detail screens
+            document.querySelectorAll('.detail-screen').forEach(s => s.classList.remove('active'));
+            
+            // Show main contacts screen
+            document.getElementById('contacts').classList.add('active');
+            
+            // Update header title
+            document.getElementById('screen-title').textContent = 'Trusted Contacts';
         }
     </script>
 </body>
