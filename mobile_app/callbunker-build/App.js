@@ -16,6 +16,7 @@ import DialerScreen from './src/screens/DialerScreen';
 import CallHistoryScreen from './src/screens/CallHistoryScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import ContactsScreen from './src/screens/ContactsScreen';
+import MessagesScreen from './src/screens/MessagesScreen';
 import CallLogDetailScreen from './src/screens/CallLogDetailScreen';
 
 // Services
@@ -36,6 +37,8 @@ function MainTabs() {
             iconName = 'security';
           } else if (route.name === 'Dialer') {
             iconName = 'phone';
+          } else if (route.name === 'Messages') {
+            iconName = 'message';
           } else if (route.name === 'History') {
             iconName = 'history';
           } else if (route.name === 'Contacts') {
@@ -62,6 +65,11 @@ function MainTabs() {
         name="Dialer" 
         component={DialerScreen}
         options={{title: 'Protected Dialer'}}
+      />
+      <Tab.Screen 
+        name="Messages" 
+        component={MessagesScreen}
+        options={{title: 'Messages'}}
       />
       <Tab.Screen 
         name="History" 

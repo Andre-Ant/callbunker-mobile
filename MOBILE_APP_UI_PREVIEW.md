@@ -84,42 +84,27 @@
 
 ## Bottom Navigation Tabs
 ```
-┌─────┬─────┬─────┬─────┬─────┐
-│ 🏠  │ 📞 │ 📋 │ 👥  │ ⚙️  │
-│Home │Dial │Hist│Cont │Set  │
-└─────┴─────┴─────┴─────┴─────┘
+┌─────┬─────┬─────┬─────┬─────┬─────┐
+│ 🏠  │ 📞 │ 💬  │ 📋 │ 👥  │ ⚙️  │
+│Home │Dial │Msg │Hist│Cont │Set  │
+└─────┴─────┴─────┴─────┴─────┴─────┘
 ```
 
 ## SMS Messaging Experience
 
-Currently, the mobile app does not have a dedicated SMS screen implemented. The messaging functionality is handled through the web interface at `/sms-test`.
-
-### When Users Want to Send SMS:
-The app would show a messaging screen with this experience:
-
+### Messages Screen (Simple Coming Soon)
 ```
 ╭─────────────────────────────────╮
 │          Messages               │
-│                            [✏️] │
 ├─────────────────────────────────┤
 │                                 │
-│  ⚠️  SMS Coming Soon             │
+│            💬                   │
 │                                 │
-│  Your SMS system is fully       │
-│  built and ready. We're         │
-│  waiting for A2P 10DLC          │
-│  registration approval from     │
-│  Twilio for US message          │
-│  delivery.                      │
+│        SMS Coming Soon          │
 │                                 │
-│  Expected timeline: 2-3 weeks   │
-│                                 │
-│  ✅ Privacy protection ready    │
-│  ✅ Messages from CallBunker #   │
-│  ✅ Anonymous sending system    │
-│  ⏳ Awaiting compliance approval │
-│                                 │
-│  [Learn More]  [Check Status]   │
+│   Secure messaging with privacy │
+│   protection will be available  │
+│   shortly.                      │
 │                                 │
 ╰─────────────────────────────────╯
 ```
