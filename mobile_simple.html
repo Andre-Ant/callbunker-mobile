@@ -845,6 +845,56 @@
                     </li>
                 </ul>
             </div>
+            
+            <div class="detail-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div class="detail-label">Blocked Calls (3)</div>
+                    <button onclick="clearAllBlocked()" style="background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Clear All</button>
+                </div>
+                <div id="blocked-calls-list">
+                    <div class="list-item blocked-call-item" style="margin-bottom: 8px; padding: 12px;">
+                        <div class="list-avatar" style="background: #ff3b30; color: white; font-size: 16px;">🚫</div>
+                        <div class="list-content">
+                            <div class="list-title">(555) 999-8888</div>
+                            <div class="list-subtitle">Blocked 2 hours ago • Failed authentication</div>
+                        </div>
+                        <div style="display: flex; gap: 4px;">
+                            <button onclick="whitelistCall('(555) 999-8888')" style="background: #4caf50; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Whitelist</button>
+                            <button onclick="removeBlocked('(555) 999-8888')" style="background: #8e8e93; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
+                        </div>
+                    </div>
+                    
+                    <div class="list-item blocked-call-item" style="margin-bottom: 8px; padding: 12px;">
+                        <div class="list-avatar" style="background: #ff3b30; color: white; font-size: 16px;">🚫</div>
+                        <div class="list-content">
+                            <div class="list-title">(555) 123-0000</div>
+                            <div class="list-subtitle">Blocked 1 day ago • Unknown caller</div>
+                        </div>
+                        <div style="display: flex; gap: 4px;">
+                            <button onclick="whitelistCall('(555) 123-0000')" style="background: #4caf50; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Whitelist</button>
+                            <button onclick="removeBlocked('(555) 123-0000')" style="background: #8e8e93; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
+                        </div>
+                    </div>
+                    
+                    <div class="list-item blocked-call-item" style="margin-bottom: 8px; padding: 12px;">
+                        <div class="list-avatar" style="background: #ff3b30; color: white; font-size: 16px;">🚫</div>
+                        <div class="list-content">
+                            <div class="list-title">(555) 777-4444</div>
+                            <div class="list-subtitle">Blocked 3 days ago • Spam detected</div>
+                        </div>
+                        <div style="display: flex; gap: 4px;">
+                            <button onclick="whitelistCall('(555) 777-4444')" style="background: #4caf50; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Whitelist</button>
+                            <button onclick="removeBlocked('(555) 777-4444')" style="background: #8e8e93; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-top: 12px;">
+                    <div style="font-size: 12px; color: #8e8e93; text-align: center;">
+                        Blocked calls are automatically removed after 30 days
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Contact Detail Screens -->
@@ -1202,6 +1252,68 @@
             
             // Update header title
             document.getElementById('screen-title').textContent = 'CallBunker';
+        }
+        
+        function whitelistCall(phoneNumber) {
+            if (confirm('Add ' + phoneNumber + ' to trusted contacts?\n\nThis number will bypass call screening in future calls.')) {
+                // Remove from blocked list
+                removeBlockedCallFromList(phoneNumber);
+                alert('Number whitelisted successfully!\n\n' + phoneNumber + ' has been added to your trusted contacts and will bypass call screening.');
+            }
+        }
+        
+        function removeBlocked(phoneNumber) {
+            if (confirm('Remove ' + phoneNumber + ' from blocked list?\n\nThis will delete the block record but won\'t add to trusted contacts.')) {
+                removeBlockedCallFromList(phoneNumber);
+                alert('Blocked call removed from list.');
+            }
+        }
+        
+        function removeBlockedCallFromList(phoneNumber) {
+            // Find and remove the blocked call item from the list
+            const blockedItems = document.querySelectorAll('.blocked-call-item');
+            blockedItems.forEach(item => {
+                const titleElement = item.querySelector('.list-title');
+                if (titleElement && titleElement.textContent === phoneNumber) {
+                    item.remove();
+                }
+            });
+            
+            // Update the blocked calls count
+            updateBlockedCallsCount();
+        }
+        
+        function clearAllBlocked() {
+            if (confirm('Clear all blocked calls?\n\nThis will remove all 3 blocked calls from your list. This action cannot be undone.')) {
+                // Remove all blocked call items
+                const blockedList = document.getElementById('blocked-calls-list');
+                blockedList.innerHTML = '<div style="text-align: center; padding: 20px; color: #8e8e93; font-size: 14px;">No blocked calls</div>';
+                
+                // Update the header count
+                const headerLabel = document.querySelector('#analytics-detail .detail-label');
+                if (headerLabel && headerLabel.textContent.includes('Blocked Calls')) {
+                    headerLabel.textContent = 'Blocked Calls (0)';
+                }
+                
+                alert('All blocked calls cleared successfully.');
+            }
+        }
+        
+        function updateBlockedCallsCount() {
+            // Count remaining blocked call items
+            const remainingItems = document.querySelectorAll('.blocked-call-item').length;
+            
+            // Update the header count
+            const headerLabel = document.querySelector('#analytics-detail .detail-label');
+            if (headerLabel && headerLabel.textContent.includes('Blocked Calls')) {
+                headerLabel.textContent = `Blocked Calls (${remainingItems})`;
+            }
+            
+            // If no items left, show empty state
+            if (remainingItems === 0) {
+                const blockedList = document.getElementById('blocked-calls-list');
+                blockedList.innerHTML = '<div style="text-align: center; padding: 20px; color: #8e8e93; font-size: 14px;">No blocked calls</div>';
+            }
         }
     </script>
 </body>
