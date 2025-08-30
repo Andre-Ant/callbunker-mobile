@@ -1403,11 +1403,13 @@
             // Count remaining blocked call items
             const remainingItems = document.querySelectorAll('.blocked-call-item').length;
             
-            // Update the header count
-            const headerLabel = document.querySelector('#analytics-detail .detail-label');
-            if (headerLabel && headerLabel.textContent.includes('Blocked Calls')) {
-                headerLabel.textContent = `Blocked Calls (${remainingItems})`;
-            }
+            // Find all elements with class detail-label and look for the one containing "Blocked Calls"
+            const detailLabels = document.querySelectorAll('.detail-label');
+            detailLabels.forEach(label => {
+                if (label.textContent.includes('Blocked Calls')) {
+                    label.textContent = `Blocked Calls (${remainingItems})`;
+                }
+            });
             
             // If no items left, show empty state
             if (remainingItems === 0) {
