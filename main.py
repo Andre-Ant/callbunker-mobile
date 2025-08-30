@@ -2,6 +2,7 @@ from app import app
 from flask import send_from_directory, render_template_string, request, jsonify
 import os
 from sms_testing import send_protected_sms, get_sms_status
+# from sms_verify import send_callbunker_verification  # Disabled for now
 
 # Enable CORS headers manually
 @app.after_request
@@ -176,9 +177,10 @@ def sms_test_interface():
         <div class="container">
             <h1>CallBunker Real SMS Testing</h1>
             <p><strong>Privacy Protection:</strong> Messages sent through CallBunker number +1 631 641-7727</p>
-            <p><strong>⚠️ Delivery Notice:</strong> SMS delivery requires A2P 10DLC registration for US numbers</p>
-            <p><strong>Quick Fix:</strong> Add your phone number to Twilio verified numbers for immediate testing</p>
-            <p><strong>Production:</strong> Complete A2P 10DLC registration for full delivery (2-3 weeks)</p>
+            <div class="alert alert-success">
+                <strong>✅ SMS Ready:</strong> Your phone number is verified! CallBunker SMS should work immediately.<br>
+                <strong>Test below:</strong> Send a message to +1 508 638-8084 to see privacy protection in action!
+            </div>
             
             <form id="smsForm">
                 <div class="form-group">

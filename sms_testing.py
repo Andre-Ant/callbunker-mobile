@@ -31,10 +31,9 @@ def send_protected_sms(to_number, message_body):
         if not to_number.startswith('+'):
             to_number = f'+1{to_number.replace("-", "").replace("(", "").replace(")", "").replace(" ", "")}'
         
-        # Try different approaches for better delivery
+        # Use the 10DLC number for verified recipients
         delivery_attempts = [
-            {"from_": "+18339424234", "label": "toll-free"},  # Toll-free number
-            {"from_": "+16316417727", "label": "10DLC"},      # 10DLC number
+            {"from_": "+16316417727", "label": "10DLC"},      # Use 10DLC number for verified recipients
         ]
         
         last_error = None
