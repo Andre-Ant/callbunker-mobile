@@ -12,6 +12,31 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
+# Add mobile web testing route first
+@app.route('/mobile')
+def mobile_demo():
+    try:
+        with open('mobile_simple.html', 'r') as f:
+            content = f.read()
+        
+        # Add cache busting and mobile optimization
+        response = app.response_class(
+            response=content,
+            status=200,
+            mimetype='text/html'
+        )
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        return response
+    except FileNotFoundError:
+        return render_template_string('''
+        <h1>Mobile Demo Loading...</h1>
+        <p>Setting up CallBunker mobile demo...</p>
+        <script>window.location.reload();</script>
+        ''')
+
 # Add main home route - redirect to mobile interface by default
 @app.route('/')
 def home():
@@ -59,30 +84,7 @@ def web_info():
     </html>
     ''')
 
-# Add mobile web testing route
-@app.route('/mobile')
-def mobile_demo():
-    try:
-        with open('mobile_simple.html', 'r') as f:
-            content = f.read()
-        
-        # Add cache busting and mobile optimization
-        response = app.response_class(
-            response=content,
-            status=200,
-            mimetype='text/html'
-        )
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
-        
-        return response
-    except FileNotFoundError:
-        return render_template_string('''
-        <h1>Mobile Demo Loading...</h1>
-        <p>Setting up CallBunker mobile demo...</p>
-        <script>window.location.reload();</script>
-        ''')
+
 
 # Add route for Expo mobile app
 @app.route('/expo')
