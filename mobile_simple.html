@@ -907,7 +907,8 @@
                 
                 <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-top: 12px;">
                     <div style="font-size: 12px; color: #8e8e93; text-align: center;">
-                        <span id="selection-hint" style="display: none;">Long press any call to select multiple • </span>
+                        <span id="selection-hint" style="display: none;">Tap calls to select/deselect • </span>
+                        <span id="long-press-hint">Hold any call for 1 second to select multiple • </span>
                         Blocked calls are automatically removed after 30 days
                     </div>
                 </div>
@@ -1434,54 +1435,70 @@
         function initializeLongPress() {
             document.querySelectorAll('.blocked-call-item').forEach(item => {
                 let startTime;
+                let longPressTriggered = false;
                 
                 item.addEventListener('touchstart', function(e) {
                     if (isSelectionMode) return;
                     startTime = Date.now();
+                    longPressTriggered = false;
+                    
                     longPressTimeout = setTimeout(() => {
+                        longPressTriggered = true;
+                        // Add vibration feedback if available
+                        if (navigator.vibrate) {
+                            navigator.vibrate(50);
+                        }
                         enterSelectionMode();
                         toggleItemSelection(item);
-                    }, 500);
+                    }, 600); // Increased to 600ms for more reliable detection
                 });
                 
                 item.addEventListener('touchend', function(e) {
                     clearTimeout(longPressTimeout);
-                    if (isSelectionMode && Date.now() - startTime < 500) {
+                    
+                    // If we're in selection mode and it was a quick tap (not the long press that triggered it)
+                    if (isSelectionMode && !longPressTriggered) {
                         e.preventDefault();
                         e.stopPropagation();
                         toggleItemSelection(item);
                     }
+                    
+                    longPressTriggered = false;
                 });
                 
                 item.addEventListener('touchmove', function(e) {
-                    clearTimeout(longPressTimeout);
+                    // Allow small movements but cancel on larger movements
+                    const touch = e.touches[0];
+                    const startTouch = e.target.getBoundingClientRect();
+                    const moveDistance = Math.abs(touch.clientY - (startTouch.top + startTouch.height/2));
+                    
+                    if (moveDistance > 20) { // Allow 20px of movement
+                        clearTimeout(longPressTimeout);
+                    }
                 });
                 
-                // For desktop testing
+                // For desktop testing - simplified
                 item.addEventListener('mousedown', function(e) {
                     if (isSelectionMode) return;
+                    
                     longPressTimeout = setTimeout(() => {
                         enterSelectionMode();
                         toggleItemSelection(item);
-                    }, 500);
+                    }, 600);
                 });
                 
                 item.addEventListener('mouseup', function(e) {
                     clearTimeout(longPressTimeout);
-                });
-                
-                item.addEventListener('mouseleave', function(e) {
-                    clearTimeout(longPressTimeout);
-                });
-                
-                // Regular click for selection mode
-                item.addEventListener('click', function(e) {
+                    
                     if (isSelectionMode) {
                         e.preventDefault();
                         e.stopPropagation();
                         toggleItemSelection(item);
-                        return false;
                     }
+                });
+                
+                item.addEventListener('mouseleave', function(e) {
+                    clearTimeout(longPressTimeout);
                 });
             });
         }
@@ -1509,6 +1526,7 @@
             document.getElementById('blocked-actions').style.display = 'none';
             document.getElementById('selection-actions').style.display = 'flex';
             document.getElementById('selection-hint').style.display = 'inline';
+            document.getElementById('long-press-hint').style.display = 'none';
             
             updateSelectionCount();
         }
@@ -1533,6 +1551,7 @@
             document.getElementById('blocked-actions').style.display = 'block';
             document.getElementById('selection-actions').style.display = 'none';
             document.getElementById('selection-hint').style.display = 'none';
+            document.getElementById('long-press-hint').style.display = 'inline';
         }
         
         function toggleItemSelection(item) {
