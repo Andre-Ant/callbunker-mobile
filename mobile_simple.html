@@ -429,7 +429,7 @@
                 </div>
                 <div class="stats">
                     <div>
-                        <div class="stat-number" id="blocked-calls-stat" style="color: #ff3b30;">3</div>
+                        <div class="stat-number" id="blocked-calls-stat" style="color: #ff3b30;">6</div>
                         <div class="stat-label">Blocked Calls</div>
                     </div>
                     <div>
@@ -848,7 +848,7 @@
             
             <div class="detail-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div class="detail-label">Blocked Calls (3)</div>
+                    <div class="detail-label">Blocked Calls (6)</div>
                     <div id="blocked-actions">
                         <button onclick="clearAllBlocked()" style="background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Clear All</button>
                     </div>
@@ -902,6 +902,51 @@
                         <div class="item-actions" style="display: flex; gap: 4px;">
                             <button onclick="whitelistCall('(555) 777-4444')" style="background: #4caf50; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Whitelist</button>
                             <button onclick="removeBlocked('(555) 777-4444')" style="background: #8e8e93; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
+                        </div>
+                    </div>
+                    
+                    <div class="list-item blocked-call-item" style="margin-bottom: 8px; padding: 12px;" data-phone="(555) 234-5678">
+                        <div class="selection-checkbox" style="display: none; margin-right: 12px; width: 20px; height: 20px; border: 2px solid #007aff; border-radius: 4px; position: relative;">
+                            <div class="checkmark" style="display: none; position: absolute; top: 2px; left: 6px; width: 6px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);"></div>
+                        </div>
+                        <div class="list-avatar" style="background: #ff3b30; color: white; font-size: 16px;">🚫</div>
+                        <div class="list-content" style="position: relative;">
+                            <div class="list-title">(555) 234-5678</div>
+                            <div class="list-subtitle">Blocked 5 hours ago • Invalid PIN</div>
+                        </div>
+                        <div class="item-actions" style="display: flex; gap: 4px;">
+                            <button onclick="whitelistCall('(555) 234-5678')" style="background: #4caf50; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Whitelist</button>
+                            <button onclick="removeBlocked('(555) 234-5678')" style="background: #8e8e93; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
+                        </div>
+                    </div>
+                    
+                    <div class="list-item blocked-call-item" style="margin-bottom: 8px; padding: 12px;" data-phone="(555) 876-5432">
+                        <div class="selection-checkbox" style="display: none; margin-right: 12px; width: 20px; height: 20px; border: 2px solid #007aff; border-radius: 4px; position: relative;">
+                            <div class="checkmark" style="display: none; position: absolute; top: 2px; left: 6px; width: 6px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);"></div>
+                        </div>
+                        <div class="list-avatar" style="background: #ff3b30; color: white; font-size: 16px;">🚫</div>
+                        <div class="list-content" style="position: relative;">
+                            <div class="list-title">(555) 876-5432</div>
+                            <div class="list-subtitle">Blocked 30 minutes ago • Suspicious activity</div>
+                        </div>
+                        <div class="item-actions" style="display: flex; gap: 4px;">
+                            <button onclick="whitelistCall('(555) 876-5432')" style="background: #4caf50; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Whitelist</button>
+                            <button onclick="removeBlocked('(555) 876-5432')" style="background: #8e8e93; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
+                        </div>
+                    </div>
+                    
+                    <div class="list-item blocked-call-item" style="margin-bottom: 8px; padding: 12px;" data-phone="(555) 321-9876">
+                        <div class="selection-checkbox" style="display: none; margin-right: 12px; width: 20px; height: 20px; border: 2px solid #007aff; border-radius: 4px; position: relative;">
+                            <div class="checkmark" style="display: none; position: absolute; top: 2px; left: 6px; width: 6px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);"></div>
+                        </div>
+                        <div class="list-avatar" style="background: #ff3b30; color: white; font-size: 16px;">🚫</div>
+                        <div class="list-content" style="position: relative;">
+                            <div class="list-title">(555) 321-9876</div>
+                            <div class="list-subtitle">Blocked 15 minutes ago • Too many attempts</div>
+                        </div>
+                        <div class="item-actions" style="display: flex; gap: 4px;">
+                            <button onclick="whitelistCall('(555) 321-9876')" style="background: #4caf50; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Whitelist</button>
+                            <button onclick="removeBlocked('(555) 321-9876')" style="background: #8e8e93; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
                         </div>
                     </div>
                 </div>
