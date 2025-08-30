@@ -1,6 +1,6 @@
 # Overview
 
-CallBunker is a comprehensive communication security platform featuring both backend call screening services and a complete mobile application. The system protects users from unwanted calls through PIN/verbal authentication while providing cost-effective native mobile calling with caller ID spoofing. It integrates with Twilio for voice services and Google Voice for privacy protection, offering a complete solution for secure business and personal communications. The project now features a production-ready mobile app configured for both Android and iOS builds through Expo Application Services, with immediate focus on Android APK generation. Traditional SMS messaging system is complete and awaiting A2P 10DLC registration for delivery.
+CallBunker is a comprehensive communication security platform featuring both backend call screening services and a complete mobile application. The system protects users from unwanted calls through PIN/verbal authentication while providing cost-effective native mobile calling with caller ID spoofing. It integrates with Twilio for voice services and Google Voice for privacy protection, offering a complete solution for secure business and personal communications. The project now features a production-ready mobile app configured for both Android and iOS builds through Expo Application Services, with immediate focus on Android APK generation. Traditional SMS messaging system is complete and awaiting A2P 10DLC registration for delivery. The mobile interface includes advanced UX features like long press multi-select for batch operations and custom modal systems.
 
 # User Preferences
 
@@ -9,7 +9,7 @@ Preferred communication style: Simple, everyday language.
 # System Architecture
 
 ## UI/UX Decisions
-The system features a Bootstrap-themed responsive interface with a dark mode, maintaining a clean, professional appearance. It uses defense-themed language and branding ("Defense Number," "Trusted Callers," etc.) to enhance the user experience. Key UI elements include prominent "CallBunker Dialer" buttons and clear, mobile-optimized guides with large buttons and improved readability for various screen sizes.
+The system features a Bootstrap-themed responsive interface with a dark mode, maintaining a clean, professional appearance. It uses defense-themed language and branding ("Defense Number," "Trusted Callers," etc.) to enhance the user experience. Key UI elements include prominent "CallBunker Dialer" buttons and clear, mobile-optimized guides with large buttons and improved readability for various screen sizes. Advanced UX patterns include long press multi-select (700ms activation with haptic feedback), custom modal confirmations replacing browser prompts, and intuitive gesture-based interactions for mobile users.
 
 ## Technical Implementations
 - **Core Framework**: Flask serves as the web framework for both webhook endpoints and the admin interface.
