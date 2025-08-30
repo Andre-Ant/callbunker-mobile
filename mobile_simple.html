@@ -908,7 +908,7 @@
                 <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-top: 12px;">
                     <div style="font-size: 12px; color: #8e8e93; text-align: center;">
                         <span id="selection-hint" style="display: none;">Tap calls to select/deselect • </span>
-                        <span id="long-press-hint">Hold phone number area for 1+ seconds to select multiple • </span>
+                        <span id="long-press-hint">Press and hold phone number area to select multiple • </span>
                         Blocked calls are automatically removed after 30 days
                     </div>
                 </div>
@@ -1455,13 +1455,13 @@
                     
                     longPressTimeout = setTimeout(() => {
                         longPressTriggered = true;
-                        // Add vibration feedback if available
+                        // Add stronger vibration feedback if available
                         if (navigator.vibrate) {
-                            navigator.vibrate(50);
+                            navigator.vibrate([50, 25, 50]); // Double vibration pattern
                         }
                         enterSelectionMode();
                         toggleItemSelection(item);
-                    }, 1200); // Increased to 1.2 seconds for better UX
+                    }, 700); // Reduced to 700ms for more responsive feel
                 });
                 
                 contentArea.addEventListener('touchmove', function(e) {
@@ -1479,19 +1479,23 @@
                 });
                 
                 contentArea.addEventListener('touchend', function(e) {
-                    if (longPressTimeout) {
+                    // Only cancel timeout if long press hasn't triggered yet
+                    if (longPressTimeout && !longPressTriggered) {
                         clearTimeout(longPressTimeout);
                         longPressTimeout = null;
                     }
                     
-                    // Handle selection in selection mode
+                    // Handle selection in selection mode (but only if long press didn't just trigger)
                     if (isSelectionMode && !longPressTriggered) {
                         e.preventDefault();
                         e.stopPropagation();
                         toggleItemSelection(item);
                     }
                     
-                    longPressTriggered = false;
+                    // Reset flag after a brief delay to allow the long press action to complete
+                    setTimeout(() => {
+                        longPressTriggered = false;
+                    }, 50);
                 });
                 
                 // Add click handler for selection mode (separate from long press)
