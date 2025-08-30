@@ -176,7 +176,9 @@ def sms_test_interface():
         <div class="container">
             <h1>CallBunker Real SMS Testing</h1>
             <p><strong>Privacy Protection:</strong> Messages sent through CallBunker number +1 631 641-7727</p>
-            <p><strong>Quick Test:</strong> Send to +1 508 638-8084 to test immediately</p>
+            <p><strong>⚠️ Delivery Notice:</strong> SMS delivery requires A2P 10DLC registration for US numbers</p>
+            <p><strong>Quick Fix:</strong> Add your phone number to Twilio verified numbers for immediate testing</p>
+            <p><strong>Production:</strong> Complete A2P 10DLC registration for full delivery (2-3 weeks)</p>
             
             <form id="smsForm">
                 <div class="form-group">
