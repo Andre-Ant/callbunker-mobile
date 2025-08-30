@@ -849,40 +849,56 @@
             <div class="detail-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <div class="detail-label">Blocked Calls (3)</div>
-                    <button onclick="clearAllBlocked()" style="background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Clear All</button>
+                    <div id="blocked-actions">
+                        <button onclick="clearAllBlocked()" style="background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Clear All</button>
+                    </div>
+                    <div id="selection-actions" style="display: none;">
+                        <span id="selection-count" style="font-size: 12px; color: #8e8e93; margin-right: 8px;">0 selected</span>
+                        <button onclick="cancelSelection()" style="background: #8e8e93; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; margin-right: 4px;">Cancel</button>
+                        <button onclick="removeSelected()" style="background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Remove Selected</button>
+                    </div>
                 </div>
                 <div id="blocked-calls-list">
-                    <div class="list-item blocked-call-item" style="margin-bottom: 8px; padding: 12px;">
+                    <div class="list-item blocked-call-item" style="margin-bottom: 8px; padding: 12px;" data-phone="(555) 999-8888">
+                        <div class="selection-checkbox" style="display: none; margin-right: 12px; width: 20px; height: 20px; border: 2px solid #007aff; border-radius: 4px; position: relative;">
+                            <div class="checkmark" style="display: none; position: absolute; top: 2px; left: 6px; width: 6px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);"></div>
+                        </div>
                         <div class="list-avatar" style="background: #ff3b30; color: white; font-size: 16px;">🚫</div>
                         <div class="list-content">
                             <div class="list-title">(555) 999-8888</div>
                             <div class="list-subtitle">Blocked 2 hours ago • Failed authentication</div>
                         </div>
-                        <div style="display: flex; gap: 4px;">
+                        <div class="item-actions" style="display: flex; gap: 4px;">
                             <button onclick="whitelistCall('(555) 999-8888')" style="background: #4caf50; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Whitelist</button>
                             <button onclick="removeBlocked('(555) 999-8888')" style="background: #8e8e93; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
                         </div>
                     </div>
                     
-                    <div class="list-item blocked-call-item" style="margin-bottom: 8px; padding: 12px;">
+                    <div class="list-item blocked-call-item" style="margin-bottom: 8px; padding: 12px;" data-phone="(555) 123-0000">
+                        <div class="selection-checkbox" style="display: none; margin-right: 12px; width: 20px; height: 20px; border: 2px solid #007aff; border-radius: 4px; position: relative;">
+                            <div class="checkmark" style="display: none; position: absolute; top: 2px; left: 6px; width: 6px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);"></div>
+                        </div>
                         <div class="list-avatar" style="background: #ff3b30; color: white; font-size: 16px;">🚫</div>
                         <div class="list-content">
                             <div class="list-title">(555) 123-0000</div>
                             <div class="list-subtitle">Blocked 1 day ago • Unknown caller</div>
                         </div>
-                        <div style="display: flex; gap: 4px;">
+                        <div class="item-actions" style="display: flex; gap: 4px;">
                             <button onclick="whitelistCall('(555) 123-0000')" style="background: #4caf50; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Whitelist</button>
                             <button onclick="removeBlocked('(555) 123-0000')" style="background: #8e8e93; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
                         </div>
                     </div>
                     
-                    <div class="list-item blocked-call-item" style="margin-bottom: 8px; padding: 12px;">
+                    <div class="list-item blocked-call-item" style="margin-bottom: 8px; padding: 12px;" data-phone="(555) 777-4444">
+                        <div class="selection-checkbox" style="display: none; margin-right: 12px; width: 20px; height: 20px; border: 2px solid #007aff; border-radius: 4px; position: relative;">
+                            <div class="checkmark" style="display: none; position: absolute; top: 2px; left: 6px; width: 6px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);"></div>
+                        </div>
                         <div class="list-avatar" style="background: #ff3b30; color: white; font-size: 16px;">🚫</div>
                         <div class="list-content">
                             <div class="list-title">(555) 777-4444</div>
                             <div class="list-subtitle">Blocked 3 days ago • Spam detected</div>
                         </div>
-                        <div style="display: flex; gap: 4px;">
+                        <div class="item-actions" style="display: flex; gap: 4px;">
                             <button onclick="whitelistCall('(555) 777-4444')" style="background: #4caf50; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Whitelist</button>
                             <button onclick="removeBlocked('(555) 777-4444')" style="background: #8e8e93; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
                         </div>
@@ -891,6 +907,7 @@
                 
                 <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-top: 12px;">
                     <div style="font-size: 12px; color: #8e8e93; text-align: center;">
+                        <span id="selection-hint" style="display: none;">Long press any call to select multiple • </span>
                         Blocked calls are automatically removed after 30 days
                     </div>
                 </div>
@@ -1407,6 +1424,165 @@
                 hideModal();
             }
         }
+        
+        // Multi-select functionality for blocked calls
+        let isSelectionMode = false;
+        let selectedCalls = new Set();
+        let longPressTimeout;
+        
+        // Initialize long press handlers for blocked call items
+        function initializeLongPress() {
+            document.querySelectorAll('.blocked-call-item').forEach(item => {
+                let startTime;
+                
+                item.addEventListener('touchstart', function(e) {
+                    if (isSelectionMode) return;
+                    startTime = Date.now();
+                    longPressTimeout = setTimeout(() => {
+                        enterSelectionMode();
+                        toggleItemSelection(item);
+                    }, 500);
+                });
+                
+                item.addEventListener('touchend', function(e) {
+                    clearTimeout(longPressTimeout);
+                    if (isSelectionMode && Date.now() - startTime < 500) {
+                        toggleItemSelection(item);
+                    }
+                });
+                
+                item.addEventListener('touchmove', function(e) {
+                    clearTimeout(longPressTimeout);
+                });
+                
+                // For desktop testing
+                item.addEventListener('mousedown', function(e) {
+                    if (isSelectionMode) return;
+                    longPressTimeout = setTimeout(() => {
+                        enterSelectionMode();
+                        toggleItemSelection(item);
+                    }, 500);
+                });
+                
+                item.addEventListener('mouseup', function(e) {
+                    clearTimeout(longPressTimeout);
+                });
+                
+                item.addEventListener('mouseleave', function(e) {
+                    clearTimeout(longPressTimeout);
+                });
+                
+                // Regular click for selection mode
+                item.addEventListener('click', function(e) {
+                    if (isSelectionMode) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleItemSelection(item);
+                    }
+                });
+            });
+        }
+        
+        function enterSelectionMode() {
+            isSelectionMode = true;
+            selectedCalls.clear();
+            
+            // Show checkboxes and hide individual action buttons
+            document.querySelectorAll('.blocked-call-item').forEach(item => {
+                item.querySelector('.selection-checkbox').style.display = 'block';
+                item.querySelector('.item-actions').style.display = 'none';
+                item.style.backgroundColor = '#f8f9fa';
+            });
+            
+            // Switch header actions
+            document.getElementById('blocked-actions').style.display = 'none';
+            document.getElementById('selection-actions').style.display = 'flex';
+            document.getElementById('selection-hint').style.display = 'inline';
+            
+            updateSelectionCount();
+        }
+        
+        function exitSelectionMode() {
+            isSelectionMode = false;
+            selectedCalls.clear();
+            
+            // Hide checkboxes and show individual action buttons
+            document.querySelectorAll('.blocked-call-item').forEach(item => {
+                item.querySelector('.selection-checkbox').style.display = 'none';
+                item.querySelector('.item-actions').style.display = 'flex';
+                item.style.backgroundColor = 'transparent';
+                
+                const checkbox = item.querySelector('.selection-checkbox');
+                const checkmark = checkbox.querySelector('.checkmark');
+                checkbox.style.backgroundColor = 'transparent';
+                checkmark.style.display = 'none';
+            });
+            
+            // Switch header actions back
+            document.getElementById('blocked-actions').style.display = 'block';
+            document.getElementById('selection-actions').style.display = 'none';
+            document.getElementById('selection-hint').style.display = 'none';
+        }
+        
+        function toggleItemSelection(item) {
+            const phoneNumber = item.dataset.phone;
+            const checkbox = item.querySelector('.selection-checkbox');
+            const checkmark = checkbox.querySelector('.checkmark');
+            
+            if (selectedCalls.has(phoneNumber)) {
+                selectedCalls.delete(phoneNumber);
+                checkbox.style.backgroundColor = 'transparent';
+                checkmark.style.display = 'none';
+            } else {
+                selectedCalls.add(phoneNumber);
+                checkbox.style.backgroundColor = '#007aff';
+                checkmark.style.display = 'block';
+            }
+            
+            updateSelectionCount();
+        }
+        
+        function updateSelectionCount() {
+            const count = selectedCalls.size;
+            document.getElementById('selection-count').textContent = `${count} selected`;
+            document.querySelector('#selection-actions button[onclick="removeSelected()"]').disabled = count === 0;
+        }
+        
+        function cancelSelection() {
+            exitSelectionMode();
+        }
+        
+        function removeSelected() {
+            const count = selectedCalls.size;
+            if (count === 0) return;
+            
+            showCustomConfirm(
+                `Remove ${count} Selected Call${count > 1 ? 's' : ''}?`,
+                `This will remove ${count} blocked call${count > 1 ? 's' : ''} from your list.`,
+                `Remove ${count}`,
+                'Cancel',
+                function() {
+                    selectedCalls.forEach(phoneNumber => {
+                        removeBlockedCallFromList(phoneNumber);
+                    });
+                    exitSelectionMode();
+                    updateBlockedCallsCount();
+                    showCustomAlert('Removed', `${count} blocked call${count > 1 ? 's have' : ' has'} been removed.`);
+                }
+            );
+        }
+        
+        // Initialize long press when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeLongPress();
+        });
+        
+        // Re-initialize when navigating to analytics
+        const originalShowAnalytics = showAnalytics;
+        showAnalytics = function() {
+            originalShowAnalytics();
+            setTimeout(initializeLongPress, 100);
+        };
     </script>
 </body>
 </html>
