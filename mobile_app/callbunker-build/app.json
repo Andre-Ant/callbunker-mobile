@@ -16,7 +16,12 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.callbunker.mobile"
+      "bundleIdentifier": "com.callbunker.mobile",
+      "infoPlist": {
+        "NSContactsUsageDescription": "CallBunker needs access to contacts for secure calling",
+        "NSMicrophoneUsageDescription": "CallBunker needs microphone access for phone calls",
+        "NSTelephonyUsageDescription": "CallBunker provides secure calling services"
+      }
     },
     "android": {
       "adaptiveIcon": {

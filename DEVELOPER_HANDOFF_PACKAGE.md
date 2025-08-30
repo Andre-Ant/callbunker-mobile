@@ -18,12 +18,23 @@ Your CallBunker mobile application is completely built and configured for APK ge
 
 ### 3. Developer Instructions
 
-**Quick Build Process:**
+**Android APK Build:**
 ```bash
 cd callbunker-build
 npm install -g @expo/cli eas-cli
 npx eas login    # Use your Expo account
 npx eas build --platform android --profile preview
+```
+
+**iOS IPA Build:**
+```bash
+npx eas build --platform ios --profile preview
+# Requires Apple Developer Account
+```
+
+**Both Platforms:**
+```bash
+npx eas build --platform all --profile preview
 ```
 
 **Alternative Local Build:**
