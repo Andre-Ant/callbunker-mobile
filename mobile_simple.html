@@ -1372,17 +1372,11 @@
         }
         
         function removeBlockedCallFromList(phoneNumber) {
-            // Find and remove the blocked call item from the list
-            const blockedItems = document.querySelectorAll('.blocked-call-item');
-            blockedItems.forEach(item => {
-                const titleElement = item.querySelector('.list-title');
-                if (titleElement && titleElement.textContent === phoneNumber) {
-                    item.remove();
-                }
-            });
-            
-            // Update the blocked calls count
-            updateBlockedCallsCount();
+            // Find and remove the blocked call item using data-phone attribute
+            const item = document.querySelector(`[data-phone="${phoneNumber}"]`);
+            if (item) {
+                item.remove();
+            }
         }
         
         function clearAllBlocked() {
