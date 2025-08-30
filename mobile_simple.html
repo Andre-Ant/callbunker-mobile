@@ -762,8 +762,9 @@
         };
         
         function switchTab(tab) {
-            // Hide all screens
+            // Hide all screens and detail screens
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.detail-screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             
             // Show selected screen
