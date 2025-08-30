@@ -458,7 +458,7 @@
             <div class="dialer-container">
                 <div class="dialer-display">
                     <div class="phone-number" id="phone-display">Enter number</div>
-                    <div class="privacy-badge">🛡️ Privacy Protected</div>
+                    <div class="privacy-badge">🛡️ Privacy Protected • 🔊 Touch Tones</div>
                 </div>
                 
                 <div class="dialpad">
@@ -1167,6 +1167,15 @@
 
     <script>
         let phoneNumber = '';
+        let audioContext;
+        
+        // DTMF frequencies for each button
+        const dtmfTones = {
+            '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
+            '4': [770, 1209], '5': [770, 1336], '6': [770, 1477],
+            '7': [852, 1209], '8': [852, 1336], '9': [852, 1477],
+            '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
+        };
         
         const titles = {
             home: 'CallBunker',
@@ -1176,6 +1185,47 @@
             contacts: 'Trusted Contacts',
             settings: 'Settings'
         };
+        
+        // Initialize audio context
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        // Play DTMF tone for dialer button
+        function playDTMFTone(digit) {
+            initAudio();
+            
+            if (!dtmfTones[digit]) return;
+            
+            const [lowFreq, highFreq] = dtmfTones[digit];
+            const duration = 0.15; // 150ms tone duration
+            
+            // Create oscillators for the two frequencies
+            const oscillator1 = audioContext.createOscillator();
+            const oscillator2 = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            // Set frequencies
+            oscillator1.frequency.setValueAtTime(lowFreq, audioContext.currentTime);
+            oscillator2.frequency.setValueAtTime(highFreq, audioContext.currentTime);
+            
+            // Set gain (volume)
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            // Connect the audio graph
+            oscillator1.connect(gainNode);
+            oscillator2.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Start and stop the tone
+            oscillator1.start(audioContext.currentTime);
+            oscillator2.start(audioContext.currentTime);
+            oscillator1.stop(audioContext.currentTime + duration);
+            oscillator2.stop(audioContext.currentTime + duration);
+        }
         
         function switchTab(tab) {
             // Prevent any browser navigation
@@ -1198,13 +1248,33 @@
         }
         
         function addDigit(digit) {
+            // Play DTMF tone
+            playDTMFTone(digit);
+            
             phoneNumber += digit;
             updateDisplay();
         }
         
         function backspace() {
-            phoneNumber = phoneNumber.slice(0, -1);
-            updateDisplay();
+            if (phoneNumber.length > 0) {
+                // Play a subtle click sound for backspace
+                initAudio();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+                
+                phoneNumber = phoneNumber.slice(0, -1);
+                updateDisplay();
+            }
         }
         
         function updateDisplay() {
