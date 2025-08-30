@@ -1681,24 +1681,6 @@
                 });
             });
         }
-                
-                // Add click handler for selection mode only (not for entering selection mode)
-                item.addEventListener('click', function(e) {
-                    // Only allow normal button clicks when NOT in selection mode
-                    if (!isSelectionMode) {
-                        // Allow normal button clicks to work (whitelist/remove)
-                        return;
-                    }
-                    
-                    // In selection mode: only handle clicks on content area, not buttons
-                    if (e.target.tagName !== 'BUTTON' && e.target.closest('.item-actions') === null) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleItemSelection(item);
-                    }
-                });
-            });
-        }
         
         function enterSelectionMode() {
             isSelectionMode = true;
