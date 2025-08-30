@@ -429,12 +429,12 @@
                 </div>
                 <div class="stats">
                     <div>
-                        <div class="stat-number">5</div>
-                        <div class="stat-label">Protected Calls</div>
+                        <div class="stat-number" id="blocked-calls-stat">3</div>
+                        <div class="stat-label">Blocked Calls</div>
                     </div>
                     <div>
-                        <div class="stat-number">12</div>
-                        <div class="stat-label">Total Calls</div>
+                        <div class="stat-number" id="trusted-contacts-stat">2</div>
+                        <div class="stat-label">Trusted Contacts</div>
                     </div>
                 </div>
             </div>
@@ -1364,6 +1364,9 @@
             } else {
                 contactsScreen.appendChild(newContact);
             }
+            
+            // Update trusted contacts count
+            updateTrustedContactsCount();
         }
         
         function showDynamicContactDetail(phoneNumber, contactId) {
@@ -1455,6 +1458,9 @@
                         detailScreen.remove();
                     }
                     
+                    // Update trusted contacts count
+                    updateTrustedContactsCount();
+                    
                     // Return to contacts screen
                     document.getElementById('contacts').classList.add('active');
                     document.getElementById('screen-title').textContent = 'Trusted Contacts';
@@ -1510,7 +1516,7 @@
             // Count remaining blocked call items
             const remainingItems = document.querySelectorAll('.blocked-call-item').length;
             
-            // Find all elements with class detail-label and look for the one containing "Blocked Calls"
+            // Update the analytics detail header
             const detailLabels = document.querySelectorAll('.detail-label');
             detailLabels.forEach(label => {
                 if (label.textContent.includes('Blocked Calls')) {
@@ -1518,10 +1524,31 @@
                 }
             });
             
+            // Update the home screen stat
+            const homeStatElement = document.getElementById('blocked-calls-stat');
+            if (homeStatElement) {
+                homeStatElement.textContent = remainingItems;
+            }
+            
             // If no items left, show empty state
             if (remainingItems === 0) {
                 const blockedList = document.getElementById('blocked-calls-list');
-                blockedList.innerHTML = '<div style="text-align: center; padding: 20px; color: #8e8e93; font-size: 14px;">No blocked calls</div>';
+                if (blockedList) {
+                    blockedList.innerHTML = '<div style="text-align: center; padding: 20px; color: #8e8e93; font-size: 14px;">No blocked calls</div>';
+                }
+            }
+        }
+        
+        function updateTrustedContactsCount() {
+            // Count trusted contacts (existing plus dynamically added ones)
+            const existingContacts = 2; // John and Mary
+            const dynamicContacts = document.querySelectorAll('[onclick*="showDynamicContactDetail"]').length;
+            const totalContacts = existingContacts + dynamicContacts;
+            
+            // Update the home screen stat
+            const trustedStatElement = document.getElementById('trusted-contacts-stat');
+            if (trustedStatElement) {
+                trustedStatElement.textContent = totalContacts;
             }
         }
         
