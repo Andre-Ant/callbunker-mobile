@@ -1644,6 +1644,7 @@
         let selectedCalls = new Set();
         let longPressTimeout;
         let longPressStartX, longPressStartY;
+        let isScrolling = false;
         
         // Initialize long press handlers for blocked call items
         function initializeLongPress() {
@@ -1660,21 +1661,27 @@
                     // Don't trigger on buttons
                     if (e.target.tagName === 'BUTTON') return;
                     
+                    // Reset states
                     longPressTriggered = false;
+                    isScrolling = false;
                     const touch = e.touches[0];
                     longPressStartX = touch.clientX;
                     longPressStartY = touch.clientY;
                     
+                    // Longer delay and require very stationary finger
                     longPressTimeout = setTimeout(() => {
-                        longPressTriggered = true;
-                        // Add stronger vibration feedback if available
-                        if (navigator.vibrate) {
-                            navigator.vibrate([50, 25, 50]); // Double vibration pattern
+                        // Only trigger if not scrolling
+                        if (!isScrolling && !longPressTriggered) {
+                            longPressTriggered = true;
+                            // Strong distinctive vibration
+                            if (navigator.vibrate) {
+                                navigator.vibrate([100, 50, 100]); // Stronger feedback
+                            }
+                            enterSelectionMode();
+                            toggleItemSelection(item);
                         }
-                        enterSelectionMode();
-                        toggleItemSelection(item);
-                    }, 700); // Reduced to 700ms for more responsive feel
-                });
+                    }, 1200); // Increased to 1.2 seconds for very intentional activation
+                }, { passive: false });
                 
                 contentArea.addEventListener('touchmove', function(e) {
                     if (!longPressTimeout) return;
@@ -1683,33 +1690,34 @@
                     const moveX = Math.abs(touch.clientX - longPressStartX);
                     const moveY = Math.abs(touch.clientY - longPressStartY);
                     
-                    // Cancel if moved more than 15px in any direction
-                    if (moveX > 15 || moveY > 15) {
+                    // Much stricter movement detection - cancel if moved more than 8px
+                    if (moveX > 8 || moveY > 8) {
+                        isScrolling = true;
                         clearTimeout(longPressTimeout);
                         longPressTimeout = null;
                     }
-                });
+                }, { passive: false });
                 
                 contentArea.addEventListener('touchend', function(e) {
-                    // Only cancel timeout if long press hasn't triggered yet
-                    if (longPressTimeout && !longPressTriggered) {
+                    // Always clear timeout on touch end
+                    if (longPressTimeout) {
                         clearTimeout(longPressTimeout);
                         longPressTimeout = null;
                     }
                     
-                    // Handle selection ONLY if already in selection mode AND it was a quick tap (not the initial long press)
-                    // AND the tap was not on a button
-                    if (isSelectionMode && !longPressTriggered && e.target.tagName !== 'BUTTON') {
+                    // Handle selection ONLY if already in selection mode AND it was a deliberate tap
+                    if (isSelectionMode && !longPressTriggered && !isScrolling && e.target.tagName !== 'BUTTON') {
                         e.preventDefault();
                         e.stopPropagation();
                         toggleItemSelection(item);
                     }
                     
-                    // Reset flag after a brief delay to allow the long press action to complete
+                    // Reset states after longer delay
                     setTimeout(() => {
                         longPressTriggered = false;
-                    }, 50);
-                });
+                        isScrolling = false;
+                    }, 150);
+                }, { passive: false });
                 
                 // Add click handler for selection mode only (not for entering selection mode)
                 item.addEventListener('click', function(e) {
