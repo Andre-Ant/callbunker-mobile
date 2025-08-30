@@ -1402,51 +1402,14 @@
                     
                     // Add to trusted contacts list
                     addToTrustedContacts(phoneNumber);
+                    updateTrustedContactsCount();
                     
                     showCustomAlert('Success!', phoneNumber + ' has been added to your trusted contacts.');
                 }
             );
         }
         
-        function addToTrustedContacts(phoneNumber) {
-            const contactsScreen = document.getElementById('contacts');
-            
-            // Create new contact item
-            const newContact = document.createElement('div');
-            newContact.className = 'list-item';
-            newContact.style.cursor = 'pointer';
-            
-            // Generate a unique contact ID based on phone number
-            const contactId = 'contact_' + phoneNumber.replace(/[^0-9]/g, '');
-            
-            // Get first letter for avatar
-            const firstLetter = phoneNumber.replace(/[^A-Za-z0-9]/g, '')[0] || '?';
-            
-            newContact.innerHTML = `
-                <div class="list-avatar" style="background: #007aff; color: white; font-weight: 600;">${firstLetter.toUpperCase()}</div>
-                <div class="list-content">
-                    <div class="list-title">${phoneNumber}</div>
-                    <div class="list-subtitle">Added from blocked list</div>
-                </div>
-                <div style="color: #4caf50;">✅</div>
-            `;
-            
-            // Add click handler to show contact detail
-            newContact.onclick = function() {
-                showDynamicContactDetail(phoneNumber, contactId);
-            };
-            
-            // Insert after the info banner but before existing contacts
-            const infoBanner = contactsScreen.querySelector('div[style*="background: #e8f5e8"]');
-            if (infoBanner && infoBanner.nextElementSibling) {
-                contactsScreen.insertBefore(newContact, infoBanner.nextElementSibling);
-            } else {
-                contactsScreen.appendChild(newContact);
-            }
-            
-            // Update trusted contacts count
-            updateTrustedContactsCount();
-        }
+
         
         function showDynamicContactDetail(phoneNumber, contactId) {
             // Hide main contacts screen
@@ -1852,11 +1815,58 @@
                     });
                     exitSelectionMode();
                     updateBlockedCallsCount();
+                    updateTrustedContactsCount();
                     showCustomAlert('Success!', `${count} contact${count > 1 ? 's have' : ' has'} been added to your trusted contacts.`);
                 }
             );
         }
         
+        function addToTrustedContacts(phoneNumber) {
+            const contactsList = document.getElementById('contacts-list');
+            if (!contactsList) return;
+            
+            // Check if contact already exists
+            const existingContact = document.querySelector(`[data-phone="${phoneNumber}"]`);
+            if (existingContact) return;
+            
+            // Generate a unique contact ID based on phone number
+            const contactId = 'contact_' + phoneNumber.replace(/\D/g, '');
+            
+            // Create new contact element
+            const contactElement = document.createElement('div');
+            contactElement.className = 'list-item contact-item';
+            contactElement.setAttribute('data-contact', contactId);
+            contactElement.setAttribute('data-phone', phoneNumber);
+            contactElement.onclick = function() { 
+                if (!isContactsSelectionMode) {
+                    showContactDetail(contactId); 
+                }
+            };
+            
+            // Get initials from phone number (use last 2 digits)
+            const digits = phoneNumber.replace(/\D/g, '');
+            const initials = digits.slice(-2);
+            
+            contactElement.innerHTML = `
+                <div class="contacts-selection-checkbox" style="display: none; margin-right: 12px; width: 20px; height: 20px; border: 2px solid #007aff; border-radius: 4px; position: relative;">
+                    <div class="checkmark" style="display: none; position: absolute; top: 2px; left: 6px; width: 6px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);"></div>
+                </div>
+                <div class="list-avatar" style="background: #007aff; color: white; font-weight: 600;">${initials}</div>
+                <div class="list-content">
+                    <div class="list-title">${phoneNumber}</div>
+                    <div class="list-subtitle">Added from blocked calls</div>
+                </div>
+                <div class="contact-actions" style="display: flex; gap: 4px;">
+                    <button onclick="event.stopPropagation(); removeContact('${contactId}')" style="background: #ff3b30; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
+                </div>
+            `;
+            
+            // Add to contacts list
+            contactsList.appendChild(contactElement);
+            
+            // Re-initialize click selection for the new contact
+            initializeContactsClickSelection();
+        }
 
         
         // Contacts selection functionality
