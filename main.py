@@ -58,7 +58,7 @@ def home():
 @app.route('/mobile')
 def mobile_demo():
     try:
-        with open('mobile_app/web/index.html', 'r') as f:
+        with open('mobile_preview.html', 'r') as f:
             content = f.read()
         return content
     except FileNotFoundError:
