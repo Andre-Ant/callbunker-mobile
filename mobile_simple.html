@@ -252,6 +252,11 @@
             margin-bottom: 8px;
             display: flex;
             align-items: center;
+            cursor: pointer;
+        }
+        
+        .list-item:active {
+            transform: scale(0.98);
         }
         
         .list-avatar {
@@ -286,6 +291,90 @@
             font-size: 14px;
             color: #4caf50;
             font-weight: 500;
+        }
+        
+        .list-arrow {
+            color: #c7c7cc;
+            font-size: 16px;
+        }
+        
+        /* Detail Views */
+        .detail-screen {
+            display: none;
+            padding: 16px;
+        }
+        
+        .detail-screen.active {
+            display: block;
+        }
+        
+        .detail-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .back-arrow {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #007aff;
+            cursor: pointer;
+            margin-right: 12px;
+        }
+        
+        .detail-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1c1c1e;
+        }
+        
+        .detail-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            color: #8e8e93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .detail-value {
+            font-size: 16px;
+            color: #1c1c1e;
+            font-weight: 500;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .feature-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f2f2f7;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-icon {
+            margin-right: 8px;
+            color: #4caf50;
+        }
+        
+        .feature-text {
+            color: #1c1c1e;
+            font-size: 14px;
         }
         
         /* Tab Bar */
@@ -450,25 +539,204 @@
         
         <!-- Settings Screen -->
         <div class="screen" id="settings">
-            <div class="list-item">
+            <div class="list-item" onclick="showDetail('security')">
                 <div class="list-avatar">🛡️</div>
                 <div class="list-content">
                     <div class="list-title">Security Settings</div>
                     <div class="list-subtitle">PIN: 8322, Verbal: "Black widow"</div>
                 </div>
+                <div class="list-arrow">›</div>
             </div>
-            <div class="list-item">
+            <div class="list-item" onclick="showDetail('privacy')">
                 <div class="list-avatar">📞</div>
                 <div class="list-content">
                     <div class="list-title">Privacy Protection</div>
                     <div class="list-subtitle">Google Voice Integration</div>
                 </div>
+                <div class="list-arrow">›</div>
             </div>
-            <div class="list-item">
+            <div class="list-item" onclick="showDetail('about')">
                 <div class="list-avatar">ℹ️</div>
                 <div class="list-content">
                     <div class="list-title">About CallBunker</div>
                     <div class="list-subtitle">Version 1.0.0</div>
+                </div>
+                <div class="list-arrow">›</div>
+            </div>
+        </div>
+        
+        <!-- Security Detail Screen -->
+        <div class="detail-screen" id="security-detail">
+            <div class="detail-header">
+                <button class="back-arrow" onclick="hideDetail()">‹</button>
+                <div class="detail-title">Security Settings</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">PIN Authentication</div>
+                <div class="detail-value">8322</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Verbal Code</div>
+                <div class="detail-value">"Black widow"</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Authentication Methods</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">🔢</span>
+                        <span class="feature-text">PIN Code Entry</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">🗣️</span>
+                        <span class="feature-text">Verbal Recognition</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">⚡</span>
+                        <span class="feature-text">Dual Verification Support</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Security Features</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">🛡️</span>
+                        <span class="feature-text">Call Screening Protection</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">📱</span>
+                        <span class="feature-text">Rate Limiting & Blocking</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✅</span>
+                        <span class="feature-text">Smart Trusted Caller Whitelist</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Privacy Detail Screen -->
+        <div class="detail-screen" id="privacy-detail">
+            <div class="detail-header">
+                <button class="back-arrow" onclick="hideDetail()">‹</button>
+                <div class="detail-title">Privacy Protection</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Your Google Voice Number</div>
+                <div class="detail-value">+1 (617) 942-1250</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Real Number Protection</div>
+                <div class="detail-value">+1 (508) 638-8084 (Hidden)</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Privacy Features</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">🎭</span>
+                        <span class="feature-text">Caller ID Spoofing</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">🔒</span>
+                        <span class="feature-text">Real Number Concealment</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">📞</span>
+                        <span class="feature-text">Native Device Calling</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">🌐</span>
+                        <span class="feature-text">Google Voice Integration</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="detail-card">
+                <div style="background: #e8f5e8; padding: 12px; border-radius: 8px; display: flex; align-items: center;">
+                    <span style="color: #4caf50; font-size: 20px; margin-right: 8px;">🛡️</span>
+                    <span style="color: #4caf50; font-size: 14px;">Your real number remains completely hidden from contacts</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About Detail Screen -->
+        <div class="detail-screen" id="about-detail">
+            <div class="detail-header">
+                <button class="back-arrow" onclick="hideDetail()">‹</button>
+                <div class="detail-title">About CallBunker</div>
+            </div>
+            
+            <div class="detail-card">
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">🛡️</div>
+                    <div style="font-size: 20px; font-weight: 600; color: #1c1c1e; margin-bottom: 4px;">CallBunker</div>
+                    <div style="font-size: 14px; color: #8e8e93;">Advanced Communication Security</div>
+                </div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Version Information</div>
+                <div class="detail-value">1.0.0</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Core Features</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">🛡️</span>
+                        <span class="feature-text">Call Screening with PIN/Verbal Auth</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">📞</span>
+                        <span class="feature-text">Protected Native Calling</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">💬</span>
+                        <span class="feature-text">Secure Messaging (Coming Soon)</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">👥</span>
+                        <span class="feature-text">Trusted Contacts Management</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">📊</span>
+                        <span class="feature-text">Call History & Analytics</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Technology Stack</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">🌐</span>
+                        <span class="feature-text">Twilio Voice Services</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">🗣️</span>
+                        <span class="feature-text">Google Voice Integration</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">📱</span>
+                        <span class="feature-text">React Native Mobile Framework</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">⚡</span>
+                        <span class="feature-text">Flask Backend Services</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="detail-card">
+                <div style="text-align: center; color: #8e8e93; font-size: 12px; line-height: 1.4;">
+                    CallBunker provides comprehensive communication security through advanced call screening, privacy protection, and intelligent contact management. Your real phone number stays completely hidden while maintaining full functionality.
                 </div>
             </div>
         </div>
@@ -562,6 +830,33 @@
             } else {
                 alert('Please enter a phone number');
             }
+        }
+        
+        function showDetail(detailType) {
+            // Hide main settings screen
+            document.getElementById('settings').classList.remove('active');
+            
+            // Show detail screen
+            document.getElementById(detailType + '-detail').classList.add('active');
+            
+            // Update header title
+            const titles = {
+                security: 'Security Settings',
+                privacy: 'Privacy Protection', 
+                about: 'About CallBunker'
+            };
+            document.getElementById('screen-title').textContent = titles[detailType];
+        }
+        
+        function hideDetail() {
+            // Hide all detail screens
+            document.querySelectorAll('.detail-screen').forEach(s => s.classList.remove('active'));
+            
+            // Show main settings screen
+            document.getElementById('settings').classList.add('active');
+            
+            // Update header title
+            document.getElementById('screen-title').textContent = 'Settings';
         }
     </script>
 </body>
