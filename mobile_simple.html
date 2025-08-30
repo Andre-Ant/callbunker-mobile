@@ -1545,11 +1545,16 @@
                 'Cancel',
                 function() {
                     const blockedList = document.getElementById('blocked-calls-list');
-                    blockedList.innerHTML = '<div style="text-align: center; padding: 20px; color: #8e8e93; font-size: 14px;">No blocked calls</div>';
+                    if (blockedList) {
+                        blockedList.innerHTML = '<div style="text-align: center; padding: 20px; color: #8e8e93; font-size: 14px;">No blocked calls</div>';
+                    }
                     
-                    const headerLabel = document.querySelector('#analytics-detail .detail-label');
-                    if (headerLabel && headerLabel.textContent.includes('Blocked Calls')) {
-                        headerLabel.textContent = 'Blocked Calls (0)';
+                    // Update all counts properly
+                    updateBlockedCallsCount();
+                    
+                    // Exit selection mode if active
+                    if (isSelectionMode) {
+                        exitSelectionMode();
                     }
                     
                     showCustomAlert('Cleared', 'All blocked calls have been removed.');
@@ -1558,13 +1563,13 @@
         }
         
         function updateBlockedCallsCount() {
-            // Count remaining blocked call items
+            // Count remaining blocked call items (excluding empty state message)
             const remainingItems = document.querySelectorAll('.blocked-call-item').length;
             
             // Update the analytics detail header
             const detailLabels = document.querySelectorAll('.detail-label');
             detailLabels.forEach(label => {
-                if (label.textContent.includes('Blocked Calls')) {
+                if (label && label.textContent && label.textContent.includes('Blocked Calls')) {
                     label.textContent = `Blocked Calls (${remainingItems})`;
                 }
             });
@@ -1580,6 +1585,18 @@
                 const blockedList = document.getElementById('blocked-calls-list');
                 if (blockedList) {
                     blockedList.innerHTML = '<div style="text-align: center; padding: 20px; color: #8e8e93; font-size: 14px;">No blocked calls</div>';
+                }
+                
+                // Hide multi-select button when no items
+                const multiSelectBtn = document.getElementById('multi-select-btn');
+                if (multiSelectBtn) {
+                    multiSelectBtn.style.display = 'none';
+                }
+            } else {
+                // Show multi-select button when items exist
+                const multiSelectBtn = document.getElementById('multi-select-btn');
+                if (multiSelectBtn) {
+                    multiSelectBtn.style.display = 'inline-block';
                 }
             }
         }
