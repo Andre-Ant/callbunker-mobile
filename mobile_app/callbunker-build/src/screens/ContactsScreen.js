@@ -74,6 +74,194 @@ function ContactsScreen() {
         phone_number: newContactPhone.trim(),
         auto_whitelisted: false,
       });
+      
+      setNewContactName('');
+      setNewContactPhone('');
+      setShowAddModal(false);
+      
+      Alert.alert('Success', `${newContactName} added to trusted contacts`);
+    } catch (error) {
+      console.error('Failed to add contact:', error);
+    }
+  };
+
+  const handleRemoveContact = (contact) => {
+    Alert.alert(
+      'Remove Contact',
+      `Remove ${contact.name} from trusted contacts?`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => removeTrustedContact(contact.id),
+        },
+      ]
+    );
+  };
+
+  const handleCallContact = (contact) => {
+    Alert.alert(
+      'Protected Call',
+      `Call ${contact.name} (${contact.phone_number})?\n\nThis will be a privacy-protected call.`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Call',
+          onPress: () => {
+            // Navigate to dialer with number pre-filled
+            console.log('Calling:', contact.phone_number);
+          },
+        },
+      ]
+    );
+  };
+
+  const renderContact = ({item: contact}) => (
+    <View style={styles.contactItem}>
+      <View style={styles.contactAvatar}>
+        <Text style={styles.contactInitial}>
+          {contact.name.charAt(0).toUpperCase()}
+        </Text>
+      </View>
+      
+      <View style={styles.contactInfo}>
+        <Text style={styles.contactName}>{contact.name}</Text>
+        <Text style={styles.contactPhone}>{contact.phone_number}</Text>
+        <View style={styles.contactStatus}>
+          <Icon 
+            name={contact.auto_whitelisted ? 'verified' : 'verified-user'} 
+            size={14} 
+            color={contact.auto_whitelisted ? '#4CAF50' : '#007AFF'} 
+          />
+          <Text style={styles.contactStatusText}>
+            {contact.auto_whitelisted ? 'Auto-whitelisted' : 'Manual whitelist'}
+          </Text>
+        </View>
+      </View>
+      
+      <View style={styles.contactActions}>
+        <TouchableOpacity
+          style={styles.contactActionButton}
+          onPress={() => handleCallContact(contact)}
+        >
+          <Icon name="phone" size={20} color="#007AFF" />
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.contactActionButton, styles.removeButton]}
+          onPress={() => handleRemoveContact(contact)}
+        >
+          <Icon name="delete" size={20} color="#FF3B30" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const renderAddContactModal = () => (
+    <Modal
+      visible={showAddModal}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={() => setShowAddModal(false)}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <TouchableOpacity onPress={() => setShowAddModal(false)}>
+            <Text style={styles.modalCancelButton}>Cancel</Text>
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>Add Contact</Text>
+          <TouchableOpacity onPress={handleAddContact}>
+            <Text style={styles.modalSaveButton}>Save</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.modalContent}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Name</Text>
+            <TextInput
+              style={styles.textInput}
+              value={newContactName}
+              onChangeText={setNewContactName}
+              placeholder="Enter contact name"
+              placeholderTextColor="#8E8E93"
+            />
+          </View>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Phone Number</Text>
+            <TextInput
+              style={styles.textInput}
+              value={newContactPhone}
+              onChangeText={setNewContactPhone}
+              placeholder="Enter phone number"
+              placeholderTextColor="#8E8E93"
+              keyboardType="phone-pad"
+            />
+          </View>
+          
+          <View style={styles.helpText}>
+            <Icon name="info" size={16} color="#8E8E93" />
+            <Text style={styles.helpTextContent}>
+              Trusted contacts can bypass call screening and reach you directly
+            </Text>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Trusted Contacts</Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setShowAddModal(true)}
+        >
+          <Icon name="add" size={24} color="#007AFF" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Info Card */}
+      <View style={styles.infoCard}>
+        <Icon name="security" size={20} color="#4CAF50" />
+        <Text style={styles.infoText}>
+          Trusted contacts can bypass call screening and reach you directly
+        </Text>
+      </View>
+
+      {/* Contacts List */}
+      {contacts.length > 0 ? (
+        <FlatList
+          data={contacts}
+          renderItem={renderContact}
+          keyExtractor={item => item.id?.toString() || item.phone_number}
+          style={styles.contactsList}
+          contentContainerStyle={styles.contactsListContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+        />
+      ) : (
+        <View style={styles.emptyState}>
+          <Icon name="contacts" size={64} color="#C7C7CC" />
+          <Text style={styles.emptyStateTitle}>No Trusted Contacts</Text>
+          <Text style={styles.emptyStateSubtitle}>
+            Add contacts who can bypass call screening
+          </Text>
+          <TouchableOpacity
+            style={styles.emptyStateButton}
+            onPress={() => setShowAddModal(true)}
+          >
+            <Text style={styles.emptyStateButtonText}>Add First Contact</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {renderAddContactModal()}
+      });
 
       setNewContactName('');
       setNewContactPhone('');
