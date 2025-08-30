@@ -864,7 +864,7 @@
                             <div class="checkmark" style="display: none; position: absolute; top: 2px; left: 6px; width: 6px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);"></div>
                         </div>
                         <div class="list-avatar" style="background: #ff3b30; color: white; font-size: 16px;">🚫</div>
-                        <div class="list-content">
+                        <div class="list-content" style="position: relative;">
                             <div class="list-title">(555) 999-8888</div>
                             <div class="list-subtitle">Blocked 2 hours ago • Failed authentication</div>
                         </div>
@@ -879,7 +879,7 @@
                             <div class="checkmark" style="display: none; position: absolute; top: 2px; left: 6px; width: 6px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);"></div>
                         </div>
                         <div class="list-avatar" style="background: #ff3b30; color: white; font-size: 16px;">🚫</div>
-                        <div class="list-content">
+                        <div class="list-content" style="position: relative;">
                             <div class="list-title">(555) 123-0000</div>
                             <div class="list-subtitle">Blocked 1 day ago • Unknown caller</div>
                         </div>
@@ -894,7 +894,7 @@
                             <div class="checkmark" style="display: none; position: absolute; top: 2px; left: 6px; width: 6px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);"></div>
                         </div>
                         <div class="list-avatar" style="background: #ff3b30; color: white; font-size: 16px;">🚫</div>
-                        <div class="list-content">
+                        <div class="list-content" style="position: relative;">
                             <div class="list-title">(555) 777-4444</div>
                             <div class="list-subtitle">Blocked 3 days ago • Spam detected</div>
                         </div>
@@ -908,7 +908,7 @@
                 <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-top: 12px;">
                     <div style="font-size: 12px; color: #8e8e93; text-align: center;">
                         <span id="selection-hint" style="display: none;">Tap calls to select/deselect • </span>
-                        <span id="long-press-hint">Hold any call for 1 second to select multiple • </span>
+                        <span id="long-press-hint">Hold phone number area to select multiple • </span>
                         Blocked calls are automatically removed after 30 days
                     </div>
                 </div>
@@ -1430,17 +1430,27 @@
         let isSelectionMode = false;
         let selectedCalls = new Set();
         let longPressTimeout;
+        let longPressStartX, longPressStartY;
         
         // Initialize long press handlers for blocked call items
         function initializeLongPress() {
             document.querySelectorAll('.blocked-call-item').forEach(item => {
-                let startTime;
                 let longPressTriggered = false;
                 
-                item.addEventListener('touchstart', function(e) {
+                // Only add long press to the main content area, not buttons
+                const contentArea = item.querySelector('.list-content');
+                if (!contentArea) return;
+                
+                contentArea.addEventListener('touchstart', function(e) {
                     if (isSelectionMode) return;
-                    startTime = Date.now();
+                    
+                    // Don't trigger on buttons
+                    if (e.target.tagName === 'BUTTON') return;
+                    
                     longPressTriggered = false;
+                    const touch = e.touches[0];
+                    longPressStartX = touch.clientX;
+                    longPressStartY = touch.clientY;
                     
                     longPressTimeout = setTimeout(() => {
                         longPressTriggered = true;
@@ -1450,57 +1460,46 @@
                         }
                         enterSelectionMode();
                         toggleItemSelection(item);
-                    }, 600); // Increased to 600ms for more reliable detection
+                    }, 800); // Longer delay to avoid conflicts
                 });
                 
-                item.addEventListener('touchend', function(e) {
-                    clearTimeout(longPressTimeout);
+                contentArea.addEventListener('touchmove', function(e) {
+                    if (!longPressTimeout) return;
                     
-                    // If we're in selection mode and it was a quick tap (not the long press that triggered it)
+                    const touch = e.touches[0];
+                    const moveX = Math.abs(touch.clientX - longPressStartX);
+                    const moveY = Math.abs(touch.clientY - longPressStartY);
+                    
+                    // Cancel if moved more than 15px in any direction
+                    if (moveX > 15 || moveY > 15) {
+                        clearTimeout(longPressTimeout);
+                        longPressTimeout = null;
+                    }
+                });
+                
+                contentArea.addEventListener('touchend', function(e) {
+                    if (longPressTimeout) {
+                        clearTimeout(longPressTimeout);
+                        longPressTimeout = null;
+                    }
+                    
+                    // Handle selection in selection mode
                     if (isSelectionMode && !longPressTriggered) {
                         e.preventDefault();
                         e.stopPropagation();
                         toggleItemSelection(item);
-                        return false;
                     }
                     
                     longPressTriggered = false;
                 });
                 
-                item.addEventListener('touchmove', function(e) {
-                    // Allow small movements but cancel on larger movements
-                    const touch = e.touches[0];
-                    const startTouch = e.target.getBoundingClientRect();
-                    const moveDistance = Math.abs(touch.clientY - (startTouch.top + startTouch.height/2));
-                    
-                    if (moveDistance > 20) { // Allow 20px of movement
-                        clearTimeout(longPressTimeout);
-                    }
-                });
-                
-                // For desktop testing - simplified
-                item.addEventListener('mousedown', function(e) {
-                    if (isSelectionMode) return;
-                    
-                    longPressTimeout = setTimeout(() => {
-                        enterSelectionMode();
-                        toggleItemSelection(item);
-                    }, 600);
-                });
-                
-                item.addEventListener('mouseup', function(e) {
-                    clearTimeout(longPressTimeout);
-                    
-                    if (isSelectionMode) {
+                // Add click handler for selection mode (separate from long press)
+                item.addEventListener('click', function(e) {
+                    if (isSelectionMode && !e.target.tagName === 'BUTTON') {
                         e.preventDefault();
                         e.stopPropagation();
                         toggleItemSelection(item);
-                        return false;
                     }
-                });
-                
-                item.addEventListener('mouseleave', function(e) {
-                    clearTimeout(longPressTimeout);
                 });
             });
         }
