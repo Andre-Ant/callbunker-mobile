@@ -849,7 +849,7 @@
             <div class="detail-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <div class="detail-label">Blocked Calls (6)</div>
-                    <div id="blocked-actions">
+                    <div id="blocked-actions" style="display: flex; gap: 8px; align-items: center;">
                         <button onclick="clearAllBlocked()" style="background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Clear All</button>
                     </div>
                     <div id="selection-actions" style="display: none;">
@@ -1642,82 +1642,45 @@
         // Multi-select functionality for blocked calls
         let isSelectionMode = false;
         let selectedCalls = new Set();
-        let longPressTimeout;
-        let longPressStartX, longPressStartY;
-        let isScrolling = false;
         
-        // Initialize long press handlers for blocked call items
-        function initializeLongPress() {
+        // Add a visible multi-select button instead of complex long press
+        function addMultiSelectButton() {
+            const blockedActions = document.getElementById('blocked-actions');
+            if (blockedActions && !document.getElementById('multi-select-btn')) {
+                const multiSelectBtn = document.createElement('button');
+                multiSelectBtn.id = 'multi-select-btn';
+                multiSelectBtn.textContent = 'Select Multiple';
+                multiSelectBtn.style.cssText = 'background: #007aff; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; margin-left: 8px;';
+                multiSelectBtn.onclick = function() {
+                    enterSelectionMode();
+                };
+                blockedActions.appendChild(multiSelectBtn);
+            }
+        }
+        
+        // Simple click-to-select when in selection mode
+        function initializeClickSelection() {
             document.querySelectorAll('.blocked-call-item').forEach(item => {
-                let longPressTriggered = false;
+                // Remove any existing event listeners by cloning
+                const newItem = item.cloneNode(true);
+                item.parentNode.replaceChild(newItem, item);
                 
-                // Only add long press to the main content area, not buttons
-                const contentArea = item.querySelector('.list-content');
-                if (!contentArea) return;
-                
-                contentArea.addEventListener('touchstart', function(e) {
-                    if (isSelectionMode) return;
-                    
-                    // Don't trigger on buttons
-                    if (e.target.tagName === 'BUTTON') return;
-                    
-                    // Reset states
-                    longPressTriggered = false;
-                    isScrolling = false;
-                    const touch = e.touches[0];
-                    longPressStartX = touch.clientX;
-                    longPressStartY = touch.clientY;
-                    
-                    // Longer delay and require very stationary finger
-                    longPressTimeout = setTimeout(() => {
-                        // Only trigger if not scrolling
-                        if (!isScrolling && !longPressTriggered) {
-                            longPressTriggered = true;
-                            // Strong distinctive vibration
-                            if (navigator.vibrate) {
-                                navigator.vibrate([100, 50, 100]); // Stronger feedback
-                            }
-                            enterSelectionMode();
-                            toggleItemSelection(item);
-                        }
-                    }, 1200); // Increased to 1.2 seconds for very intentional activation
-                }, { passive: false });
-                
-                contentArea.addEventListener('touchmove', function(e) {
-                    if (!longPressTimeout) return;
-                    
-                    const touch = e.touches[0];
-                    const moveX = Math.abs(touch.clientX - longPressStartX);
-                    const moveY = Math.abs(touch.clientY - longPressStartY);
-                    
-                    // Much stricter movement detection - cancel if moved more than 8px
-                    if (moveX > 8 || moveY > 8) {
-                        isScrolling = true;
-                        clearTimeout(longPressTimeout);
-                        longPressTimeout = null;
-                    }
-                }, { passive: false });
-                
-                contentArea.addEventListener('touchend', function(e) {
-                    // Always clear timeout on touch end
-                    if (longPressTimeout) {
-                        clearTimeout(longPressTimeout);
-                        longPressTimeout = null;
+                // Add simple click handler for selection mode
+                newItem.addEventListener('click', function(e) {
+                    // Only allow normal button clicks when NOT in selection mode
+                    if (!isSelectionMode) {
+                        return; // Normal behavior
                     }
                     
-                    // Handle selection ONLY if already in selection mode AND it was a deliberate tap
-                    if (isSelectionMode && !longPressTriggered && !isScrolling && e.target.tagName !== 'BUTTON') {
+                    // In selection mode: handle clicks on the item (not buttons)
+                    if (e.target.tagName !== 'BUTTON' && e.target.closest('.item-actions') === null) {
                         e.preventDefault();
                         e.stopPropagation();
-                        toggleItemSelection(item);
+                        toggleItemSelection(newItem);
                     }
-                    
-                    // Reset states after longer delay
-                    setTimeout(() => {
-                        longPressTriggered = false;
-                        isScrolling = false;
-                    }, 150);
-                }, { passive: false });
+                });
+            });
+        }
                 
                 // Add click handler for selection mode only (not for entering selection mode)
                 item.addEventListener('click', function(e) {
@@ -1752,8 +1715,10 @@
             // Switch header actions
             document.getElementById('blocked-actions').style.display = 'none';
             document.getElementById('selection-actions').style.display = 'flex';
-            document.getElementById('selection-hint').style.display = 'inline';
-            document.getElementById('long-press-hint').style.display = 'none';
+            const selectionHint = document.getElementById('selection-hint');
+            const longPressHint = document.getElementById('long-press-hint');
+            if (selectionHint) selectionHint.style.display = 'inline';
+            if (longPressHint) longPressHint.style.display = 'none';
             
             updateSelectionCount();
         }
@@ -1778,8 +1743,10 @@
             // Switch header actions back
             document.getElementById('blocked-actions').style.display = 'block';
             document.getElementById('selection-actions').style.display = 'none';
-            document.getElementById('selection-hint').style.display = 'none';
-            document.getElementById('long-press-hint').style.display = 'inline';
+            const selectionHint = document.getElementById('selection-hint');
+            const longPressHint = document.getElementById('long-press-hint');
+            if (selectionHint) selectionHint.style.display = 'none';
+            if (longPressHint) longPressHint.style.display = 'inline';
         }
         
         function toggleItemSelection(item) {
@@ -1861,9 +1828,10 @@
         
 
         
-        // Initialize long press when page loads
+        // Initialize multi-select when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            initializeLongPress();
+            addMultiSelectButton();
+            initializeClickSelection();
         });
         
         // Re-initialize when navigating to analytics
@@ -1871,19 +1839,8 @@
         showAnalytics = function() {
             originalShowAnalytics();
             setTimeout(() => {
-                initializeLongPress();
-                // Also prevent default click behavior on blocked call items in selection mode
-                document.querySelectorAll('.blocked-call-item').forEach(item => {
-                    // Remove any existing onclick handlers that might interfere
-                    item.onclick = function(e) {
-                        if (isSelectionMode) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            toggleItemSelection(item);
-                            return false;
-                        }
-                    };
-                });
+                addMultiSelectButton();
+                initializeClickSelection();
             }, 100);
         };
     </script>
