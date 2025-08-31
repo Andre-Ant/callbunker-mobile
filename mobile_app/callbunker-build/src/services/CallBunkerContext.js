@@ -11,8 +11,8 @@ const CallBunkerContext = createContext();
 
 const initialState = {
   user: null,
-  apiUrl: window.location.origin || 'https://your-replit-url.replit.app', // Auto-detect or set your Replit URL
-  userId: 1, // Replace with dynamic user ID
+  apiUrl: 'https://your-replit-url.replit.app', // Set your Replit URL
+  userId: null, // Will be set after user signup/login
   callHistory: [],
   contacts: [],
   settings: {
@@ -23,6 +23,7 @@ const initialState = {
   },
   isLoading: false,
   error: null,
+  isAuthenticated: false,
 };
 
 function callBunkerReducer(state, action) {
@@ -74,6 +75,12 @@ function callBunkerReducer(state, action) {
         settings: {...state.settings, ...action.payload},
       };
     
+    case 'SET_USER_ID':
+      return {...state, userId: action.payload};
+    
+    case 'SET_AUTHENTICATED':
+      return {...state, isAuthenticated: action.payload};
+    
     default:
       return state;
   }
@@ -124,8 +131,8 @@ export function CallBunkerProvider({children}) {
 
   const loadContacts = async () => {
     try {
-      // Load trusted contacts from API
-      const response = await fetch(`${state.apiUrl}/api/users/${state.userId}/contacts`);
+      // Load trusted contacts from Multi-User API
+      const response = await fetch(`${state.apiUrl}/multi/user/${state.userId}/contacts`);
       if (response.ok) {
         const contacts = await response.json();
         dispatch({type: 'SET_CONTACTS', payload: contacts});
@@ -197,7 +204,7 @@ export function CallBunkerProvider({children}) {
     try {
       dispatch({type: 'SET_LOADING', payload: true});
       
-      const response = await fetch(`${state.apiUrl}/api/users/${state.userId}/contacts`, {
+      const response = await fetch(`${state.apiUrl}/multi/user/${state.userId}/contacts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -224,7 +231,7 @@ export function CallBunkerProvider({children}) {
 
   const removeTrustedContact = async (contactId) => {
     try {
-      const response = await fetch(`${state.apiUrl}/api/users/${state.userId}/contacts/${contactId}`, {
+      const response = await fetch(`${state.apiUrl}/multi/user/${state.userId}/contacts/${contactId}`, {
         method: 'DELETE',
       });
       
@@ -259,6 +266,45 @@ export function CallBunkerProvider({children}) {
     dispatch({type: 'SET_ERROR', payload: null});
   };
 
+  const signupUser = async (userData) => {
+    try {
+      dispatch({type: 'SET_LOADING', payload: true});
+      dispatch({type: 'SET_ERROR', payload: null});
+      
+      const response = await fetch(`${state.apiUrl}/multi/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          name: userData.name,
+          email: userData.email,
+          google_voice_number: userData.googleVoiceNumber.replace(/\D/g, ''),
+          real_phone_number: userData.realPhoneNumber.replace(/\D/g, ''),
+          pin: userData.pin,
+          verbal_code: userData.verbalCode,
+        }),
+      });
+
+      if (response.ok) {
+        const responseText = await response.text();
+        if (responseText.includes('Account created') || responseText.includes('Defense Number')) {
+          dispatch({type: 'SET_AUTHENTICATED', payload: true});
+          return true;
+        }
+      }
+      
+      throw new Error('Signup failed - please check your information');
+      
+    } catch (error) {
+      console.error('Signup error:', error);
+      dispatch({type: 'SET_ERROR', payload: error.message});
+      throw error;
+    } finally {
+      dispatch({type: 'SET_LOADING', payload: false});
+    }
+  };
+
   const contextValue = {
     ...state,
     callBunker,
@@ -270,6 +316,7 @@ export function CallBunkerProvider({children}) {
     loadCallHistory,
     loadContacts,
     clearError,
+    signupUser,
   };
 
   return (

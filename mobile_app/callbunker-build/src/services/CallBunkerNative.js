@@ -54,8 +54,8 @@ export class CallBunkerNative {
                 return callInfo;
             }
             
-            // Get call configuration from CallBunker API
-            const response = await fetch(`${this.baseUrl}/api/users/${this.userId}/call_direct`, {
+            // Get call configuration from CallBunker Multi-User API
+            const response = await fetch(`${this.baseUrl}/multi/user/${this.userId}/call_direct`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ export class CallBunkerNative {
         try {
             console.log(`[CallBunker] Completing call ${callLogId}, duration: ${durationSeconds}s`);
 
-            const response = await fetch(`${this.baseUrl}/api/users/${this.userId}/calls/${callLogId}/complete`, {
+            const response = await fetch(`${this.baseUrl}/multi/user/${this.userId}/calls/${callLogId}/complete`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -150,7 +150,7 @@ export class CallBunkerNative {
      */
     async getCallStatus(callLogId) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/users/${this.userId}/calls/${callLogId}/status`);
+            const response = await fetch(`${this.baseUrl}/multi/user/${this.userId}/calls/${callLogId}/status`);
             const status = await response.json();
             
             return status;
@@ -168,7 +168,7 @@ export class CallBunkerNative {
      */
     async getCallHistory(limit = 50, offset = 0) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/users/${this.userId}/calls?limit=${limit}&offset=${offset}`);
+            const response = await fetch(`${this.baseUrl}/multi/user/${this.userId}/calls?limit=${limit}&offset=${offset}`);
             
             if (response.ok) {
                 const history = await response.json();

@@ -18,9 +18,10 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import ContactsScreen from './src/screens/ContactsScreen';
 import MessagesScreen from './src/screens/MessagesScreen';
 import CallLogDetailScreen from './src/screens/CallLogDetailScreen';
+import SignupScreen from './src/screens/SignupScreen';
 
 // Services
-import {CallBunkerProvider} from './src/services/CallBunkerContext';
+import {CallBunkerProvider, useCallBunker} from './src/services/CallBunkerContext';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -90,29 +91,46 @@ function MainTabs() {
   );
 }
 
-// Root Stack Navigator
+// Authentication Check Component
+function AuthCheck() {
+  const { isAuthenticated, userId } = useCallBunker();
+  
+  if (!isAuthenticated || !userId) {
+    return (
+      <Stack.Navigator screenOptions={{headerShown: false}}>
+        <Stack.Screen name="Signup" component={SignupScreen} />
+      </Stack.Navigator>
+    );
+  }
+  
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}>
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen 
+        name="CallLogDetail" 
+        component={CallLogDetailScreen}
+        options={{
+          headerShown: true,
+          title: 'Call Details',
+          headerStyle: styles.header,
+          headerTintColor: '#007AFF',
+          headerTitleStyle: styles.headerTitle,
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+// Root App
 function App() {
   return (
     <CallBunkerProvider>
       <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
       <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-          }}>
-          <Stack.Screen name="MainTabs" component={MainTabs} />
-          <Stack.Screen 
-            name="CallLogDetail" 
-            component={CallLogDetailScreen}
-            options={{
-              headerShown: true,
-              title: 'Call Details',
-              headerStyle: styles.header,
-              headerTintColor: '#007AFF',
-              headerTitleStyle: styles.headerTitle,
-            }}
-          />
-        </Stack.Navigator>
+        <AuthCheck />
       </NavigationContainer>
     </CallBunkerProvider>
   );
