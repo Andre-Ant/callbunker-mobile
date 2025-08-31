@@ -138,6 +138,104 @@ def add_twilio_number():
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)})
 
+# API Endpoints for Mobile App
+@multi_user_bp.route('/user/<int:user_id>/contacts', methods=['GET'])
+def api_get_contacts(user_id):
+    """Get trusted contacts for mobile app"""
+    user = User.query.get_or_404(user_id)
+    contacts = UserWhitelist.query.filter_by(user_id=user_id).all()
+    
+    return jsonify([{
+        'id': contact.id,
+        'phone_number': contact.caller_number,
+        'display_name': format_phone_display(contact.caller_number),
+        'custom_pin': contact.custom_pin,
+        'created_at': contact.created_at.isoformat() if contact.created_at else None
+    } for contact in contacts])
+
+@multi_user_bp.route('/user/<int:user_id>/contacts', methods=['POST'])
+def api_add_contact(user_id):
+    """Add trusted contact for mobile app"""
+    user = User.query.get_or_404(user_id)
+    
+    try:
+        data = request.get_json()
+        phone_number = normalize_phone(data.get('phone_number', ''))
+        custom_pin = data.get('custom_pin', '').strip()
+        
+        if len(phone_number) < 10:
+            return jsonify({'error': 'Invalid phone number'}), 400
+        
+        # Check if already exists
+        existing = UserWhitelist.query.filter_by(
+            user_id=user_id, 
+            caller_number=phone_number
+        ).first()
+        if existing:
+            return jsonify({'error': 'Contact already exists'}), 400
+        
+        contact = UserWhitelist(
+            user_id=user_id,
+            caller_number=phone_number,
+            custom_pin=custom_pin
+        )
+        
+        db.session.add(contact)
+        db.session.commit()
+        
+        return jsonify({
+            'id': contact.id,
+            'phone_number': contact.caller_number,
+            'display_name': format_phone_display(contact.caller_number),
+            'custom_pin': contact.custom_pin
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@multi_user_bp.route('/user/<int:user_id>/contacts/<int:contact_id>', methods=['DELETE'])
+def api_delete_contact(user_id, contact_id):
+    """Delete trusted contact for mobile app"""
+    user = User.query.get_or_404(user_id)
+    contact = UserWhitelist.query.filter_by(id=contact_id, user_id=user_id).first_or_404()
+    
+    try:
+        db.session.delete(contact)
+        db.session.commit()
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@multi_user_bp.route('/user/<int:user_id>/calls', methods=['GET'])
+def api_get_calls(user_id):
+    """Get call history for mobile app"""
+    user = User.query.get_or_404(user_id)
+    limit = request.args.get('limit', 50, type=int)
+    offset = request.args.get('offset', 0, type=int)
+    
+    # For now, return empty list - call logging will be implemented with actual calls
+    return jsonify([])
+
+@multi_user_bp.route('/user/<int:user_id>/calls/<int:call_id>/complete', methods=['POST'])
+def api_complete_call(user_id, call_id):
+    """Complete a call for mobile app"""
+    user = User.query.get_or_404(user_id)
+    data = request.get_json()
+    
+    # For now, just return success - call logging will be implemented
+    return jsonify({'success': True, 'call_id': call_id})
+
+@multi_user_bp.route('/user/<int:user_id>/calls/<int:call_id>/status', methods=['GET'])
+def api_get_call_status(user_id, call_id):
+    """Get call status for mobile app"""
+    user = User.query.get_or_404(user_id)
+    
+    # For now, return basic status - will be enhanced with real call data
+    return jsonify({'call_id': call_id, 'status': 'completed'})
+
 def get_user_by_twilio_number(twilio_number):
     """Helper to find user by their assigned Twilio number"""
     return User.query.filter_by(assigned_twilio_number=twilio_number).first()
