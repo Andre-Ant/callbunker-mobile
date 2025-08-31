@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CallBunker Mobile Signup - Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .phone-frame {
+            max-width: 375px;
+            margin: 0 auto;
+            background: #000;
+            border-radius: 30px;
+            padding: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .screen {
+            background: #f8f9fa;
+            border-radius: 25px;
+            overflow: hidden;
+            height: 667px;
+            position: relative;
+        }
+        
+        .status-bar {
+            background: #f8f9fa;
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .content {
+            padding: 20px;
+            height: calc(100% - 44px);
+            overflow-y: auto;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #007AFF;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .input {
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 16px;
+            background: #f8f9fa;
+        }
+        
+        .input:focus {
+            border-color: #007AFF;
+            outline: none;
+            background: white;
+        }
+        
+        .signup-button {
+            background: #007AFF;
+            border: none;
+            border-radius: 8px;
+            padding: 15px;
+            width: 100%;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        
+        .signup-button:hover {
+            background: #0056CC;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .info-text {
+            font-size: 14px;
+            color: #1976d2;
+            margin-bottom: 5px;
+        }
+        
+        .demo-banner {
+            background: #ff9800;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-weight: bold;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-banner">
+        📱 CallBunker Mobile App Signup - Interactive Preview
+    </div>
+    
+    <div style="margin-top: 50px;">
+        <div class="phone-frame">
+            <div class="screen">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <span>🔋 100%</span>
+                </div>
+                
+                <div class="content">
+                    <h1 class="title">Join CallBunker</h1>
+                    <p class="subtitle">Get your own Defense Number for secure calling</p>
+                    
+                    <div class="form">
+                        <div class="input-group">
+                            <label class="label">Full Name</label>
+                            <input type="text" class="input" placeholder="Enter your full name" value="John Smith">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="label">Email Address</label>
+                            <input type="email" class="input" placeholder="your.email@example.com" value="john.smith@example.com">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="label">Google Voice Number</label>
+                            <input type="tel" class="input" placeholder="(555) 123-4567" value="(555) 123-4567">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="label">Real Phone Number</label>
+                            <input type="tel" class="input" placeholder="(555) 987-6543" value="(555) 987-6543">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="label">Security PIN (4 digits)</label>
+                            <input type="text" class="input" placeholder="1122" value="8322" maxlength="4">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="label">Verbal Code</label>
+                            <input type="text" class="input" placeholder="open sesame" value="black widow">
+                        </div>
+                        
+                        <button class="signup-button" onclick="showSuccess()">Create Account</button>
+                        
+                        <div class="info-box">
+                            <div class="info-text">🛡️ You'll receive your own unique CallBunker Defense Number</div>
+                            <div class="info-text">📱 Use it with Google Voice for complete privacy protection</div>
+                            <div class="info-text">🔒 Your real number stays completely hidden</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="max-width: 600px; margin: 40px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h2 style="color: #007AFF; margin-bottom: 15px;">Multi-User Signup Features</h2>
+        <ul style="line-height: 1.6; color: #333;">
+            <li><strong>Automatic Defense Number Assignment:</strong> Each user gets a unique Twilio number from the phone pool</li>
+            <li><strong>Form Validation:</strong> Real-time validation for email, phone numbers, and required fields</li>
+            <li><strong>Phone Number Formatting:</strong> Automatic formatting for US phone numbers</li>
+            <li><strong>Security Setup:</strong> Custom PIN and verbal code for call authentication</li>
+            <li><strong>Google Voice Integration:</strong> Links with user's Google Voice for privacy protection</li>
+            <li><strong>Session Management:</strong> Persistent login with secure authentication flow</li>
+        </ul>
+        
+        <h3 style="color: #007AFF; margin: 20px 0 10px 0;">Current Phone Pool Status</h3>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <div style="color: #28a745; margin-bottom: 5px;">✅ +16316417728: Available</div>
+            <div style="color: #28a745; margin-bottom: 5px;">✅ +16316417729: Available</div>
+            <div style="color: #dc3545;">⚡ +16316417730: Assigned to Test User</div>
+        </div>
+        
+        <p style="color: #666; font-style: italic;">
+            The mobile app automatically connects to the multi-user backend and assigns the next available Defense Number when a user completes signup.
+        </p>
+    </div>
+    
+    <script>
+        function showSuccess() {
+            alert('✅ Account Created!\n\nYour Defense Number is (631) 641-7728\n\nYou can now use CallBunker with complete privacy protection.');
+        }
+        
+        // Auto-format phone numbers
+        document.querySelectorAll('input[type="tel"]').forEach(input => {
+            input.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                let formattedValue = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+                if (formattedValue.length <= 14) {
+                    e.target.value = formattedValue;
+                }
+            });
+        });
+        
+        // PIN input restriction
+        document.querySelector('input[maxlength="4"]').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+        });
+    </script>
+</body>
+</html>
