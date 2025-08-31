@@ -40,7 +40,45 @@ def mobile_demo():
 # Add main home route - redirect to mobile interface by default
 @app.route('/')
 def home():
-    return mobile_demo()
+    return render_template_string('''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>CallBunker - Mobile Communication Security</title>
+        <style>
+            body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+            .hero { text-align: center; padding: 40px 0; }
+            .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 40px 0; }
+            .feature { padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+            .btn { display: inline-block; padding: 12px 24px; background: #007AFF; color: white; text-decoration: none; border-radius: 6px; margin: 10px; }
+        </style>
+    </head>
+    <body>
+        <div class="hero">
+            <h1>CallBunker</h1>
+            <p>Advanced Mobile Communication Security Platform</p>
+            <a href="/mobile-preview" class="btn">📱 Signup Interface</a>
+            <a href="/main-app-demo" class="btn">🏠 Main App Interface</a>
+            <a href="/mobile" class="btn">📞 Mobile Demo</a>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>Multi-User Signup</h3>
+                <p>Professional signup interface with Google Voice integration and automatic Defense Number assignment</p>
+            </div>
+            <div class="feature">
+                <h3>Protected Calling</h3>
+                <p>Make calls with complete privacy protection through Google Voice caller ID spoofing</p>
+            </div>
+            <div class="feature">
+                <h3>Native Experience</h3>
+                <p>Professional mobile app with native calling and messaging integration</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    ''')
 
 # Add web info route for those who want the landing page
 @app.route('/web')
