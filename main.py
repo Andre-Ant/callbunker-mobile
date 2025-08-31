@@ -398,7 +398,20 @@ def mobile_preview():
     <script>
         function showSuccess() {
             alert('✅ Account Created!\\n\\nYour Defense Number is (631) 641-7728\\n\\nYou can now use CallBunker with complete privacy protection.');
+            return false;
         }
+        
+        // Prevent form submission redirect
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    showSuccess();
+                    return false;
+                });
+            }
+        });
     </script>
 </body>
 </html>
