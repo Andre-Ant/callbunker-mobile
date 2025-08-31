@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CallBunker - Main App Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .phone-frame {
+            max-width: 375px;
+            margin: 0 auto;
+            background: #000;
+            border-radius: 30px;
+            padding: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .screen {
+            background: #f8f9fa;
+            border-radius: 25px;
+            overflow: hidden;
+            height: 667px;
+            position: relative;
+        }
+        
+        .status-bar {
+            background: #f8f9fa;
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .header {
+            background: #007AFF;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .defense-number {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 20px;
+            height: calc(100% - 44px - 70px - 60px);
+            overflow-y: auto;
+        }
+        
+        .welcome-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .welcome-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-text {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .defense-info {
+            background: #e8f5e8;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .defense-label {
+            font-size: 12px;
+            color: #28a745;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .defense-number-large {
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .action-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .action-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .action-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .action-subtitle {
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .features-list {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .features-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-icon {
+            font-size: 20px;
+            margin-right: 12px;
+            width: 24px;
+        }
+        
+        .feature-text {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .bottom-tabs {
+            background: white;
+            height: 60px;
+            display: flex;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .tab.active {
+            color: #007AFF;
+        }
+        
+        .tab-icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        
+        .tab-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+        
+        .demo-banner {
+            background: #28a745;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-weight: bold;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        
+        .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .transition-content {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 300px;
+        }
+        
+        .transition-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .transition-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007AFF;
+            margin-bottom: 15px;
+        }
+        
+        .transition-message {
+            color: #666;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-banner">
+        🎉 CallBunker Main App - Post-Signup Experience
+    </div>
+    
+    <div style="margin-top: 50px;">
+        <div class="phone-frame">
+            <div class="screen">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <span>🔋 100%</span>
+                </div>
+                
+                <div class="header">
+                    <div>
+                        <div class="header-title">CallBunker</div>
+                        <div class="defense-number">Defense: (631) 641-7728</div>
+                    </div>
+                    <div style="font-size: 20px;">⚙️</div>
+                </div>
+                
+                <div class="content">
+                    <div class="welcome-section">
+                        <div class="welcome-title">Welcome to CallBunker!</div>
+                        <div class="welcome-text">
+                            Your account is ready. You can now make calls with complete privacy protection.
+                        </div>
+                        <div class="defense-info">
+                            <div class="defense-label">YOUR DEFENSE NUMBER</div>
+                            <div class="defense-number-large">(631) 641-7728</div>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <div class="action-card" onclick="showDialer()">
+                            <div class="action-icon">📞</div>
+                            <div class="action-title">Protected Dialer</div>
+                            <div class="action-subtitle">Make private calls</div>
+                        </div>
+                        
+                        <div class="action-card" onclick="showContacts()">
+                            <div class="action-icon">👥</div>
+                            <div class="action-title">Trusted Contacts</div>
+                            <div class="action-subtitle">Manage whitelist</div>
+                        </div>
+                        
+                        <div class="action-card" onclick="showHistory()">
+                            <div class="action-icon">📋</div>
+                            <div class="action-title">Call History</div>
+                            <div class="action-subtitle">View call logs</div>
+                        </div>
+                        
+                        <div class="action-card" onclick="showMessages()">
+                            <div class="action-icon">💬</div>
+                            <div class="action-title">Anonymous SMS</div>
+                            <div class="action-subtitle">Send messages</div>
+                        </div>
+                    </div>
+                    
+                    <div class="features-list">
+                        <div class="features-title">Privacy Features Active</div>
+                        
+                        <div class="feature-item">
+                            <div class="feature-icon">🛡️</div>
+                            <div class="feature-text">Call screening with PIN authentication</div>
+                        </div>
+                        
+                        <div class="feature-item">
+                            <div class="feature-icon">🎭</div>
+                            <div class="feature-text">Caller ID spoofing protection</div>
+                        </div>
+                        
+                        <div class="feature-item">
+                            <div class="feature-icon">🔒</div>
+                            <div class="feature-text">Real number completely hidden</div>
+                        </div>
+                        
+                        <div class="feature-item">
+                            <div class="feature-icon">📱</div>
+                            <div class="feature-text">Native calling (no VoIP)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bottom-tabs">
+                    <div class="tab active">
+                        <div class="tab-icon">🏠</div>
+                        <div class="tab-label">Home</div>
+                    </div>
+                    <div class="tab">
+                        <div class="tab-icon">📞</div>
+                        <div class="tab-label">Dialer</div>
+                    </div>
+                    <div class="tab">
+                        <div class="tab-icon">📋</div>
+                        <div class="tab-label">History</div>
+                    </div>
+                    <div class="tab">
+                        <div class="tab-icon">👥</div>
+                        <div class="tab-label">Contacts</div>
+                    </div>
+                    <div class="tab">
+                        <div class="tab-icon">💬</div>
+                        <div class="tab-label">Messages</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Transition Overlay -->
+    <div id="transitionOverlay" class="transition-overlay">
+        <div class="transition-content">
+            <div class="transition-icon">🚀</div>
+            <div class="transition-title">Account Created!</div>
+            <div class="transition-message">
+                Transitioning to your CallBunker dashboard with complete privacy protection...
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Show transition animation on page load
+        window.addEventListener('load', function() {
+            document.getElementById('transitionOverlay').style.display = 'flex';
+            setTimeout(function() {
+                document.getElementById('transitionOverlay').style.display = 'none';
+            }, 2000);
+        });
+        
+        function showDialer() {
+            alert('Protected Dialer: Make calls with complete privacy protection using your Google Voice number for caller ID.');
+        }
+        
+        function showContacts() {
+            alert('Trusted Contacts: Add phone numbers that can bypass authentication when calling your Defense Number.');
+        }
+        
+        function showHistory() {
+            alert('Call History: View all incoming and outgoing calls with privacy protection details.');
+        }
+        
+        function showMessages() {
+            alert('Anonymous SMS: Send text messages from your Defense Number with complete anonymity.');
+        }
+        
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

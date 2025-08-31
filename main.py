@@ -452,5 +452,15 @@ def mobile_preview():
     '''
     return html_content
 
+@app.route('/main-app-demo')
+def main_app_demo():
+    """CallBunker main app interface demo"""
+    try:
+        with open('mobile_app_main_demo.html', 'r') as f:
+            content = f.read()
+        return content
+    except FileNotFoundError:
+        return "Main app demo not found", 404
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
