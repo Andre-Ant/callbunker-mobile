@@ -313,6 +313,12 @@ def mobile_preview():
         .info-text { font-size: 14px; color: #1976d2; margin-bottom: 5px; }
         .banner { background: #ff9800; color: white; text-align: center; padding: 10px; font-weight: bold; margin-bottom: 20px; }
         .demo-info { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .success-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .success-content { background: white; padding: 30px; border-radius: 12px; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .success-icon { font-size: 48px; margin-bottom: 15px; }
+        .success-title { font-size: 20px; font-weight: bold; color: #28a745; margin-bottom: 10px; }
+        .success-message { color: #666; margin-bottom: 20px; line-height: 1.5; }
+        .success-button { background: #007AFF; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -342,7 +348,11 @@ def mobile_preview():
                     
                     <div class="input-group">
                         <label class="label">Google Voice Number</label>
-                        <input type="tel" class="input" placeholder="(555) 123-4567" value="(555) 123-4567" required>
+                        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                            <input type="tel" class="input" placeholder="(555) 123-4567" value="(555) 123-4567" required style="flex: 1; margin: 0;">
+                            <a href="https://voice.google.com" target="_blank" style="background: #34a853; color: white; padding: 8px 12px; border-radius: 6px; text-decoration: none; font-size: 14px; white-space: nowrap;">Get Google Voice</a>
+                        </div>
+                        <small style="color: #666; font-size: 12px;">Don't have Google Voice? Click the button above to get a free number</small>
                     </div>
                     
                     <div class="input-group">
@@ -372,15 +382,35 @@ def mobile_preview():
         </div>
     </div>
     
+    <!-- Success Modal -->
+    <div id="successModal" class="success-modal">
+        <div class="success-content">
+            <div class="success-icon">🎉</div>
+            <div class="success-title">Account Created Successfully!</div>
+            <div class="success-message">
+                Your CallBunker Defense Number is:<br>
+                <strong style="font-size: 18px; color: #007AFF;">(631) 641-7728</strong><br><br>
+                You can now make calls with complete privacy protection using your Google Voice number.
+            </div>
+            <button class="success-button" onclick="closeSuccessModal()">Get Started</button>
+        </div>
+    </div>
+    
     <div class="demo-info">
-        <h2 style="color: #007AFF; margin-bottom: 15px;">Multi-User Signup Features</h2>
+        <h2 style="color: #007AFF; margin-bottom: 15px;">User Signup Experience</h2>
+        <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <strong style="color: #155724;">✅ Users will see this exact signup interface in the mobile APK</strong><br>
+            <span style="color: #155724;">This is the first screen when users open CallBunker for the first time</span>
+        </div>
+        
+        <h3 style="color: #007AFF; margin-bottom: 10px;">Signup Features:</h3>
         <ul style="line-height: 1.6; color: #333;">
+            <li><strong>Google Voice Integration:</strong> Direct link to get a free Google Voice number</li>
             <li><strong>Automatic Defense Number Assignment:</strong> Each user gets a unique Twilio number from the phone pool</li>
+            <li><strong>UI-Friendly Success Dialog:</strong> Professional modal with Defense Number confirmation</li>
             <li><strong>Form Validation:</strong> Real-time validation for email, phone numbers, and required fields</li>
             <li><strong>Phone Number Formatting:</strong> Automatic formatting for US phone numbers</li>
             <li><strong>Security Setup:</strong> Custom PIN and verbal code for call authentication</li>
-            <li><strong>Google Voice Integration:</strong> Links with user's Google Voice for privacy protection</li>
-            <li><strong>Session Management:</strong> Persistent login with secure authentication flow</li>
         </ul>
         
         <h3 style="color: #007AFF; margin: 20px 0 10px 0;">Current Phone Pool Status</h3>
@@ -397,8 +427,12 @@ def mobile_preview():
     
     <script>
         function showSuccess() {
-            alert('✅ Account Created!\\n\\nYour Defense Number is (631) 641-7728\\n\\nYou can now use CallBunker with complete privacy protection.');
+            document.getElementById('successModal').style.display = 'flex';
             return false;
+        }
+        
+        function closeSuccessModal() {
+            document.getElementById('successModal').style.display = 'none';
         }
         
         // Prevent form submission redirect
