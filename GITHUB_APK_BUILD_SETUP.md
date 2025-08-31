@@ -226,8 +226,9 @@ Your developer now needs:
 **Files to Send:**
 1. **COMPLETE_MOBILE_APP_PACKAGE.md** - App documentation
 2. **GITHUB_APK_BUILD_SETUP.md** - This GitHub setup guide
-3. **Complete mobile app folder** - `mobile_app/callbunker-build/`
-4. **COMPLETE_SIGNUPSCREEN_CODE.js** - Enhanced signup
+3. **GITHUB_REPOSITORY_SETUP.md** - Repository configuration with .gitignore
+4. **Complete mobile app folder** - `mobile_app/callbunker-build/` (excluding .expo)
+5. **COMPLETE_SIGNUPSCREEN_CODE.js** - Enhanced signup
 
 **GitHub Setup:**
 1. Create GitHub repository
