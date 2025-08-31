@@ -181,21 +181,28 @@ npx expo build:android --type apk
 
 ## **Deployment Options**
 
-### **Option 1: Expo Application Services (Recommended)**
+### **Option 1: GitHub Actions (Recommended for GitHub repos)**
+- Automated APK building on code push
+- No local Android Studio required
+- Free CI/CD pipeline with GitHub
+- Professional distribution through GitHub Releases
+
+### **Option 2: Expo Application Services**
 - Cloud-based builds
 - Automatic code signing
 - Google Play Store integration
 - Push notification support
 
-### **Option 2: Local Build**
+### **Option 3: Local Build**
 - Requires Android Studio setup
 - Manual APK generation
 - Direct device installation
 
-### **Option 3: Replit Deployment**
-- Host backend on Replit
-- Use Replit's deployment features for web interface
-- Mobile app connects to Replit-hosted API
+### **Option 4: GitHub Codespaces**
+- Cloud development environment
+- No local setup required
+- Integrated with GitHub repo
+- Browser-based development
 
 ## **File Locations for Developer**
 

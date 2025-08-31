@@ -23,6 +23,12 @@ Enhance the mobile app signup interface with Google Voice integration and profes
 - Replace existing file with this version
 - All features included and tested
 
+### 4. GitHub Integration Guide
+**File:** `GITHUB_APK_BUILD_SETUP.md`
+- GitHub Actions for automated APK building
+- Repository setup and CI/CD pipeline
+- Alternative to local development setup
+
 ## Implementation Summary
 
 ### What Needs to Be Done
