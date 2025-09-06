@@ -19,6 +19,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            padding-bottom: 70px; /* Space for fixed tab bar */
         }
         
         .header {
@@ -384,6 +385,12 @@
             padding: 10px 0;
             display: grid;
             grid-template-columns: repeat(6, 1fr);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
         }
         
         .tab {
