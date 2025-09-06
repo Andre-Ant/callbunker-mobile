@@ -11,7 +11,7 @@ const CallBunkerContext = createContext();
 
 const initialState = {
   user: null,
-  apiUrl: 'https://your-replit-url.replit.app', // Set your Replit URL
+  apiUrl: 'https://4ec224cf-933c-4ca6-b58f-2fce3ea2d59f-00-23vazcc99oamt.janeway.replit.dev', // Live CallBunker Backend
   userId: null, // Will be set after user signup/login
   callHistory: [],
   contacts: [],
