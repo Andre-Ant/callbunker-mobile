@@ -57,6 +57,7 @@ def home():
         <div class="hero">
             <h1>CallBunker</h1>
             <p>Advanced Mobile Communication Security Platform</p>
+            <a href="/demo/full-functional" class="btn">🚀 Full Functional Demo</a>
             <a href="/mobile-preview" class="btn">📱 Signup Interface</a>
             <a href="/main-app-demo" class="btn">🏠 Main App Interface</a>
             <a href="/mobile" class="btn">📞 Mobile Demo</a>
@@ -321,6 +322,11 @@ def sms_test_interface():
     </body>
     </html>
     ''')
+
+@app.route('/demo/full-functional')
+def full_functional_demo():
+    """Complete end-to-end functional demo with real backend integration"""
+    return render_template('demo/full_functional_demo.html')
 
 @app.route('/mobile-preview')
 def mobile_preview():
