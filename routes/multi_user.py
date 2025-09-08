@@ -45,26 +45,29 @@ def signup():
         google_voice_number = normalize_phone(request.form.get('google_voice_number', '').strip())
         real_phone_number = normalize_phone(request.form.get('real_phone_number', '').strip())
         
+        # Check available numbers for template
+        available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
+        
         # Validation
         if not all([email, name, google_voice_number, real_phone_number]):
             flash('All fields are required', 'error')
-            return render_template('multi_user/signup.html')
+            return render_template('multi_user/signup.html', available_numbers=available_numbers)
         
         # Check if email already exists
         if User.query.filter_by(email=email).first():
             flash('Email already registered', 'error')
-            return render_template('multi_user/signup.html')
+            return render_template('multi_user/signup.html', available_numbers=available_numbers)
         
         # Check if Google Voice number already registered
         if User.query.filter_by(google_voice_number=google_voice_number).first():
             flash('Google Voice number already registered', 'error')
-            return render_template('multi_user/signup.html')
+            return render_template('multi_user/signup.html', available_numbers=available_numbers)
         
-        # Get next available Twilio number
-        available_twilio = TwilioPhonePool.query.filter_by(is_assigned=False).first()
+        # Get next available Twilio number with database lock to prevent race conditions
+        available_twilio = TwilioPhonePool.query.filter_by(is_assigned=False).with_for_update().first()
         if not available_twilio:
             flash('No CallBunker numbers available. Please contact support.', 'error')
-            return render_template('multi_user/signup.html')
+            return render_template('multi_user/signup.html', available_numbers=0)
         
         # Create new user
         user = User(
@@ -77,11 +80,13 @@ def signup():
             verbal_code=request.form.get('verbal_code', 'open sesame').strip()
         )
         
-        # Mark Twilio number as assigned
+        # Mark Twilio number as assigned and save everything in one transaction
         available_twilio.is_assigned = True
-        available_twilio.assigned_to_user_id = user.id
         
         db.session.add(user)
+        db.session.flush()  # Get user.id without committing
+        
+        available_twilio.assigned_to_user_id = user.id
         db.session.commit()
         
         flash(f'Account created! Your Defense Number is {format_phone_display(user.assigned_twilio_number)}', 'success')
@@ -90,7 +95,8 @@ def signup():
     except Exception as e:
         db.session.rollback()
         flash(f'Registration failed: {str(e)}', 'error')
-        return render_template('multi_user/signup.html')
+        available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
+        return render_template('multi_user/signup.html', available_numbers=available_numbers)
 
 @multi_user_bp.route('/user/<int:user_id>/dashboard')
 def user_dashboard(user_id):
