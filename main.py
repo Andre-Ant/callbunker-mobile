@@ -1,5 +1,5 @@
 from app import app
-from flask import send_from_directory, render_template_string, request, jsonify
+from flask import send_from_directory, render_template_string, render_template, request, jsonify
 import os
 from sms_testing import send_protected_sms, get_sms_status
 from voice_messaging import send_voice_message, get_voice_message_status
