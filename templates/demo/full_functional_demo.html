@@ -396,12 +396,36 @@
                 if (response.ok && (result.includes('Account created') || result.includes('Defense Number'))) {
                     showMessage('signup-status', 'Account created successfully! Loading dashboard...', 'success');
                     
-                    // Extract user info
-                    currentUser = {
-                        name: document.getElementById('name').value,
-                        email: document.getElementById('email').value,
-                        id: Date.now() // Simple ID for demo
-                    };
+                    // Extract user ID from the response URL (redirect to dashboard)
+                    const urlMatch = result.match(/user\/(\d+)\/dashboard/);
+                    const userId = urlMatch ? parseInt(urlMatch[1]) : null;
+                    
+                    if (!userId) {
+                        // Fallback: get user by email from backend
+                        const userLookupResponse = await fetch(`${baseURL}/multi/lookup-user`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: document.getElementById('email').value })
+                        });
+                        
+                        if (userLookupResponse.ok) {
+                            const userData = await userLookupResponse.json();
+                            currentUser = {
+                                name: document.getElementById('name').value,
+                                email: document.getElementById('email').value,
+                                id: userData.user_id
+                            };
+                        } else {
+                            showMessage('signup-status', 'Account created but demo setup failed. Please refresh and try the full demo.', 'error');
+                            return;
+                        }
+                    } else {
+                        currentUser = {
+                            name: document.getElementById('name').value,
+                            email: document.getElementById('email').value,
+                            id: userId
+                        };
+                    }
                     
                     setTimeout(() => {
                         loadDashboard();

@@ -144,7 +144,23 @@ def add_twilio_number():
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)})
 
-# API Endpoints for Mobile App
+# API Endpoints for Mobile App  
+@multi_user_bp.route('/lookup-user', methods=['POST'])
+def lookup_user():
+    """Look up user ID by email for demo purposes"""
+    try:
+        data = request.get_json()
+        email = data.get('email', '').strip().lower()
+        
+        user = User.query.filter_by(email=email).first()
+        if user:
+            return jsonify({'user_id': user.id, 'name': user.name})
+        else:
+            return jsonify({'error': 'User not found'}), 404
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @multi_user_bp.route('/user/<int:user_id>/contacts', methods=['GET'])
 def api_get_contacts(user_id):
     """Get trusted contacts for mobile app"""
