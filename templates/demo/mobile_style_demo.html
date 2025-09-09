@@ -661,7 +661,6 @@
                     </div>
                 </div>
 
-                <div id="user-info-home"></div>
             </div>
 
             <!-- Dialer Screen -->
@@ -1030,13 +1029,12 @@
                     </div>
                 </div>
                 
-                <div id="user-info-settings"></div>
             </div>
             
             <!-- Security Settings Detail Screen -->
             <div class="screen" id="security-settings-screen">
                 <div style="display: flex; align-items: center; margin-bottom: 30px;">
-                    <button onclick="showScreen('settings-screen')" style="background: none; border: none; color: #007AFF; font-size: 16px; margin-right: 8px;">←</button>
+                    <button onclick="showScreen('settings-screen')" style="background: none; border: none; color: #007AFF; font-size: 16px; margin-right: 8px; cursor: pointer;">← Back</button>
                     <h1 style="font-size: 24px; font-weight: 600; color: #1C1C1E; margin: 0;">Security Settings</h1>
                 </div>
                 
@@ -1102,7 +1100,7 @@
             <!-- Privacy Protection Detail Screen -->
             <div class="screen" id="privacy-protection-screen">
                 <div style="display: flex; align-items: center; margin-bottom: 30px;">
-                    <button onclick="showScreen('settings-screen')" style="background: none; border: none; color: #007AFF; font-size: 16px; margin-right: 8px;">←</button>
+                    <button onclick="showScreen('settings-screen')" style="background: none; border: none; color: #007AFF; font-size: 16px; margin-right: 8px; cursor: pointer;">← Back</button>
                     <h1 style="font-size: 24px; font-weight: 600; color: #1C1C1E; margin: 0;">Privacy Protection</h1>
                 </div>
                 
@@ -1168,7 +1166,7 @@
             <!-- About CallBunker Detail Screen -->
             <div class="screen" id="about-callbunker-screen">
                 <div style="display: flex; align-items: center; margin-bottom: 30px;">
-                    <button onclick="showScreen('settings-screen')" style="background: none; border: none; color: #007AFF; font-size: 16px; margin-right: 8px;">←</button>
+                    <button onclick="showScreen('settings-screen')" style="background: none; border: none; color: #007AFF; font-size: 16px; margin-right: 8px; cursor: pointer;">← Back</button>
                     <h1 style="font-size: 24px; font-weight: 600; color: #1C1C1E; margin: 0;">About CallBunker</h1>
                 </div>
                 
@@ -1285,18 +1283,7 @@
         
         function updateUserInfo() {
             if (currentUser) {
-                const homeInfo = `
-                    <div class="info-card">
-                        <strong>Your Defense Number:</strong> ${currentUser.assigned_twilio_number}<br>
-                        <strong>Google Voice:</strong> ${currentUser.google_voice_number}<br>
-                        <strong>PIN:</strong> ${currentUser.pin} | <strong>Verbal:</strong> ${currentUser.verbal_code}
-                    </div>
-                `;
-                
-                document.getElementById('user-info-home').innerHTML = homeInfo;
-                document.getElementById('user-info-settings').innerHTML = homeInfo;
-                
-                // Update stats on home screen
+                // Update stats on home screen only
                 document.getElementById('blocked-calls').textContent = '6';
                 document.getElementById('trusted-contacts').textContent = '2';
             }
@@ -1430,42 +1417,94 @@
         
         function whitelistNumber(number) {
             const formattedNumber = formatPhoneNumber(number);
+            const item = document.querySelector(`.blocked-call-item[data-number="${number}"]`);
             
-            // Show success message
-            const message = `✅ ${formattedNumber} added to whitelist! Future calls will bypass screening.`;
-            if (confirm(message)) {
-                // Remove from blocked list
-                const item = document.querySelector(`.blocked-call-item[data-number="${number}"]`);
-                if (item) {
-                    item.style.opacity = '0.5';
-                    item.style.background = '#E8F5E8';
+            if (item) {
+                // Add success animation
+                item.style.transform = 'translateX(10px)';
+                item.style.background = 'linear-gradient(90deg, #E8F5E8 0%, #D4F4DD 100%)';
+                item.style.border = '2px solid #4CAF50';
+                item.style.borderRadius = '12px';
+                item.style.transition = 'all 0.3s ease';
+                
+                // Show success feedback
+                const successDiv = document.createElement('div');
+                successDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; color: #4CAF50; font-weight: 600; font-size: 14px;">
+                        <span style="font-size: 18px; margin-right: 8px;">✅</span>
+                        Added to Trusted Contacts!
+                    </div>
+                `;
+                successDiv.style.cssText = 'position: absolute; top: 10px; right: 10px; background: white; padding: 8px 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000;';
+                document.body.appendChild(successDiv);
+                
+                setTimeout(() => {
+                    item.style.transform = 'translateX(-100%)';
+                    item.style.opacity = '0';
+                    
                     setTimeout(() => {
                         item.style.display = 'none';
                         updateBlockedCount();
-                    }, 1000);
-                }
+                        
+                        // Update trusted contacts count
+                        const trustedCount = document.getElementById('trusted-contacts');
+                        if (trustedCount) {
+                            const current = parseInt(trustedCount.textContent);
+                            trustedCount.textContent = current + 1;
+                        }
+                    }, 300);
+                }, 1200);
                 
-                // Update trusted contacts count
-                const trustedCount = document.getElementById('trusted-contacts');
-                if (trustedCount) {
-                    const current = parseInt(trustedCount.textContent);
-                    trustedCount.textContent = current + 1;
-                }
+                // Remove success notification
+                setTimeout(() => {
+                    if (document.body.contains(successDiv)) {
+                        successDiv.style.opacity = '0';
+                        setTimeout(() => document.body.removeChild(successDiv), 300);
+                    }
+                }, 2000);
             }
         }
         
         function removeBlockedCall(number) {
             const formattedNumber = formatPhoneNumber(number);
+            const item = document.querySelector(`.blocked-call-item[data-number="${number}"]`);
             
-            if (confirm(`Remove ${formattedNumber} from blocked calls list?`)) {
-                const item = document.querySelector(`.blocked-call-item[data-number="${number}"]`);
-                if (item) {
-                    item.style.opacity = '0.5';
+            if (item) {
+                // Add removal animation
+                item.style.transform = 'translateX(-10px)';
+                item.style.background = 'linear-gradient(90deg, #FFE5E5 0%, #FFCDD2 100%)';
+                item.style.border = '2px solid #FF3B30';
+                item.style.borderRadius = '12px';
+                item.style.transition = 'all 0.3s ease';
+                
+                // Show removal feedback
+                const removalDiv = document.createElement('div');
+                removalDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; color: #FF3B30; font-weight: 600; font-size: 14px;">
+                        <span style="font-size: 18px; margin-right: 8px;">🗑️</span>
+                        Removed from list!
+                    </div>
+                `;
+                removalDiv.style.cssText = 'position: absolute; top: 10px; right: 10px; background: white; padding: 8px 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000;';
+                document.body.appendChild(removalDiv);
+                
+                setTimeout(() => {
+                    item.style.transform = 'translateX(100%)';
+                    item.style.opacity = '0';
+                    
                     setTimeout(() => {
                         item.style.display = 'none';
                         updateBlockedCount();
-                    }, 500);
-                }
+                    }, 300);
+                }, 1000);
+                
+                // Remove notification
+                setTimeout(() => {
+                    if (document.body.contains(removalDiv)) {
+                        removalDiv.style.opacity = '0';
+                        setTimeout(() => document.body.removeChild(removalDiv), 300);
+                    }
+                }, 2000);
             }
         }
         
@@ -1528,7 +1567,7 @@
         function performBulkAction(action) {
             const selectedCheckboxes = document.querySelectorAll('.call-checkbox:checked');
             if (selectedCheckboxes.length === 0) {
-                alert('No calls selected');
+                showStatusMessage('No calls selected', 'error');
                 return;
             }
             
@@ -1537,20 +1576,35 @@
             );
             
             if (action === 'whitelist') {
-                if (confirm(`Add ${numbers.length} selected numbers to whitelist?`)) {
-                    numbers.forEach(number => {
+                // Show success feedback immediately
+                const count = numbers.length;
+                showStatusMessage(`✅ Adding ${count} number${count !== 1 ? 's' : ''} to Trusted Contacts...`, 'success');
+                
+                numbers.forEach((number, index) => {
+                    setTimeout(() => {
                         const item = document.querySelector(`.blocked-call-item[data-number="${number}"]`);
                         if (item) {
-                            item.style.background = '#E8F5E8';
-                            item.style.opacity = '0.5';
+                            item.style.transform = 'translateX(10px)';
+                            item.style.background = 'linear-gradient(90deg, #E8F5E8 0%, #D4F4DD 100%)';
+                            item.style.border = '2px solid #4CAF50';
+                            item.style.borderRadius = '12px';
+                            item.style.transition = 'all 0.3s ease';
+                            
                             setTimeout(() => {
-                                item.style.display = 'none';
-                                updateBlockedCount();
-                            }, 1000);
+                                item.style.transform = 'translateX(-100%)';
+                                item.style.opacity = '0';
+                                
+                                setTimeout(() => {
+                                    item.style.display = 'none';
+                                    updateBlockedCount();
+                                }, 300);
+                            }, 800);
                         }
-                    });
-                    
-                    // Update trusted contacts count
+                    }, index * 200);
+                });
+                
+                // Update trusted contacts count
+                setTimeout(() => {
                     const trustedCount = document.getElementById('trusted-contacts');
                     if (trustedCount) {
                         const current = parseInt(trustedCount.textContent);
@@ -1559,24 +1613,67 @@
                     
                     // Exit selection mode
                     toggleSelectMultiple();
-                }
+                    showStatusMessage(`✅ ${numbers.length} number${numbers.length !== 1 ? 's' : ''} added to Trusted Contacts!`, 'success');
+                }, numbers.length * 200 + 1000);
+                
             } else if (action === 'remove') {
-                if (confirm(`Remove ${numbers.length} selected numbers from blocked list?`)) {
-                    numbers.forEach(number => {
+                const count = numbers.length;
+                showStatusMessage(`🗑️ Removing ${count} number${count !== 1 ? 's' : ''}...`, 'info');
+                
+                numbers.forEach((number, index) => {
+                    setTimeout(() => {
                         const item = document.querySelector(`.blocked-call-item[data-number="${number}"]`);
                         if (item) {
-                            item.style.opacity = '0.5';
+                            item.style.transform = 'translateX(-10px)';
+                            item.style.background = 'linear-gradient(90deg, #FFE5E5 0%, #FFCDD2 100%)';
+                            item.style.border = '2px solid #FF3B30';
+                            item.style.borderRadius = '12px';
+                            item.style.transition = 'all 0.3s ease';
+                            
                             setTimeout(() => {
-                                item.style.display = 'none';
-                                updateBlockedCount();
-                            }, 500);
+                                item.style.transform = 'translateX(100%)';
+                                item.style.opacity = '0';
+                                
+                                setTimeout(() => {
+                                    item.style.display = 'none';
+                                    updateBlockedCount();
+                                }, 300);
+                            }, 800);
                         }
-                    });
-                    
+                    }, index * 200);
+                });
+                
+                setTimeout(() => {
                     // Exit selection mode
                     toggleSelectMultiple();
-                }
+                    showStatusMessage(`🗑️ ${numbers.length} number${numbers.length !== 1 ? 's' : ''} removed!`, 'info');
+                }, numbers.length * 200 + 1000);
             }
+        }
+        
+        function showStatusMessage(message, type = 'info') {
+            const statusDiv = document.createElement('div');
+            statusDiv.innerHTML = `
+                <div style="display: flex; align-items: center; font-weight: 600; font-size: 14px; color: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#FF3B30' : '#007AFF'};">
+                    ${message}
+                </div>
+            `;
+            statusDiv.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: white; padding: 12px 24px; border-radius: 25px; box-shadow: 0 6px 24px rgba(0,0,0,0.15); z-index: 10000; border: 2px solid ' + (type === 'success' ? '#4CAF50' : type === 'error' ? '#FF3B30' : '#007AFF') + ';';
+            document.body.appendChild(statusDiv);
+            
+            // Fade out after 3 seconds
+            setTimeout(() => {
+                if (document.body.contains(statusDiv)) {
+                    statusDiv.style.opacity = '0';
+                    statusDiv.style.transform = 'translateX(-50%) translateY(-20px)';
+                    statusDiv.style.transition = 'all 0.3s ease';
+                    setTimeout(() => {
+                        if (document.body.contains(statusDiv)) {
+                            document.body.removeChild(statusDiv);
+                        }
+                    }, 300);
+                }
+            }, 3000);
         }
         
         // Signup functionality
