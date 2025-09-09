@@ -1,7 +1,7 @@
 """
 CallBunker Business Routes - Each user gets their own Twilio number
 """
-from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify
+from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, make_response
 from models_multi_user import User, TwilioPhonePool, UserWhitelist
 from app import db
 from utils.twilio_helpers import twilio_client
@@ -36,7 +36,11 @@ def signup():
     if request.method == 'GET':
         # Check available Twilio numbers
         available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
-        return render_template('multi_user/signup.html', available_numbers=available_numbers)
+        response = make_response(render_template('multi_user/signup.html', available_numbers=available_numbers))
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
     
     try:
         # Get form data
