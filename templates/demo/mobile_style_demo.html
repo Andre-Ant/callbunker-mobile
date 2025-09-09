@@ -938,15 +938,15 @@
 
             <!-- Contacts Screen -->
             <div class="screen" id="contacts-screen">
-                <h1 style="text-align: center; font-size: 24px; font-weight: 600; color: #1C1C1E; margin-bottom: 30px;">Trusted Contacts</h1>
+                <h1 style="text-align: center; font-size: 24px; font-weight: 600; color: #1C1C1E; margin-bottom: 30px;">Whitelist</h1>
                 
                 <div style="background: #E8F5E8; border-radius: 12px; padding: 16px; margin-bottom: 24px; display: flex; align-items: center;">
                     <div style="width: 24px; height: 24px; background: #4CAF50; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; color: white;">🛡️</div>
-                    <span style="font-size: 14px; color: #4CAF50; font-weight: 500;">Trusted contacts bypass screening</span>
+                    <span style="font-size: 14px; color: #4CAF50; font-weight: 500;">Whitelist contacts bypass screening</span>
                 </div>
                 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 style="font-size: 18px; font-weight: 600; color: #1C1C1E; margin: 0;">Trusted Contacts (<span id="contact-count">2</span>)</h3>
+                    <h3 style="font-size: 18px; font-weight: 600; color: #1C1C1E; margin: 0;">Whitelist (<span id="contact-count">2</span>)</h3>
                     <button id="select-all-contacts-btn" onclick="selectAllContacts()" style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer;">Select All</button>
                 </div>
                 
@@ -986,10 +986,10 @@
                 
                 <div style="display: none;" id="add-contact-form">
                     <div class="form-group" style="margin-top: 20px;">
-                        <label class="form-label">Add Contact</label>
+                        <label class="form-label">Add to Whitelist</label>
                         <input type="text" id="contact-name" class="form-input" placeholder="Contact Name">
                         <input type="tel" id="contact-phone" class="form-input" placeholder="Phone Number" style="margin-top: 8px;">
-                        <button class="btn" onclick="addContact()" style="margin-top: 8px;">Add to Trusted List</button>
+                        <button class="btn" onclick="addContact()" style="margin-top: 8px;">Add to Whitelist</button>
                     </div>
                 </div>
             </div>
@@ -1513,12 +1513,12 @@
                     item.style.transform = 'translateX(-100%)';
                     item.style.opacity = '0';
                     
-                    setTimeout(() => {
+                    setTimeout(async () => {
                         item.style.display = 'none';
                         updateBlockedCount();
                         
                         // Add to whitelist and update trusted contacts count
-                        addToWhitelist(formattedNumber);
+                        await addToWhitelist(formattedNumber);
                     }, 300);
                 }, 1200);
                 
@@ -1671,15 +1671,15 @@
                 });
                 
                 // Add to whitelist and update trusted contacts count
-                setTimeout(() => {
+                setTimeout(async () => {
                     // Add each number to the whitelist
-                    numbers.forEach(number => {
-                        addToWhitelist(number);
-                    });
+                    for (const number of numbers) {
+                        await addToWhitelist(number);
+                    }
                     
                     // Exit selection mode
                     toggleSelectMultiple();
-                    showStatusMessage(`✅ ${numbers.length} number${numbers.length !== 1 ? 's' : ''} added to Trusted Contacts!`, 'success');
+                    showStatusMessage(`✅ ${numbers.length} number${numbers.length !== 1 ? 's' : ''} added to Whitelist!`, 'success');
                 }, numbers.length * 200 + 1000);
                 
             } else if (action === 'remove') {
@@ -1802,25 +1802,51 @@
             document.getElementById('verbal-edit-mode').style.display = 'none';
         }
         
-        // Enhanced whitelist function that adds to contacts
-        function addToWhitelist(number) {
-            const formattedNumber = formatPhoneNumber(number);
-            const newContact = {
-                id: 'whitelist_' + Date.now(),
-                name: 'Whitelisted Caller',
-                phone_number: formattedNumber,
-                added: 'whitelist'
-            };
-            whitelistedContacts.push(newContact);
-            
-            // Update trusted contacts count
-            const trustedCount = document.getElementById('trusted-contacts');
-            if (trustedCount) {
-                const current = parseInt(trustedCount.textContent);
-                trustedCount.textContent = current + 1;
+        // Enhanced whitelist function that adds to contacts via backend
+        async function addToWhitelist(number) {
+            if (!currentUser) {
+                console.error('No current user for whitelist addition');
+                return;
             }
             
-            return newContact;
+            const formattedNumber = formatPhoneNumber(number);
+            
+            try {
+                // Add to backend database
+                const response = await fetch('/demo/api/add-contact', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        user_id: currentUser.id,
+                        name: `Caller ${formattedNumber.slice(-4)}`, // Use last 4 digits for name
+                        phone_number: formattedNumber
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update trusted contacts count on main screen
+                    const trustedCount = document.getElementById('trusted-contacts');
+                    if (trustedCount) {
+                        const current = parseInt(trustedCount.textContent);
+                        trustedCount.textContent = current + 1;
+                    }
+                    
+                    // Refresh contacts list if currently viewing contacts screen
+                    if (document.getElementById('contacts-screen').style.display !== 'none') {
+                        await loadContacts();
+                    }
+                    
+                    return result.contact;
+                } else {
+                    console.error('Failed to add to whitelist:', result.error);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error adding to whitelist:', error);
+                return null;
+            }
         }
         
         function refreshContactsWithWhitelist() {
@@ -2245,7 +2271,7 @@
                     contactsList.innerHTML = `
                         <div style="text-align: center; padding: 40px; color: #8E8E93;">
                             <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
-                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No Trusted Contacts</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No Whitelist Contacts</div>
                             <div>Add contacts to bypass call screening</div>
                         </div>
                     `;
@@ -2292,7 +2318,7 @@
                     document.getElementById('contact-name').value = '';
                     document.getElementById('contact-phone').value = '';
                     await loadContacts();
-                    showStatusMessage(`✅ ${name} added to trusted contacts`, 'success');
+                    showStatusMessage(`✅ ${name} added to whitelist`, 'success');
                 } else {
                     showStatusMessage(`❌ Error: ${result.error}`, 'error');
                 }
