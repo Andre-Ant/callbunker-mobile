@@ -1041,23 +1041,47 @@
                 
                 <div style="margin-bottom: 30px;">
                     <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 12px;">PIN AUTHENTICATION</h3>
-                    <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div id="pin-display" style="font-size: 24px; font-weight: 600; color: #1C1C1E; margin-bottom: 4px;">8322</div>
-                            <div style="font-size: 14px; color: #8E8E93;">4-digit numeric code for call authentication</div>
+                    <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 8px;">
+                        <!-- Display Mode -->
+                        <div id="pin-display-mode" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div id="pin-display" style="font-size: 24px; font-weight: 600; color: #1C1C1E; margin-bottom: 4px;">8322</div>
+                                <div style="font-size: 14px; color: #8E8E93;">4-digit numeric code for call authentication</div>
+                            </div>
+                            <button onclick="editPin()" style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer;">Edit</button>
                         </div>
-                        <button onclick="editPin()" style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer;">Edit</button>
+                        <!-- Edit Mode -->
+                        <div id="pin-edit-mode" style="display: none;">
+                            <input id="pin-input" type="text" maxlength="4" pattern="[0-9]{4}" style="width: 100%; padding: 12px; border: 2px solid #E5E5EA; border-radius: 8px; font-size: 18px; font-weight: 600; margin-bottom: 8px; outline: none;" placeholder="Enter 4-digit PIN">
+                            <div style="font-size: 14px; color: #8E8E93; margin-bottom: 16px;">4-digit numeric code for call authentication</div>
+                            <div style="display: flex; gap: 12px;">
+                                <button onclick="savePinEdit()" style="background: #4CAF50; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; flex: 1;">Save</button>
+                                <button onclick="cancelPinEdit()" style="background: #8E8E93; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; flex: 1;">Cancel</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
                 <div style="margin-bottom: 30px;">
                     <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 12px;">VERBAL CODE</h3>
-                    <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div id="verbal-display" style="font-size: 18px; font-weight: 600; color: #1C1C1E; margin-bottom: 4px;">"Black widow"</div>
-                            <div style="font-size: 14px; color: #8E8E93;">Spoken phrase for voice authentication</div>
+                    <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 8px;">
+                        <!-- Display Mode -->
+                        <div id="verbal-display-mode" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div id="verbal-display" style="font-size: 18px; font-weight: 600; color: #1C1C1E; margin-bottom: 4px;">Black widow</div>
+                                <div style="font-size: 14px; color: #8E8E93;">Spoken phrase for voice authentication</div>
+                            </div>
+                            <button onclick="editVerbalCode()" style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer;">Edit</button>
                         </div>
-                        <button onclick="editVerbalCode()" style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer;">Edit</button>
+                        <!-- Edit Mode -->
+                        <div id="verbal-edit-mode" style="display: none;">
+                            <input id="verbal-input" type="text" style="width: 100%; padding: 12px; border: 2px solid #E5E5EA; border-radius: 8px; font-size: 16px; font-weight: 600; margin-bottom: 8px; outline: none;" placeholder="Enter verbal code">
+                            <div style="font-size: 14px; color: #8E8E93; margin-bottom: 16px;">Spoken phrase for voice authentication</div>
+                            <div style="display: flex; gap: 12px;">
+                                <button onclick="saveVerbalEdit()" style="background: #4CAF50; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; flex: 1;">Save</button>
+                                <button onclick="cancelVerbalEdit()" style="background: #8E8E93; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; flex: 1;">Cancel</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -1280,6 +1304,11 @@
             if (tabMap[screenId]) {
                 document.getElementById(tabMap[screenId]).classList.add('active');
             }
+            
+            // Load contacts when switching to contacts screen
+            if (screenId === 'contacts-screen') {
+                loadContactsScreen();
+            }
         }
         
         function updateUserInfo() {
@@ -1471,12 +1500,8 @@
                         item.style.display = 'none';
                         updateBlockedCount();
                         
-                        // Update trusted contacts count
-                        const trustedCount = document.getElementById('trusted-contacts');
-                        if (trustedCount) {
-                            const current = parseInt(trustedCount.textContent);
-                            trustedCount.textContent = current + 1;
-                        }
+                        // Add to whitelist and update trusted contacts count
+                        addToWhitelist(formattedNumber);
                     }, 300);
                 }, 1200);
                 
@@ -1628,13 +1653,12 @@
                     }, index * 200);
                 });
                 
-                // Update trusted contacts count
+                // Add to whitelist and update trusted contacts count
                 setTimeout(() => {
-                    const trustedCount = document.getElementById('trusted-contacts');
-                    if (trustedCount) {
-                        const current = parseInt(trustedCount.textContent);
-                        trustedCount.textContent = current + numbers.length;
-                    }
+                    // Add each number to the whitelist
+                    numbers.forEach(number => {
+                        addToWhitelist(number);
+                    });
                     
                     // Exit selection mode
                     toggleSelectMultiple();
@@ -1706,27 +1730,59 @@
         
         // PIN and Verbal Code editing functionality
         function editPin() {
-            const currentPin = document.getElementById('pin-display').textContent;
-            const newPin = prompt('Enter new 4-digit PIN:', currentPin);
+            document.getElementById('pin-display-mode').style.display = 'none';
+            document.getElementById('pin-edit-mode').style.display = 'block';
             
-            if (newPin && /^\d{4}$/.test(newPin)) {
+            const currentPin = document.getElementById('pin-display').textContent;
+            document.getElementById('pin-input').value = currentPin;
+            document.getElementById('pin-input').focus();
+        }
+        
+        function savePinEdit() {
+            const newPin = document.getElementById('pin-input').value;
+            
+            if (/^\d{4}$/.test(newPin)) {
                 document.getElementById('pin-display').textContent = newPin;
+                document.getElementById('pin-display-mode').style.display = 'flex';
+                document.getElementById('pin-edit-mode').style.display = 'none';
                 showStatusMessage('✅ PIN updated successfully!', 'success');
-            } else if (newPin !== null) {
+            } else {
                 showStatusMessage('❌ PIN must be exactly 4 digits', 'error');
+                document.getElementById('pin-input').focus();
             }
         }
         
+        function cancelPinEdit() {
+            document.getElementById('pin-display-mode').style.display = 'flex';
+            document.getElementById('pin-edit-mode').style.display = 'none';
+        }
+        
         function editVerbalCode() {
-            const currentCode = document.getElementById('verbal-display').textContent.replace(/"/g, '');
-            const newCode = prompt('Enter new verbal code:', currentCode);
+            document.getElementById('verbal-display-mode').style.display = 'none';
+            document.getElementById('verbal-edit-mode').style.display = 'block';
             
-            if (newCode && newCode.trim().length > 0) {
-                document.getElementById('verbal-display').textContent = `"${newCode.trim()}"`;
+            const currentCode = document.getElementById('verbal-display').textContent.trim();
+            document.getElementById('verbal-input').value = currentCode;
+            document.getElementById('verbal-input').focus();
+        }
+        
+        function saveVerbalEdit() {
+            const newCode = document.getElementById('verbal-input').value.trim();
+            
+            if (newCode.length > 0) {
+                document.getElementById('verbal-display').textContent = newCode;
+                document.getElementById('verbal-display-mode').style.display = 'flex';
+                document.getElementById('verbal-edit-mode').style.display = 'none';
                 showStatusMessage('✅ Verbal code updated successfully!', 'success');
-            } else if (newCode !== null) {
+            } else {
                 showStatusMessage('❌ Verbal code cannot be empty', 'error');
+                document.getElementById('verbal-input').focus();
             }
+        }
+        
+        function cancelVerbalEdit() {
+            document.getElementById('verbal-display-mode').style.display = 'flex';
+            document.getElementById('verbal-edit-mode').style.display = 'none';
         }
         
         // Enhanced whitelist function that adds to contacts
@@ -1752,7 +1808,19 @@
         
         function refreshContactsWithWhitelist() {
             const contactsList = document.getElementById('contacts-list');
-            if (!contactsList || whitelistedContacts.length === 0) return;
+            if (!contactsList) return;
+            
+            if (whitelistedContacts.length === 0) {
+                // Only show "No trusted contacts" if no whitelist contacts exist
+                contactsList.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #8E8E93;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No trusted contacts yet</div>
+                        <div style="font-size: 14px;">Add contacts to allow them to bypass call screening</div>
+                    </div>
+                `;
+                return;
+            }
             
             const whitelistHTML = whitelistedContacts.map(contact => `
                 <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #4CAF50;">
@@ -1765,23 +1833,28 @@
                 </div>
             `).join('');
             
-            // Add whitelist contacts to the top of the existing list
-            const existingContent = contactsList.innerHTML;
-            if (existingContent.includes('No trusted contacts')) {
-                contactsList.innerHTML = whitelistHTML;
-            } else {
-                contactsList.innerHTML = whitelistHTML + existingContent;
-            }
+            contactsList.innerHTML = whitelistHTML;
         }
         
         function removeWhitelistContact(contactId) {
             whitelistedContacts = whitelistedContacts.filter(contact => contact.id !== contactId);
+            
+            // Update trusted contacts count
             const trustedCount = document.getElementById('trusted-contacts');
             if (trustedCount) {
                 const current = parseInt(trustedCount.textContent);
                 trustedCount.textContent = Math.max(0, current - 1);
             }
-            loadContacts(); // Refresh the display
+            
+            // Refresh the contacts display
+            refreshContactsWithWhitelist();
+            showStatusMessage('✅ Contact removed from trusted list', 'success');
+        }
+        
+        
+        // Load contacts when viewing contacts screen
+        function loadContactsScreen() {
+            refreshContactsWithWhitelist();
         }
         
         // Signup functionality
