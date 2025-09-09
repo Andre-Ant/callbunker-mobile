@@ -640,7 +640,7 @@
                         <div style="position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #E5E5EA;"></div>
                         <div style="text-align: center; cursor: pointer; padding: 20px; flex: 1; background: #F8F9FA;" onclick="showScreen('contacts-screen')">
                             <div style="font-size: 28px; font-weight: 700; color: #4CAF50; margin-bottom: 4px;" id="trusted-contacts">2</div>
-                            <div style="font-size: 14px; color: #8E8E93;">Trusted Contacts</div>
+                            <div style="font-size: 14px; color: #8E8E93;">Whitelist</div>
                         </div>
                     </div>
                 </div>
@@ -1344,22 +1344,9 @@
                 });
                 
                 if (response.ok) {
-                    // Remove from UI with animation
-                    const contactItem = event.target.closest('.contact-item');
-                    if (contactItem) {
-                        contactItem.style.transform = 'translateX(-100%)';
-                        contactItem.style.opacity = '0';
-                        contactItem.style.transition = 'all 0.3s ease';
-                        
-                        setTimeout(() => {
-                            contactItem.style.display = 'none';
-                            const count = document.getElementById('contact-count');
-                            const currentCount = parseInt(count.textContent);
-                            count.textContent = Math.max(0, currentCount - 1);
-                        }, 300);
-                        
-                        showStatusMessage('✅ Contact removed successfully!', 'success');
-                    }
+                    // Reload contacts from backend to ensure accurate display
+                    await loadContacts();
+                    showStatusMessage('✅ Contact removed successfully!', 'success');
                 } else {
                     showStatusMessage('❌ Failed to remove contact', 'error');
                 }
@@ -1837,53 +1824,8 @@
         }
         
         function refreshContactsWithWhitelist() {
-            const contactsList = document.getElementById('contacts-list');
-            if (!contactsList) return;
-            
-            // Get existing contacts HTML
-            const existingContactsHTML = `
-                <div class="contact-item" style="display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <input type="checkbox" class="contact-checkbox" style="display: ${contactSelectionMode ? 'block' : 'none'}; margin-right: 12px;" onchange="updateContactSelectAllButton()">
-                    <div style="width: 40px; height: 40px; background: #007AFF; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px; font-weight: 600; color: white;">J</div>
-                    <div style="flex: 1;">
-                        <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 2px;">John Smith</div>
-                        <div style="font-size: 14px; color: #8E8E93;">(555) 123-4567</div>
-                    </div>
-                    <button onclick="removeContact('john')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer;">Remove</button>
-                </div>
-                
-                <div class="contact-item" style="display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <input type="checkbox" class="contact-checkbox" style="display: ${contactSelectionMode ? 'block' : 'none'}; margin-right: 12px;" onchange="updateContactSelectAllButton()">
-                    <div style="width: 40px; height: 40px; background: #007AFF; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px; font-weight: 600; color: white;">M</div>
-                    <div style="flex: 1;">
-                        <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 2px;">Mary Johnson</div>
-                        <div style="font-size: 14px; color: #8E8E93;">(555) 987-6543</div>
-                    </div>
-                    <button onclick="removeContact('mary')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer;">Remove</button>
-                </div>
-            `;
-            
-            const whitelistHTML = whitelistedContacts.map(contact => `
-                <div class="contact-item" style="display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #4CAF50; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <input type="checkbox" class="contact-checkbox" style="display: ${contactSelectionMode ? 'block' : 'none'}; margin-right: 12px;" onchange="updateContactSelectAllButton()">
-                    <div style="width: 40px; height: 40px; background: #4CAF50; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px; font-weight: 600; color: white;">${contact.name.charAt(0)}</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; font-size: 16px; color: #1C1C1E; margin-bottom: 2px;">${contact.name}</div>
-                        <div style="color: #8E8E93; font-size: 14px;">${contact.phone_number}</div>
-                        <div style="color: #4CAF50; font-size: 12px; margin-top: 4px;">✅ Added from blocked calls</div>
-                    </div>
-                    <button onclick="removeWhitelistContact('${contact.id}')" style="background: #FF3B30; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">Remove</button>
-                </div>
-            `).join('');
-            
-            contactsList.innerHTML = whitelistHTML + existingContactsHTML;
-            
-            // Update the count
-            const totalContacts = whitelistedContacts.length + 2; // 2 existing contacts
-            const contactCount = document.getElementById('contact-count');
-            if (contactCount) {
-                contactCount.textContent = totalContacts;
-            }
+            // Use the real loadContacts function instead of hardcoded demo contacts
+            loadContacts();
         }
         
         function removeWhitelistContact(contactId) {
@@ -1904,7 +1846,7 @@
         
         // Load contacts when viewing contacts screen
         function loadContactsScreen() {
-            refreshContactsWithWhitelist();
+            loadContacts();
         }
 
         // Contact selection functionality
@@ -1926,7 +1868,7 @@
             }
             
             // Refresh contacts to show/hide checkboxes
-            refreshContactsWithWhitelist();
+            loadContacts();
             
             if (!contactSelectionMode) {
                 // Reset button text when exiting selection mode
@@ -2034,34 +1976,20 @@
                     }
                 }
                 
-                // Animate removal of UI elements
-                selectedCheckboxes.forEach((checkbox, index) => {
-                    setTimeout(() => {
-                        const contactItem = checkbox.closest('.contact-item');
-                        if (contactItem) {
-                            contactItem.style.transform = 'translateX(-100%)';
-                            contactItem.style.opacity = '0';
-                            contactItem.style.transition = 'all 0.3s ease';
-                            
-                            setTimeout(() => {
-                                contactItem.style.display = 'none';
-                                const contactCount = document.getElementById('contact-count');
-                                const currentCount = parseInt(contactCount.textContent);
-                                contactCount.textContent = Math.max(0, currentCount - 1);
-                            }, 300);
-                        }
-                    }, index * 200);
-                });
+                // Reload contacts from backend and exit selection mode
+                await loadContacts();
+                contactSelectionMode = false;
+                const selectMultipleBtn = document.getElementById('select-multiple-contacts-btn');
+                const bulkActions = document.getElementById('contact-bulk-actions');
+                selectMultipleBtn.textContent = 'Select Multiple';
+                selectMultipleBtn.style.background = '#007AFF';
+                bulkActions.style.display = 'none';
                 
-                setTimeout(() => {
-                    // Exit selection mode
-                    toggleContactSelection();
-                    if (successCount === count) {
-                        showStatusMessage(`🗑️ ${count} contact${count !== 1 ? 's' : ''} removed!`, 'success');
-                    } else {
-                        showStatusMessage(`⚠️ ${successCount}/${count} contacts removed`, 'warning');
-                    }
-                }, selectedCheckboxes.length * 200 + 1000);
+                if (successCount === count) {
+                    showStatusMessage(`🗑️ ${count} contact${count !== 1 ? 's' : ''} removed!`, 'success');
+                } else {
+                    showStatusMessage(`⚠️ ${successCount}/${count} contacts removed`, 'warning');
+                }
             }
         }
         
@@ -2296,15 +2224,23 @@
                 
                 if (result.success && result.contacts.length > 0) {
                     contactsList.innerHTML = result.contacts.map(contact => `
-                        <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="font-weight: 600; font-size: 16px;">${contact.name}</div>
+                        <div class="contact-item" style="display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <input type="checkbox" class="contact-checkbox" style="display: ${contactSelectionMode ? 'block' : 'none'}; margin-right: 12px;" onchange="updateContactSelectAllButton()">
+                            <div style="width: 40px; height: 40px; background: #007AFF; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px; font-weight: 600; color: white;">${contact.name.charAt(0).toUpperCase()}</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 16px; color: #1C1C1E; margin-bottom: 2px;">${contact.name}</div>
                                 <div style="color: #8E8E93; font-size: 14px;">${formatPhoneNumber(contact.phone_number)}</div>
                                 <div style="color: #4CAF50; font-size: 12px; margin-top: 4px;">✅ Bypasses screening</div>
                             </div>
-                            <button onclick="removeContact(${contact.id})" style="background: #FF3B30; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;">Remove</button>
+                            <button onclick="removeContact(${contact.id})" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer;">Remove</button>
                         </div>
                     `).join('');
+                    
+                    // Update contact count
+                    const contactCount = document.getElementById('contact-count');
+                    if (contactCount) {
+                        contactCount.textContent = result.contacts.length;
+                    }
                 } else {
                     contactsList.innerHTML = `
                         <div style="text-align: center; padding: 40px; color: #8E8E93;">
@@ -2313,6 +2249,12 @@
                             <div>Add contacts to bypass call screening</div>
                         </div>
                     `;
+                    
+                    // Update contact count to 0
+                    const contactCount = document.getElementById('contact-count');
+                    if (contactCount) {
+                        contactCount.textContent = '0';
+                    }
                 }
             } catch (error) {
                 console.error('Failed to load contacts:', error);
@@ -2349,10 +2291,10 @@
                 if (result.success) {
                     document.getElementById('contact-name').value = '';
                     document.getElementById('contact-phone').value = '';
-                    loadContacts();
-                    alert(`${name} added to trusted contacts`);
+                    await loadContacts();
+                    showStatusMessage(`✅ ${name} added to trusted contacts`, 'success');
                 } else {
-                    alert(`Error: ${result.error}`);
+                    showStatusMessage(`❌ Error: ${result.error}`, 'error');
                 }
             } catch (error) {
                 alert(`Error: ${error.message}`);
