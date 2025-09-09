@@ -29,7 +29,7 @@ def demo_call_direct(user_id):
             "success": True,
             "call_log_id": call_log_id,
             "to_number": to_number,
-            "from_number": user.twilio_phone_number or "(631) 641-7728",
+            "from_number": user.assigned_twilio_number or "(631) 641-7728",
             "native_call_config": {
                 "target_number": to_number,
                 "spoofed_caller_id": user.google_voice_number or "(555) 123-4567"
@@ -102,7 +102,7 @@ def demo_get_call_history(user_id):
                 {
                     "id": f"demo_{user_id}_sample_1",
                     "to_number": "(555) 123-4567",
-                    "from_number": user.twilio_phone_number or "(631) 641-7728",
+                    "from_number": user.assigned_twilio_number or "(631) 641-7728",
                     "status": "completed",
                     "duration": 154,  # 2:34
                     "timestamp": (datetime.now() - timedelta(minutes=10)).isoformat()
@@ -110,7 +110,7 @@ def demo_get_call_history(user_id):
                 {
                     "id": f"demo_{user_id}_sample_2", 
                     "to_number": "(555) 987-6543",
-                    "from_number": user.twilio_phone_number or "(631) 641-7728",
+                    "from_number": user.assigned_twilio_number or "(631) 641-7728",
                     "status": "completed",
                     "duration": 105,  # 1:45
                     "timestamp": (datetime.now() - timedelta(hours=1)).isoformat()
@@ -177,7 +177,7 @@ def demo_user_status(user_id):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "defense_number": user.twilio_phone_number or "(631) 641-7728",
+                "defense_number": user.assigned_twilio_number or "(631) 641-7728",
                 "google_voice": user.google_voice_number
             },
             "stats": {
