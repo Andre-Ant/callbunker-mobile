@@ -726,11 +726,216 @@
                 <div id="call-status"></div>
             </div>
 
-            <!-- History Screen -->
+            <!-- Security Analytics Screen -->
             <div class="screen" id="history-screen">
-                <h2 class="section-title">Call History</h2>
-                <div id="history-list"></div>
-                <button class="btn" onclick="loadCallHistory()">🔄 Refresh</button>
+                <h1 style="text-align: center; font-size: 24px; font-weight: 600; color: #1C1C1E; margin-bottom: 30px;">Security Analytics</h1>
+                
+                <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <div style="width: 48px; height: 48px; background: #007AFF; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; font-size: 24px; color: white;">🛡️</div>
+                        <div>
+                            <div style="font-size: 18px; font-weight: 600; color: #1C1C1E; margin-bottom: 2px;">Privacy Protection Active</div>
+                            <div style="font-size: 14px; color: #8E8E93;">Your real number stays completely hidden</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 16px;">CALL STATISTICS (LAST 30 DAYS)</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; font-weight: 700; color: #4CAF50; margin-bottom: 4px;">14</div>
+                            <div style="font-size: 14px; color: #8E8E93;">Protected Calls</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; font-weight: 700; color: #007AFF; margin-bottom: 4px;">20</div>
+                            <div style="font-size: 14px; color: #8E8E93;">Total Calls</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; font-weight: 700; color: #FF9500; margin-bottom: 4px;">12</div>
+                            <div style="font-size: 14px; color: #8E8E93;">Screened Calls</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; font-weight: 700; color: #FF3B30; margin-bottom: 4px;">6</div>
+                            <div style="font-size: 14px; color: #8E8E93;">Blocked Attempts</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 16px;">PROTECTION EFFECTIVENESS</h3>
+                    <div style="margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 16px; color: #1C1C1E;">Privacy Success Rate</span>
+                            <span style="font-size: 16px; font-weight: 600; color: #4CAF50;">70%</span>
+                        </div>
+                        <div style="width: 100%; height: 6px; background: #E5E5EA; border-radius: 3px; overflow: hidden;">
+                            <div style="width: 70%; height: 100%; background: #4CAF50; border-radius: 3px;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 16px; color: #1C1C1E;">Authentication Rate</span>
+                            <span style="font-size: 16px; font-weight: 600; color: #4CAF50;">71%</span>
+                        </div>
+                        <div style="width: 100%; height: 6px; background: #E5E5EA; border-radius: 3px; overflow: hidden;">
+                            <div style="width: 71%; height: 100%; background: #4CAF50; border-radius: 3px;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 16px;">RECENT ACTIVITY</h3>
+                    <div style="margin-bottom: 12px; display: flex; align-items: center;">
+                        <div style="width: 24px; height: 24px; background: #FF3B30; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; color: white;">🚫</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 16px; color: #1C1C1E;">Blocked call from (555) 999-8888</div>
+                            <div style="font-size: 14px; color: #8E8E93;">2 hours ago</div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 12px; display: flex; align-items: center;">
+                        <div style="width: 24px; height: 24px; background: #FF3B30; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; color: white;">🚫</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 16px; color: #1C1C1E;">Blocked call from (555) 123-0000</div>
+                            <div style="font-size: 14px; color: #8E8E93;">4 hours ago</div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 12px; display: flex; align-items: center;">
+                        <div style="width: 24px; height: 24px; background: #FF3B30; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; color: white;">🚫</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 16px; color: #1C1C1E;">Blocked call from (555) 777-4444</div>
+                            <div style="font-size: 14px; color: #8E8E93;">6 hours ago</div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 12px; display: flex; align-items: center;">
+                        <div style="width: 24px; height: 24px; background: #4CAF50; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; color: white;">✓</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 16px; color: #1C1C1E;">Trusted contact bypassed screening</div>
+                            <div style="font-size: 14px; color: #8E8E93;">6 hours ago</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 24px; height: 24px; background: #007AFF; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; color: white;">🛡️</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 16px; color: #1C1C1E;">Call screening: PIN verified</div>
+                            <div style="font-size: 14px; color: #8E8E93;">8 hours ago</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 16px;">SECURITY FEATURES ACTIVE</h3>
+                    <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center;">
+                            <div style="font-size: 18px; margin-right: 12px;">🔢</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">PIN Authentication</span>
+                        </div>
+                        <div style="color: #4CAF50; font-size: 18px;">✓</div>
+                    </div>
+                    <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center;">
+                            <div style="font-size: 18px; margin-right: 12px;">🔊</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">Voice Recognition</span>
+                        </div>
+                        <div style="color: #4CAF50; font-size: 18px;">✓</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center;">
+                            <div style="font-size: 18px; margin-right: 12px;">🛡️</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">Call Screening</span>
+                        </div>
+                        <div style="color: #4CAF50; font-size: 18px;">✓</div>
+                    </div>
+                </div>
+                
+                <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin: 0;">BLOCKED CALLS (6)</h3>
+                        <button style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500;">Select All</button>
+                    </div>
+                    
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <button style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500;">Select Multiple</button>
+                    </div>
+                    
+                    <div class="blocked-calls-list">
+                        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                            <div style="width: 40px; height: 40px; background: #FF3B30; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 18px;">!</div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 16px; font-weight: 600; color: #1C1C1E;">(555) 999-8888</div>
+                                <div style="font-size: 14px; color: #8E8E93;">Blocked 2 hours ago • Failed authentication</div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button style="background: #4CAF50; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Whitelist</button>
+                                <button style="background: #8E8E93; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Remove</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                            <div style="width: 40px; height: 40px; background: #FF3B30; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 18px;">!</div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 16px; font-weight: 600; color: #1C1C1E;">(555) 123-0000</div>
+                                <div style="font-size: 14px; color: #8E8E93;">Blocked 1 day ago • Unknown caller</div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button style="background: #4CAF50; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Whitelist</button>
+                                <button style="background: #8E8E93; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Remove</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                            <div style="width: 40px; height: 40px; background: #FF3B30; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 18px;">!</div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 16px; font-weight: 600; color: #1C1C1E;">(555) 777-4444</div>
+                                <div style="font-size: 14px; color: #8E8E93;">Blocked 3 days ago • Spam detected</div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button style="background: #4CAF50; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Whitelist</button>
+                                <button style="background: #8E8E93; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Remove</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                            <div style="width: 40px; height: 40px; background: #FF3B30; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 18px;">!</div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 16px; font-weight: 600; color: #1C1C1E;">(555) 234-5678</div>
+                                <div style="font-size: 14px; color: #8E8E93;">Blocked 5 hours ago • Invalid PIN</div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button style="background: #4CAF50; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Whitelist</button>
+                                <button style="background: #8E8E93; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Remove</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                            <div style="width: 40px; height: 40px; background: #FF3B30; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 18px;">!</div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 16px; font-weight: 600; color: #1C1C1E;">(555) 876-5432</div>
+                                <div style="font-size: 14px; color: #8E8E93;">Blocked 30 minutes ago • Suspicious activity</div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button style="background: #4CAF50; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Whitelist</button>
+                                <button style="background: #8E8E93; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Remove</button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                            <div style="width: 40px; height: 40px; background: #FF3B30; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 18px;">!</div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 16px; font-weight: 600; color: #1C1C1E;">(555) 321-9876</div>
+                                <div style="font-size: 14px; color: #8E8E93;">Blocked 15 minutes ago • Too many attempts</div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button style="background: #4CAF50; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Whitelist</button>
+                                <button style="background: #8E8E93; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid #E5E5EA;">
+                        <div style="font-size: 14px; color: #8E8E93;">Blocked calls are automatically removed after 30 days</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Contacts Screen -->
@@ -1004,8 +1209,8 @@
                     <div>Dialer</div>
                 </button>
                 <button class="tab-btn" onclick="showScreen('history-screen')" id="history-tab">
-                    <div class="tab-icon">📋</div>
-                    <div>History</div>
+                    <div class="tab-icon">📊</div>
+                    <div>Analytics</div>
                 </button>
                 <button class="tab-btn" onclick="showScreen('contacts-screen')" id="contacts-tab">
                     <div class="tab-icon">👥</div>
