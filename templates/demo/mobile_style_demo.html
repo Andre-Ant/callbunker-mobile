@@ -1923,6 +1923,7 @@
                 cb.checked = !allChecked;
             });
             
+            // Update button text and selection count
             updateContactSelectAllButton();
         }
         
@@ -1971,16 +1972,10 @@
                 
                 showStatusMessage(`🗑️ Removing ${count} contact${count !== 1 ? 's' : ''}...`, 'info');
                 
-                // Get contact IDs and remove from backend
+                // Get contact IDs from data attributes
                 const contactIds = Array.from(selectedCheckboxes).map(checkbox => {
                     const contactItem = checkbox.closest('.contact-item');
-                    const removeBtn = contactItem.querySelector('button[onclick*="removeContact"]');
-                    if (removeBtn) {
-                        const onclick = removeBtn.getAttribute('onclick');
-                        const match = onclick.match(/removeContact\('([^']+)'\)/);
-                        return match ? match[1] : null;
-                    }
-                    return null;
+                    return contactItem ? contactItem.getAttribute('data-contact-id') : null;
                 }).filter(id => id !== null);
                 
                 // Remove each contact from backend
@@ -2330,7 +2325,7 @@
                 
                 if (result.success && result.contacts.length > 0) {
                     contactsList.innerHTML = result.contacts.map(contact => `
-                        <div class="contact-item" style="display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div class="contact-item" data-contact-id="${contact.id}" style="display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                             <input type="checkbox" class="contact-checkbox" style="display: ${contactSelectionMode ? 'block' : 'none'}; margin-right: 12px;" onchange="updateContactSelectAllButton()">
                             <div style="width: 40px; height: 40px; background: #007AFF; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px; font-weight: 600; color: white;">${contact.name.charAt(0).toUpperCase()}</div>
                             <div style="flex: 1;">
