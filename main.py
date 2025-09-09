@@ -1,5 +1,5 @@
 from app import app
-from flask import send_from_directory, render_template_string, render_template, request, jsonify
+from flask import send_from_directory, render_template_string, render_template, request, jsonify, make_response
 import os
 from sms_testing import send_protected_sms, get_sms_status
 from voice_messaging import send_voice_message, get_voice_message_status
@@ -326,7 +326,11 @@ def sms_test_interface():
 @app.route('/demo/full-functional')
 def full_functional_demo():
     """Complete end-to-end functional demo with real backend integration"""
-    return render_template('demo/full_functional_demo.html')
+    response = make_response(render_template('demo/full_functional_demo.html'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/mobile-preview')
 def mobile_preview():
