@@ -619,9 +619,6 @@
                     <button type="submit" class="btn">🚀 Create Account</button>
                 </form>
                 
-                <div class="info-card">
-                    <strong>Live Backend:</strong> Creates real account and assigns Defense Number from Twilio pool
-                </div>
             </div>
 
             <!-- Home Screen -->
@@ -963,30 +960,32 @@
                 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <h3 style="font-size: 18px; font-weight: 600; color: #1C1C1E; margin: 0;">Trusted Contacts (<span id="contact-count">2</span>)</h3>
-                    <button style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500;">Select All</button>
+                    <button id="select-all-contacts-btn" onclick="selectAllContacts()" style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer;">Select All</button>
                 </div>
                 
                 <div style="text-align: center; margin-bottom: 24px;">
-                    <button style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500;">Select Multiple</button>
+                    <button id="select-multiple-contacts-btn" onclick="toggleContactSelection()" style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer;">Select Multiple</button>
                 </div>
                 
                 <div id="contacts-list">
                     <div class="contact-item" style="display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <input type="checkbox" class="contact-checkbox" style="display: none; margin-right: 12px;" onchange="updateContactSelectAllButton()">
                         <div style="width: 40px; height: 40px; background: #007AFF; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px; font-weight: 600; color: white;">J</div>
                         <div style="flex: 1;">
                             <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 2px;">John Smith</div>
                             <div style="font-size: 14px; color: #8E8E93;">(555) 123-4567</div>
                         </div>
-                        <button onclick="removeContact('john')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500;">Remove</button>
+                        <button onclick="removeContact('john')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer;">Remove</button>
                     </div>
                     
                     <div class="contact-item" style="display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <input type="checkbox" class="contact-checkbox" style="display: none; margin-right: 12px;" onchange="updateContactSelectAllButton()">
                         <div style="width: 40px; height: 40px; background: #007AFF; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px; font-weight: 600; color: white;">M</div>
                         <div style="flex: 1;">
                             <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 2px;">Mary Johnson</div>
                             <div style="font-size: 14px; color: #8E8E93;">(555) 987-6543</div>
                         </div>
-                        <button onclick="removeContact('mary')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500;">Remove</button>
+                        <button onclick="removeContact('mary')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer;">Remove</button>
                     </div>
                 </div>
                 
@@ -1855,6 +1854,68 @@
         // Load contacts when viewing contacts screen
         function loadContactsScreen() {
             refreshContactsWithWhitelist();
+        }
+
+        // Contact selection functionality
+        let contactSelectionMode = false;
+        
+        function toggleContactSelection() {
+            contactSelectionMode = !contactSelectionMode;
+            const checkboxes = document.querySelectorAll('.contact-checkbox');
+            const selectMultipleBtn = document.getElementById('select-multiple-contacts-btn');
+            
+            if (contactSelectionMode) {
+                // Show checkboxes
+                checkboxes.forEach(cb => cb.style.display = 'block');
+                selectMultipleBtn.textContent = 'Cancel';
+                selectMultipleBtn.style.background = '#8E8E93';
+            } else {
+                // Hide checkboxes and uncheck all
+                checkboxes.forEach(cb => {
+                    cb.style.display = 'none';
+                    cb.checked = false;
+                });
+                selectMultipleBtn.textContent = 'Select Multiple';
+                selectMultipleBtn.style.background = '#007AFF';
+                updateContactSelectAllButton();
+            }
+        }
+        
+        function selectAllContacts() {
+            if (!contactSelectionMode) {
+                toggleContactSelection();
+                return;
+            }
+            
+            const checkboxes = document.querySelectorAll('.contact-checkbox');
+            const selectAllBtn = document.getElementById('select-all-contacts-btn');
+            
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+            });
+            
+            updateContactSelectAllButton();
+        }
+        
+        function updateContactSelectAllButton() {
+            const checkboxes = document.querySelectorAll('.contact-checkbox');
+            const selectAllBtn = document.getElementById('select-all-contacts-btn');
+            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+            
+            if (!contactSelectionMode) {
+                selectAllBtn.textContent = 'Select All';
+                return;
+            }
+            
+            if (checkedCount === 0) {
+                selectAllBtn.textContent = 'Select All';
+            } else if (checkedCount === checkboxes.length) {
+                selectAllBtn.textContent = 'Deselect All';
+            } else {
+                selectAllBtn.textContent = `Selected (${checkedCount})`;
+            }
         }
         
         // Signup functionality
