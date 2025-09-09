@@ -2030,21 +2030,86 @@
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    background: rgba(0,0,0,0.5);
+                    background: rgba(0,0,0,0.6);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     z-index: 10000;
                     padding: 20px;
+                    backdrop-filter: blur(4px);
+                    animation: fadeIn 0.2s ease-out;
                 `;
                 
+                // Add CSS animation keyframes
+                if (!document.getElementById('confirm-dialog-styles')) {
+                    const style = document.createElement('style');
+                    style.id = 'confirm-dialog-styles';
+                    style.innerHTML = `
+                        @keyframes fadeIn {
+                            from { opacity: 0; }
+                            to { opacity: 1; }
+                        }
+                        @keyframes slideIn {
+                            from { transform: scale(0.9); opacity: 0; }
+                            to { transform: scale(1); opacity: 1; }
+                        }
+                        .confirm-dialog-content {
+                            animation: slideIn 0.2s ease-out;
+                        }
+                        .confirm-cancel-btn:hover {
+                            background: #E0E0E0 !important;
+                        }
+                        .confirm-remove-btn:hover {
+                            background: #E31E24 !important;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                const isRemoveAction = title === 'Remove Contact' || title === 'Remove Contacts';
+                const iconHtml = isRemoveAction ? 
+                    '<div style="width: 60px; height: 60px; background: #FF3B30; border-radius: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 24px; color: white;">🗑️</div>' :
+                    '<div style="width: 60px; height: 60px; background: #007AFF; border-radius: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 24px; color: white;">❓</div>';
+                
                 modal.innerHTML = `
-                    <div style="background: white; border-radius: 16px; padding: 24px; max-width: 320px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                        <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #1C1C1E;">${title}</h3>
-                        <p style="margin: 0 0 24px 0; font-size: 16px; color: #3C3C43; line-height: 1.4;">${message}</p>
+                    <div class="confirm-dialog-content" style="
+                        background: white; 
+                        border-radius: 20px; 
+                        padding: 32px 24px 24px 24px; 
+                        max-width: 340px; 
+                        width: 100%; 
+                        text-align: center; 
+                        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                        border: 1px solid rgba(255,255,255,0.8);
+                    ">
+                        ${iconHtml}
+                        <h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 600; color: #1C1C1E;">${title}</h3>
+                        <p style="margin: 0 0 28px 0; font-size: 16px; color: #6C6C70; line-height: 1.5;">${message}</p>
                         <div style="display: flex; gap: 12px;">
-                            <button id="confirm-cancel" style="flex: 1; background: #F2F2F7; color: #007AFF; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500; cursor: pointer;">Cancel</button>
-                            <button id="confirm-ok" style="flex: 1; background: #FF3B30; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500; cursor: pointer;">OK</button>
+                            <button id="confirm-cancel" class="confirm-cancel-btn" style="
+                                flex: 1; 
+                                background: #F2F2F7; 
+                                color: #007AFF; 
+                                border: none; 
+                                border-radius: 12px; 
+                                padding: 14px 16px; 
+                                font-size: 16px; 
+                                font-weight: 600; 
+                                cursor: pointer;
+                                transition: all 0.2s ease;
+                            ">Cancel</button>
+                            <button id="confirm-ok" class="confirm-remove-btn" style="
+                                flex: 1; 
+                                background: #FF3B30; 
+                                color: white; 
+                                border: none; 
+                                border-radius: 12px; 
+                                padding: 14px 16px; 
+                                font-size: 16px; 
+                                font-weight: 600; 
+                                cursor: pointer;
+                                transition: all 0.2s ease;
+                            ">${isRemoveAction ? 'Remove' : 'OK'}</button>
                         </div>
                     </div>
                 `;
@@ -2052,20 +2117,35 @@
                 document.body.appendChild(modal);
                 
                 document.getElementById('confirm-cancel').onclick = () => {
-                    document.body.removeChild(modal);
-                    resolve(false);
+                    modal.style.animation = 'fadeIn 0.15s ease-out reverse';
+                    setTimeout(() => {
+                        if (document.body.contains(modal)) {
+                            document.body.removeChild(modal);
+                        }
+                        resolve(false);
+                    }, 150);
                 };
                 
                 document.getElementById('confirm-ok').onclick = () => {
-                    document.body.removeChild(modal);
-                    resolve(true);
+                    modal.style.animation = 'fadeIn 0.15s ease-out reverse';
+                    setTimeout(() => {
+                        if (document.body.contains(modal)) {
+                            document.body.removeChild(modal);
+                        }
+                        resolve(true);
+                    }, 150);
                 };
                 
                 // Close on backdrop click
                 modal.onclick = (e) => {
                     if (e.target === modal) {
-                        document.body.removeChild(modal);
-                        resolve(false);
+                        modal.style.animation = 'fadeIn 0.15s ease-out reverse';
+                        setTimeout(() => {
+                            if (document.body.contains(modal)) {
+                                document.body.removeChild(modal);
+                            }
+                            resolve(false);
+                        }, 150);
                     }
                 };
             });
