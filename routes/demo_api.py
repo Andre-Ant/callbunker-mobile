@@ -217,6 +217,33 @@ def demo_remove_contact():
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)})
 
+@demo_api_bp.route('/contacts/<contact_id>', methods=['DELETE'])
+def demo_delete_contact(contact_id):
+    """Delete trusted contact by ID for demo (supports both string and int IDs)"""
+    try:
+        # Handle demo contact IDs (like 'john', 'mary') vs database IDs  
+        if contact_id in ['john', 'mary']:
+            # For demo purposes, just return success for hardcoded contacts
+            return jsonify({'success': True, 'message': 'Demo contact removed'})
+        
+        # Try to get as integer ID for database contacts
+        try:
+            contact_id_int = int(contact_id)
+            contact = UserWhitelist.query.filter_by(id=contact_id_int).first()
+            if contact:
+                db.session.delete(contact)
+                db.session.commit()
+                return jsonify({'success': True, 'message': 'Contact removed from database'})
+            else:
+                return jsonify({'success': False, 'error': 'Contact not found'})
+        except ValueError:
+            # Non-integer ID, treat as demo contact
+            return jsonify({'success': True, 'message': 'Demo contact removed'})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
 @demo_api_bp.route('/user/<int:user_id>/call_direct', methods=['POST'])
 def demo_call_direct(user_id):
     """Simulate call initiation for demo"""

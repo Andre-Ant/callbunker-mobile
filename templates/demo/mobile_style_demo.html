@@ -645,19 +645,6 @@
                     </div>
                 </div>
 
-                <div style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                    <div class="main-action-card" onclick="showScreen('dialer-screen')">
-                        <div style="width: 48px; height: 48px; background: #007AFF; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 24px; color: white;">📞</div>
-                        <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 4px;">Protected Call</div>
-                        <div style="font-size: 13px; color: #8E8E93;">Hide your number</div>
-                    </div>
-                    
-                    <div class="main-action-card" onclick="showScreen('contacts-screen')">
-                        <div style="width: 48px; height: 48px; background: #007AFF; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 24px; color: white;">👥</div>
-                        <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 4px;">Trusted Contacts</div>
-                        <div style="font-size: 13px; color: #8E8E93;">Manage whitelist</div>
-                    </div>
-                </div>
 
             </div>
 
@@ -1338,22 +1325,47 @@
             showScreen('about-callbunker-screen');
         }
         
-        function removeContact(contactId) {
-            // For demo purposes, just remove the element with animation
-            const contactItem = event.target.closest('.contact-item');
-            if (contactItem) {
-                contactItem.style.transform = 'translateX(-100%)';
-                contactItem.style.opacity = '0';
-                contactItem.style.transition = 'all 0.3s ease';
+        async function removeContact(contactId) {
+            // Show confirmation dialog
+            const confirmed = await showConfirmDialog(
+                'Remove Contact', 
+                'Remove this contact from trusted list?'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                // Actually remove from backend
+                const response = await fetch(`/demo/api/contacts/${contactId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
                 
-                setTimeout(() => {
-                    contactItem.style.display = 'none';
-                    const count = document.getElementById('contact-count');
-                    const currentCount = parseInt(count.textContent);
-                    count.textContent = Math.max(0, currentCount - 1);
-                }, 300);
-                
-                showStatusMessage('✅ Contact removed successfully!', 'success');
+                if (response.ok) {
+                    // Remove from UI with animation
+                    const contactItem = event.target.closest('.contact-item');
+                    if (contactItem) {
+                        contactItem.style.transform = 'translateX(-100%)';
+                        contactItem.style.opacity = '0';
+                        contactItem.style.transition = 'all 0.3s ease';
+                        
+                        setTimeout(() => {
+                            contactItem.style.display = 'none';
+                            const count = document.getElementById('contact-count');
+                            const currentCount = parseInt(count.textContent);
+                            count.textContent = Math.max(0, currentCount - 1);
+                        }, 300);
+                        
+                        showStatusMessage('✅ Contact removed successfully!', 'success');
+                    }
+                } else {
+                    showStatusMessage('❌ Failed to remove contact', 'error');
+                }
+            } catch (error) {
+                console.error('Error removing contact:', error);
+                showStatusMessage('❌ Error removing contact', 'error');
             }
         }
         
@@ -1971,7 +1983,7 @@
             }
         }
         
-        function performContactBulkAction(action) {
+        async function performContactBulkAction(action) {
             const selectedCheckboxes = document.querySelectorAll('.contact-checkbox:checked');
             if (selectedCheckboxes.length === 0) {
                 showStatusMessage('No contacts selected', 'error');
@@ -1980,8 +1992,49 @@
             
             if (action === 'remove') {
                 const count = selectedCheckboxes.length;
+                
+                // Show confirmation dialog
+                const confirmed = await showConfirmDialog(
+                    'Remove Contacts', 
+                    `Remove ${count} contact${count !== 1 ? 's' : ''} from trusted list?`
+                );
+                
+                if (!confirmed) return;
+                
                 showStatusMessage(`🗑️ Removing ${count} contact${count !== 1 ? 's' : ''}...`, 'info');
                 
+                // Get contact IDs and remove from backend
+                const contactIds = Array.from(selectedCheckboxes).map(checkbox => {
+                    const contactItem = checkbox.closest('.contact-item');
+                    const removeBtn = contactItem.querySelector('button[onclick*="removeContact"]');
+                    if (removeBtn) {
+                        const onclick = removeBtn.getAttribute('onclick');
+                        const match = onclick.match(/removeContact\('([^']+)'\)/);
+                        return match ? match[1] : null;
+                    }
+                    return null;
+                }).filter(id => id !== null);
+                
+                // Remove each contact from backend
+                let successCount = 0;
+                for (let i = 0; i < contactIds.length; i++) {
+                    try {
+                        const response = await fetch(`/demo/api/contacts/${contactIds[i]}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            successCount++;
+                        }
+                    } catch (error) {
+                        console.error('Error removing contact:', contactIds[i], error);
+                    }
+                }
+                
+                // Animate removal of UI elements
                 selectedCheckboxes.forEach((checkbox, index) => {
                     setTimeout(() => {
                         const contactItem = checkbox.closest('.contact-item');
@@ -2003,9 +2056,65 @@
                 setTimeout(() => {
                     // Exit selection mode
                     toggleContactSelection();
-                    showStatusMessage(`🗑️ ${count} contact${count !== 1 ? 's' : ''} removed!`, 'success');
+                    if (successCount === count) {
+                        showStatusMessage(`🗑️ ${count} contact${count !== 1 ? 's' : ''} removed!`, 'success');
+                    } else {
+                        showStatusMessage(`⚠️ ${successCount}/${count} contacts removed`, 'warning');
+                    }
                 }, selectedCheckboxes.length * 200 + 1000);
             }
+        }
+        
+        // Utility functions
+        function showConfirmDialog(title, message) {
+            return new Promise((resolve) => {
+                // Create custom modal instead of browser confirm
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0,0,0,0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10000;
+                    padding: 20px;
+                `;
+                
+                modal.innerHTML = `
+                    <div style="background: white; border-radius: 16px; padding: 24px; max-width: 320px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                        <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #1C1C1E;">${title}</h3>
+                        <p style="margin: 0 0 24px 0; font-size: 16px; color: #3C3C43; line-height: 1.4;">${message}</p>
+                        <div style="display: flex; gap: 12px;">
+                            <button id="confirm-cancel" style="flex: 1; background: #F2F2F7; color: #007AFF; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500; cursor: pointer;">Cancel</button>
+                            <button id="confirm-ok" style="flex: 1; background: #FF3B30; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500; cursor: pointer;">OK</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                document.getElementById('confirm-cancel').onclick = () => {
+                    document.body.removeChild(modal);
+                    resolve(false);
+                };
+                
+                document.getElementById('confirm-ok').onclick = () => {
+                    document.body.removeChild(modal);
+                    resolve(true);
+                };
+                
+                // Close on backdrop click
+                modal.onclick = (e) => {
+                    if (e.target === modal) {
+                        document.body.removeChild(modal);
+                        resolve(false);
+                    }
+                };
+            });
         }
         
         // Signup functionality
