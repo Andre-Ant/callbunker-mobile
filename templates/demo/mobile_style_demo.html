@@ -2407,30 +2407,7 @@
             }
         }
         
-        async function removeContact(contactId) {
-            if (confirm('Remove this contact from whitelist?')) {
-                try {
-                    const response = await fetch('/demo/api/remove-contact', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            user_id: currentUser.id,
-                            contact_id: contactId
-                        })
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        loadContacts();
-                    } else {
-                        alert(`Error: ${result.error}`);
-                    }
-                } catch (error) {
-                    alert(`Error: ${error.message}`);
-                }
-            }
-        }
+        // This function is now handled by the main removeContact function above
         
         // Settings toggle functionality
         document.querySelectorAll('.setting-toggle').forEach(toggle => {
