@@ -632,13 +632,13 @@
                     </div>
                     <p style="font-size: 14px; color: #8E8E93; margin: 0 0 16px 0;">Your real number is hidden • Tap for details</p>
                     
-                    <div style="display: flex; justify-content: space-around; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative;">
-                        <div style="text-align: center; cursor: pointer;" onclick="showScreen('history-screen')">
+                    <div style="display: flex; justify-content: space-around; background: white; border-radius: 12px; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
+                        <div style="text-align: center; cursor: pointer; padding: 20px; flex: 1;" onclick="showScreen('history-screen')">
                             <div style="font-size: 28px; font-weight: 700; color: #FF3B30; margin-bottom: 4px;" id="blocked-calls">6</div>
                             <div style="font-size: 14px; color: #8E8E93;">Blocked Calls</div>
                         </div>
                         <div style="position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #E5E5EA;"></div>
-                        <div style="text-align: center; cursor: pointer;" onclick="showScreen('contacts-screen')">
+                        <div style="text-align: center; cursor: pointer; padding: 20px; flex: 1; background: #F8F9FA;" onclick="showScreen('contacts-screen')">
                             <div style="font-size: 28px; font-weight: 700; color: #4CAF50; margin-bottom: 4px;" id="trusted-contacts">2</div>
                             <div style="font-size: 14px; color: #8E8E93;">Trusted Contacts</div>
                         </div>
@@ -965,6 +965,14 @@
                 
                 <div style="text-align: center; margin-bottom: 24px;">
                     <button id="select-multiple-contacts-btn" onclick="toggleContactSelection()" style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer;">Select Multiple</button>
+                </div>
+                
+                <!-- Bulk Actions for Contacts -->
+                <div id="contact-bulk-actions" style="display: none; text-align: center; margin-bottom: 20px; padding: 16px; background: #F8F9FA; border-radius: 12px; border: 1px solid #E5E5EA;">
+                    <div style="margin-bottom: 12px; font-size: 14px; color: #8E8E93;" id="contact-selection-count">0 contacts selected</div>
+                    <div style="display: flex; gap: 8px; justify-content: center;">
+                        <button onclick="performContactBulkAction('remove')" style="background: #FF3B30; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer;">Remove Selected</button>
+                    </div>
                 </div>
                 
                 <div id="contacts-list">
@@ -1331,11 +1339,22 @@
         }
         
         function removeContact(contactId) {
-            // For demo purposes, just remove the element
-            event.target.closest('.contact-item').style.display = 'none';
-            const count = document.getElementById('contact-count');
-            const currentCount = parseInt(count.textContent);
-            count.textContent = currentCount - 1;
+            // For demo purposes, just remove the element with animation
+            const contactItem = event.target.closest('.contact-item');
+            if (contactItem) {
+                contactItem.style.transform = 'translateX(-100%)';
+                contactItem.style.opacity = '0';
+                contactItem.style.transition = 'all 0.3s ease';
+                
+                setTimeout(() => {
+                    contactItem.style.display = 'none';
+                    const count = document.getElementById('contact-count');
+                    const currentCount = parseInt(count.textContent);
+                    count.textContent = Math.max(0, currentCount - 1);
+                }, 300);
+                
+                showStatusMessage('✅ Contact removed successfully!', 'success');
+            }
         }
         
         // DTMF Tone frequencies (Hz)
@@ -1882,13 +1901,16 @@
         function toggleContactSelection() {
             contactSelectionMode = !contactSelectionMode;
             const selectMultipleBtn = document.getElementById('select-multiple-contacts-btn');
+            const bulkActions = document.getElementById('contact-bulk-actions');
             
             if (contactSelectionMode) {
                 selectMultipleBtn.textContent = 'Cancel';
                 selectMultipleBtn.style.background = '#8E8E93';
+                bulkActions.style.display = 'block';
             } else {
                 selectMultipleBtn.textContent = 'Select Multiple';
                 selectMultipleBtn.style.background = '#007AFF';
+                bulkActions.style.display = 'none';
             }
             
             // Refresh contacts to show/hide checkboxes
@@ -1940,6 +1962,49 @@
                 selectAllBtn.textContent = 'Deselect All';
             } else {
                 selectAllBtn.textContent = `Selected (${checkedCount})`;
+            }
+            
+            // Update selection count for bulk actions
+            const selectionCount = document.getElementById('contact-selection-count');
+            if (selectionCount) {
+                selectionCount.textContent = `${checkedCount} contact${checkedCount !== 1 ? 's' : ''} selected`;
+            }
+        }
+        
+        function performContactBulkAction(action) {
+            const selectedCheckboxes = document.querySelectorAll('.contact-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                showStatusMessage('No contacts selected', 'error');
+                return;
+            }
+            
+            if (action === 'remove') {
+                const count = selectedCheckboxes.length;
+                showStatusMessage(`🗑️ Removing ${count} contact${count !== 1 ? 's' : ''}...`, 'info');
+                
+                selectedCheckboxes.forEach((checkbox, index) => {
+                    setTimeout(() => {
+                        const contactItem = checkbox.closest('.contact-item');
+                        if (contactItem) {
+                            contactItem.style.transform = 'translateX(-100%)';
+                            contactItem.style.opacity = '0';
+                            contactItem.style.transition = 'all 0.3s ease';
+                            
+                            setTimeout(() => {
+                                contactItem.style.display = 'none';
+                                const contactCount = document.getElementById('contact-count');
+                                const currentCount = parseInt(contactCount.textContent);
+                                contactCount.textContent = Math.max(0, currentCount - 1);
+                            }, 300);
+                        }
+                    }, index * 200);
+                });
+                
+                setTimeout(() => {
+                    // Exit selection mode
+                    toggleContactSelection();
+                    showStatusMessage(`🗑️ ${count} contact${count !== 1 ? 's' : ''} removed!`, 'success');
+                }, selectedCheckboxes.length * 200 + 1000);
             }
         }
         
