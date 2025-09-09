@@ -636,11 +636,11 @@
                     <p style="font-size: 14px; color: #8E8E93; margin: 0 0 16px 0;">Your real number is hidden • Tap for details</p>
                     
                     <div style="display: flex; justify-content: space-around; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="text-align: center;">
+                        <div style="text-align: center; cursor: pointer;" onclick="showScreen('history-screen')">
                             <div style="font-size: 28px; font-weight: 700; color: #FF3B30; margin-bottom: 4px;" id="blocked-calls">6</div>
                             <div style="font-size: 14px; color: #8E8E93;">Blocked Calls</div>
                         </div>
-                        <div style="text-align: center;">
+                        <div style="text-align: center; cursor: pointer;" onclick="showScreen('contacts-screen')">
                             <div style="font-size: 28px; font-weight: 700; color: #4CAF50; margin-bottom: 4px;" id="trusted-contacts">2</div>
                             <div style="font-size: 14px; color: #8E8E93;">Trusted Contacts</div>
                         </div>
@@ -677,18 +677,44 @@
                 </div>
                 
                 <div class="dialer-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 40px;">
-                    <button class="dial-btn" onclick="addDigit('1')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">1</button>
-                    <button class="dial-btn" onclick="addDigit('2')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">2<div style="font-size: 10px; position: absolute; margin-top: 25px;">ABC</div></button>
-                    <button class="dial-btn" onclick="addDigit('3')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">3<div style="font-size: 10px; position: absolute; margin-top: 25px;">DEF</div></button>
-                    <button class="dial-btn" onclick="addDigit('4')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">4<div style="font-size: 10px; position: absolute; margin-top: 25px;">GHI</div></button>
-                    <button class="dial-btn" onclick="addDigit('5')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">5<div style="font-size: 10px; position: absolute; margin-top: 25px;">JKL</div></button>
-                    <button class="dial-btn" onclick="addDigit('6')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">6<div style="font-size: 10px; position: absolute; margin-top: 25px;">MNO</div></button>
-                    <button class="dial-btn" onclick="addDigit('7')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">7<div style="font-size: 10px; position: absolute; margin-top: 25px;">PQRS</div></button>
-                    <button class="dial-btn" onclick="addDigit('8')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">8<div style="font-size: 10px; position: absolute; margin-top: 25px;">TUV</div></button>
-                    <button class="dial-btn" onclick="addDigit('9')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">9<div style="font-size: 10px; position: absolute; margin-top: 25px;">WXYZ</div></button>
-                    <button class="dial-btn" onclick="addDigit('*')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">*</button>
-                    <button class="dial-btn" onclick="addDigit('0')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">0</button>
-                    <button class="dial-btn" onclick="addDigit('#')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">#</button>
+                    <button class="dial-btn" onclick="playTone('1'); addDigit('1')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span>1</span>
+                    </button>
+                    <button class="dial-btn" onclick="playTone('2'); addDigit('2')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span>2</span>
+                        <span style="font-size: 10px; margin-top: 2px; color: #8E8E93;">ABC</span>
+                    </button>
+                    <button class="dial-btn" onclick="playTone('3'); addDigit('3')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span>3</span>
+                        <span style="font-size: 10px; margin-top: 2px; color: #8E8E93;">DEF</span>
+                    </button>
+                    <button class="dial-btn" onclick="playTone('4'); addDigit('4')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span>4</span>
+                        <span style="font-size: 10px; margin-top: 2px; color: #8E8E93;">GHI</span>
+                    </button>
+                    <button class="dial-btn" onclick="playTone('5'); addDigit('5')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span>5</span>
+                        <span style="font-size: 10px; margin-top: 2px; color: #8E8E93;">JKL</span>
+                    </button>
+                    <button class="dial-btn" onclick="playTone('6'); addDigit('6')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span>6</span>
+                        <span style="font-size: 10px; margin-top: 2px; color: #8E8E93;">MNO</span>
+                    </button>
+                    <button class="dial-btn" onclick="playTone('7'); addDigit('7')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span>7</span>
+                        <span style="font-size: 10px; margin-top: 2px; color: #8E8E93;">PQRS</span>
+                    </button>
+                    <button class="dial-btn" onclick="playTone('8'); addDigit('8')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span>8</span>
+                        <span style="font-size: 10px; margin-top: 2px; color: #8E8E93;">TUV</span>
+                    </button>
+                    <button class="dial-btn" onclick="playTone('9'); addDigit('9')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span>9</span>
+                        <span style="font-size: 10px; margin-top: 2px; color: #8E8E93;">WXYZ</span>
+                    </button>
+                    <button class="dial-btn" onclick="playTone('*'); addDigit('*')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">*</button>
+                    <button class="dial-btn" onclick="playTone('0'); addDigit('0')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">0</button>
+                    <button class="dial-btn" onclick="playTone('#'); addDigit('#')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">#</button>
                 </div>
                 
                 <div style="display: flex; justify-content: center; align-items: center; gap: 60px;">
@@ -1075,6 +1101,48 @@
             const count = document.getElementById('contact-count');
             const currentCount = parseInt(count.textContent);
             count.textContent = currentCount - 1;
+        }
+        
+        // DTMF Tone frequencies (Hz)
+        const dtmfTones = {
+            '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
+            '4': [770, 1209], '5': [770, 1336], '6': [770, 1477],
+            '7': [852, 1209], '8': [852, 1336], '9': [852, 1477],
+            '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
+        };
+        
+        function playTone(digit) {
+            if (!dtmfTones[digit]) return;
+            
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const [lowFreq, highFreq] = dtmfTones[digit];
+                
+                // Create oscillators for the two frequencies
+                const oscillator1 = audioContext.createOscillator();
+                const oscillator2 = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator1.frequency.setValueAtTime(lowFreq, audioContext.currentTime);
+                oscillator2.frequency.setValueAtTime(highFreq, audioContext.currentTime);
+                
+                oscillator1.connect(gainNode);
+                oscillator2.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Set volume and duration
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator1.start(audioContext.currentTime);
+                oscillator2.start(audioContext.currentTime);
+                oscillator1.stop(audioContext.currentTime + 0.1);
+                oscillator2.stop(audioContext.currentTime + 0.1);
+                
+            } catch (error) {
+                // Fallback - just a simple beep using a single tone
+                console.log('Playing tone for:', digit);
+            }
         }
         
         // Signup functionality
