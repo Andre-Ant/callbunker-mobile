@@ -131,6 +131,27 @@
             margin: 4px 0 0 0;
         }
         
+        .privacy-protected-card {
+            background: #F8F9FA;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .main-action-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .main-action-card:hover {
+            transform: translateY(-2px);
+        }
+        
         .stat-divider {
             width: 1px;
             background: #E5E5EA;
@@ -605,53 +626,38 @@
 
             <!-- Home Screen -->
             <div class="screen" id="home-screen">
-                <div class="status-card">
-                    <div class="status-header">
-                        <div class="status-icon">🛡️</div>
-                        <div class="status-text">
-                            <h3>Privacy Protected</h3>
-                            <p>Your real number is hidden and secure</p>
-                        </div>
+                <h1 style="text-align: center; font-size: 24px; font-weight: 600; color: #1C1C1E; margin-bottom: 30px;">CallBunker</h1>
+                
+                <div class="privacy-protected-card">
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <div style="width: 24px; height: 24px; background: #4CAF50; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; color: white;">🛡️</div>
+                        <span style="font-size: 16px; color: #4CAF50; font-weight: 500;">Privacy Protected</span>
                     </div>
+                    <p style="font-size: 14px; color: #8E8E93; margin: 0 0 16px 0;">Your real number is hidden • Tap for details</p>
                     
-                    <div class="stats-container">
-                        <div class="stat-item">
-                            <div class="stat-number" id="protected-calls">0</div>
-                            <div class="stat-label">Protected Calls</div>
+                    <div style="display: flex; justify-content: space-around; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="text-align: center;">
+                            <div style="font-size: 28px; font-weight: 700; color: #FF3B30; margin-bottom: 4px;" id="blocked-calls">6</div>
+                            <div style="font-size: 14px; color: #8E8E93;">Blocked Calls</div>
                         </div>
-                        <div class="stat-divider"></div>
-                        <div class="stat-item">
-                            <div class="stat-number" id="total-calls">0</div>
-                            <div class="stat-label">Total Calls</div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 28px; font-weight: 700; color: #4CAF50; margin-bottom: 4px;" id="trusted-contacts">2</div>
+                            <div style="font-size: 14px; color: #8E8E93;">Trusted Contacts</div>
                         </div>
                     </div>
                 </div>
 
-                <h2 class="section-title">Quick Actions</h2>
-                
-                <div class="action-grid">
-                    <div class="action-card" onclick="showScreen('dialer-screen')">
-                        <div class="action-icon">📞</div>
-                        <div class="action-title">Make Protected Call</div>
-                        <div class="action-subtitle">Hide your real number</div>
+                <div style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="main-action-card" onclick="showScreen('dialer-screen')">
+                        <div style="width: 48px; height: 48px; background: #007AFF; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 24px; color: white;">📞</div>
+                        <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 4px;">Protected Call</div>
+                        <div style="font-size: 13px; color: #8E8E93;">Hide your number</div>
                     </div>
                     
-                    <div class="action-card" onclick="showScreen('contacts-screen')">
-                        <div class="action-icon">👥</div>
-                        <div class="action-title">Trusted Contacts</div>
-                        <div class="action-subtitle">Manage whitelist</div>
-                    </div>
-                    
-                    <div class="action-card" onclick="showScreen('history-screen')">
-                        <div class="action-icon">📋</div>
-                        <div class="action-title">Call History</div>
-                        <div class="action-subtitle">View past calls</div>
-                    </div>
-                    
-                    <div class="action-card" onclick="showScreen('settings-screen')">
-                        <div class="action-icon">⚙️</div>
-                        <div class="action-title">Settings</div>
-                        <div class="action-subtitle">Privacy controls</div>
+                    <div class="main-action-card" onclick="showScreen('contacts-screen')">
+                        <div style="width: 48px; height: 48px; background: #007AFF; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 24px; color: white;">👥</div>
+                        <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 4px;">Trusted Contacts</div>
+                        <div style="font-size: 13px; color: #8E8E93;">Manage whitelist</div>
                     </div>
                 </div>
 
@@ -660,44 +666,35 @@
 
             <!-- Dialer Screen -->
             <div class="screen" id="dialer-screen">
-                <div class="phone-display" id="phone-display">Enter number</div>
+                <h1 style="text-align: center; font-size: 24px; font-weight: 600; color: #1C1C1E; margin-bottom: 40px;">Protected Dialer</h1>
                 
-                <div class="dialer-grid">
-                    <button class="dial-btn" onclick="addDigit('1')">1</button>
-                    <button class="dial-btn" onclick="addDigit('2')">2</button>
-                    <button class="dial-btn" onclick="addDigit('3')">3</button>
-                    <button class="dial-btn" onclick="addDigit('4')">4</button>
-                    <button class="dial-btn" onclick="addDigit('5')">5</button>
-                    <button class="dial-btn" onclick="addDigit('6')">6</button>
-                    <button class="dial-btn" onclick="addDigit('7')">7</button>
-                    <button class="dial-btn" onclick="addDigit('8')">8</button>
-                    <button class="dial-btn" onclick="addDigit('9')">9</button>
-                    <button class="dial-btn" onclick="addDigit('*')">*</button>
-                    <button class="dial-btn" onclick="addDigit('0')">0</button>
-                    <button class="dial-btn" onclick="addDigit('#')">#</button>
+                <div class="phone-display" id="phone-display" style="font-size: 32px; font-weight: 300; text-align: center; color: #1C1C1E; margin-bottom: 16px; min-height: 40px;">Enter number</div>
+                
+                <div style="text-align: center; margin-bottom: 40px;">
+                    <span style="color: #4CAF50; font-size: 14px; font-weight: 500;">🛡️ Privacy Protected</span>
+                    <span style="color: #8E8E93; font-size: 14px; margin: 0 8px;">•</span>
+                    <span style="color: #007AFF; font-size: 14px; font-weight: 500;">🔊 Touch Tones</span>
                 </div>
                 
-                <div class="call-actions">
-                    <button class="action-button" onclick="clearNumber()">⌫</button>
-                    <button class="call-button" onclick="makeCall()">📞</button>
-                    <button class="action-button" onclick="showScreen('contacts-screen')">👥</button>
+                <div class="dialer-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 40px;">
+                    <button class="dial-btn" onclick="addDigit('1')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">1</button>
+                    <button class="dial-btn" onclick="addDigit('2')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">2<div style="font-size: 10px; position: absolute; margin-top: 25px;">ABC</div></button>
+                    <button class="dial-btn" onclick="addDigit('3')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">3<div style="font-size: 10px; position: absolute; margin-top: 25px;">DEF</div></button>
+                    <button class="dial-btn" onclick="addDigit('4')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">4<div style="font-size: 10px; position: absolute; margin-top: 25px;">GHI</div></button>
+                    <button class="dial-btn" onclick="addDigit('5')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">5<div style="font-size: 10px; position: absolute; margin-top: 25px;">JKL</div></button>
+                    <button class="dial-btn" onclick="addDigit('6')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">6<div style="font-size: 10px; position: absolute; margin-top: 25px;">MNO</div></button>
+                    <button class="dial-btn" onclick="addDigit('7')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">7<div style="font-size: 10px; position: absolute; margin-top: 25px;">PQRS</div></button>
+                    <button class="dial-btn" onclick="addDigit('8')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">8<div style="font-size: 10px; position: absolute; margin-top: 25px;">TUV</div></button>
+                    <button class="dial-btn" onclick="addDigit('9')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">9<div style="font-size: 10px; position: absolute; margin-top: 25px;">WXYZ</div></button>
+                    <button class="dial-btn" onclick="addDigit('*')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">*</button>
+                    <button class="dial-btn" onclick="addDigit('0')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">0</button>
+                    <button class="dial-btn" onclick="addDigit('#')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">#</button>
                 </div>
                 
-                <div class="features-card">
-                    <div class="features-grid">
-                        <div class="feature-item">
-                            <div class="feature-icon">🔒</div>
-                            <div class="feature-text">Real number hidden</div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">💰</div>
-                            <div class="feature-text">Carrier rates only</div>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">📱</div>
-                            <div class="feature-text">Google Voice caller ID</div>
-                        </div>
-                    </div>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 60px;">
+                    <button onclick="clearNumber()" style="width: 50px; height: 50px; border-radius: 25px; border: none; background: #FF3B30; color: white; font-size: 18px; display: flex; align-items: center; justify-content: center;">⌫</button>
+                    <button onclick="makeCall()" style="width: 64px; height: 64px; border-radius: 32px; border: none; background: #4CAF50; color: white; font-size: 24px; display: flex; align-items: center; justify-content: center;">📞</button>
+                    <div style="width: 50px;"></div>
                 </div>
                 
                 <div id="call-status"></div>
@@ -712,80 +709,262 @@
 
             <!-- Contacts Screen -->
             <div class="screen" id="contacts-screen">
-                <h2 class="section-title">Trusted Contacts</h2>
+                <h1 style="text-align: center; font-size: 24px; font-weight: 600; color: #1C1C1E; margin-bottom: 30px;">Trusted Contacts</h1>
                 
-                <div class="form-group">
-                    <label class="form-label">Add Contact</label>
-                    <input type="text" id="contact-name" class="form-input" placeholder="Contact Name">
-                    <input type="tel" id="contact-phone" class="form-input" placeholder="Phone Number" style="margin-top: 8px;">
-                    <button class="btn" onclick="addContact()" style="margin-top: 8px;">Add to Trusted List</button>
+                <div style="background: #E8F5E8; border-radius: 12px; padding: 16px; margin-bottom: 24px; display: flex; align-items: center;">
+                    <div style="width: 24px; height: 24px; background: #4CAF50; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; color: white;">🛡️</div>
+                    <span style="font-size: 14px; color: #4CAF50; font-weight: 500;">Trusted contacts bypass screening</span>
                 </div>
                 
-                <div id="contacts-list"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 18px; font-weight: 600; color: #1C1C1E; margin: 0;">Trusted Contacts (<span id="contact-count">2</span>)</h3>
+                    <button style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500;">Select All</button>
+                </div>
+                
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <button style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500;">Select Multiple</button>
+                </div>
+                
+                <div id="contacts-list">
+                    <div class="contact-item" style="display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="width: 40px; height: 40px; background: #007AFF; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px; font-weight: 600; color: white;">J</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 2px;">John Smith</div>
+                            <div style="font-size: 14px; color: #8E8E93;">(555) 123-4567</div>
+                        </div>
+                        <button onclick="removeContact('john')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500;">Remove</button>
+                    </div>
+                    
+                    <div class="contact-item" style="display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="width: 40px; height: 40px; background: #007AFF; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px; font-weight: 600; color: white;">M</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 2px;">Mary Johnson</div>
+                            <div style="font-size: 14px; color: #8E8E93;">(555) 987-6543</div>
+                        </div>
+                        <button onclick="removeContact('mary')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 500;">Remove</button>
+                    </div>
+                </div>
+                
+                <div style="display: none;" id="add-contact-form">
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label class="form-label">Add Contact</label>
+                        <input type="text" id="contact-name" class="form-input" placeholder="Contact Name">
+                        <input type="tel" id="contact-phone" class="form-input" placeholder="Phone Number" style="margin-top: 8px;">
+                        <button class="btn" onclick="addContact()" style="margin-top: 8px;">Add to Trusted List</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Settings Screen -->
             <div class="screen" id="settings-screen">
-                <div class="settings-section">
-                    <h3>Privacy & Security</h3>
-                    
-                    <div class="setting-item">
-                        <div class="setting-icon">🔒</div>
-                        <div class="setting-content">
-                            <div class="setting-title">Call Screening</div>
-                            <div class="setting-subtitle">Require PIN/verbal authentication</div>
-                        </div>
-                        <div class="setting-toggle active">
-                            <div class="toggle-handle"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="setting-item">
-                        <div class="setting-icon">📱</div>
-                        <div class="setting-content">
-                            <div class="setting-title">Native Calling</div>
-                            <div class="setting-subtitle">Use device's built-in calling</div>
-                        </div>
-                        <div class="setting-toggle active">
-                            <div class="toggle-handle"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="setting-item">
-                        <div class="setting-icon">🔔</div>
-                        <div class="setting-content">
-                            <div class="setting-title">Push Notifications</div>
-                            <div class="setting-subtitle">Call alerts and updates</div>
-                        </div>
-                        <div class="setting-toggle active">
-                            <div class="toggle-handle"></div>
-                        </div>
-                    </div>
-                </div>
+                <h1 style="text-align: center; font-size: 24px; font-weight: 600; color: #1C1C1E; margin-bottom: 40px;">CallBunker</h1>
                 
-                <div class="settings-section">
-                    <h3>Support</h3>
-                    
-                    <div class="setting-item">
-                        <div class="setting-icon">❓</div>
-                        <div class="setting-content">
-                            <div class="setting-title">Help Center</div>
-                            <div class="setting-subtitle">FAQs and guides</div>
+                <div class="settings-list">
+                    <div class="settings-item" onclick="showScreen('security-settings-screen')" style="display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer;">
+                        <div style="width: 40px; height: 40px; background: #F8F9FA; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; font-size: 18px;">🛡️</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 2px;">Security Settings</div>
+                            <div style="font-size: 14px; color: #8E8E93;">PIN: 8322, Verbal: "Black widow"</div>
                         </div>
-                        <span style="color: #C7C7CC;">></span>
                     </div>
                     
-                    <div class="setting-item">
-                        <div class="setting-icon">📧</div>
-                        <div class="setting-content">
-                            <div class="setting-title">Contact Support</div>
-                            <div class="setting-subtitle">Get help from our team</div>
+                    <div class="settings-item" onclick="showScreen('privacy-protection-screen')" style="display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer;">
+                        <div style="width: 40px; height: 40px; background: #F8F9FA; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; font-size: 18px;">🛡️</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 2px;">Privacy Protection</div>
+                            <div style="font-size: 14px; color: #8E8E93;">Call Screening & Authentication</div>
                         </div>
-                        <span style="color: #C7C7CC;">></span>
+                    </div>
+                    
+                    <div class="settings-item" onclick="showScreen('about-callbunker-screen')" style="display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer;">
+                        <div style="width: 40px; height: 40px; background: #F8F9FA; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; font-size: 18px;">ℹ️</div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 2px;">About CallBunker</div>
+                            <div style="font-size: 14px; color: #8E8E93;">Version 1.0.0</div>
+                        </div>
                     </div>
                 </div>
                 
                 <div id="user-info-settings"></div>
+            </div>
+            
+            <!-- Security Settings Detail Screen -->
+            <div class="screen" id="security-settings-screen">
+                <div style="display: flex; align-items: center; margin-bottom: 30px;">
+                    <button onclick="showScreen('settings-screen')" style="background: none; border: none; color: #007AFF; font-size: 16px; margin-right: 8px;">←</button>
+                    <h1 style="font-size: 24px; font-weight: 600; color: #1C1C1E; margin: 0;">Security Settings</h1>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 12px;">PIN AUTHENTICATION</h3>
+                    <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 24px; font-weight: 600; color: #1C1C1E; margin-bottom: 4px;">8322</div>
+                            <div style="font-size: 14px; color: #8E8E93;">4-digit numeric code for call authentication</div>
+                        </div>
+                        <button style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500;">Edit</button>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 12px;">VERBAL CODE</h3>
+                    <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 18px; font-weight: 600; color: #1C1C1E; margin-bottom: 4px;">"Black widow"</div>
+                            <div style="font-size: 14px; color: #8E8E93;">Spoken phrase for voice authentication</div>
+                        </div>
+                        <button style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500;">Edit</button>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 12px;">AUTHENTICATION METHODS</h3>
+                    <div style="background: white; border-radius: 12px; padding: 16px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                            <div style="font-size: 18px; margin-right: 12px;">🔢</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">PIN Code Entry</span>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                            <div style="font-size: 18px; margin-right: 12px;">🔊</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">Verbal Recognition</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <div style="font-size: 18px; margin-right: 12px;">⚡</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">Dual Verification Support</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 12px;">SECURITY FEATURES</h3>
+                    <div style="background: white; border-radius: 12px; padding: 16px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                            <div style="font-size: 18px; margin-right: 12px;">🛡️</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">Call Screening Protection</span>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                            <div style="font-size: 18px; margin-right: 12px;">📱</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">Rate Limiting & Blocking</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <div style="font-size: 18px; margin-right: 12px;">✅</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">Smart Trusted Caller Whitelist</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Privacy Protection Detail Screen -->
+            <div class="screen" id="privacy-protection-screen">
+                <div style="display: flex; align-items: center; margin-bottom: 30px;">
+                    <button onclick="showScreen('settings-screen')" style="background: none; border: none; color: #007AFF; font-size: 16px; margin-right: 8px;">←</button>
+                    <h1 style="font-size: 24px; font-weight: 600; color: #1C1C1E; margin: 0;">Privacy Protection</h1>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 12px;">DEFENSE NUMBER</h3>
+                    <div style="background: white; border-radius: 12px; padding: 16px;">
+                        <div style="font-size: 20px; font-weight: 600; color: #1C1C1E; margin-bottom: 4px;">+1 (617) 942-1250</div>
+                        <div style="font-size: 14px; color: #8E8E93;">Your protected communication number</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 12px;">CALL SCREENING STATUS</h3>
+                    <div style="background: white; border-radius: 12px; padding: 16px; display: flex; align-items: center;">
+                        <div style="margin-right: 12px;">✅</div>
+                        <div>
+                            <div style="font-size: 16px; font-weight: 600; color: #4CAF50; margin-bottom: 2px;">Active Protection</div>
+                            <div style="font-size: 14px; color: #8E8E93;">All incoming calls are authenticated before connecting</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 12px;">AUTHENTICATION METHODS</h3>
+                    <div style="background: white; border-radius: 12px; padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center;">
+                                <div style="font-size: 18px; margin-right: 12px;">🔢</div>
+                                <span style="font-size: 16px; color: #1C1C1E;">PIN Code Verification</span>
+                            </div>
+                            <span style="font-size: 14px; font-weight: 600; color: #4CAF50;">ACTIVE</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center;">
+                                <div style="font-size: 18px; margin-right: 12px;">🔊</div>
+                                <span style="font-size: 16px; color: #1C1C1E;">Voice Recognition</span>
+                            </div>
+                            <span style="font-size: 14px; font-weight: 600; color: #4CAF50;">ACTIVE</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center;">
+                                <div style="font-size: 18px; margin-right: 12px;">⚡</div>
+                                <span style="font-size: 16px; color: #1C1C1E;">Trusted Contacts Bypass</span>
+                            </div>
+                            <span style="font-size: 14px; font-weight: 600; color: #4CAF50;">ENABLED</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center;">
+                                <div style="font-size: 18px; margin-right: 12px;">🚫</div>
+                                <span style="font-size: 16px; color: #1C1C1E;">Auto-Block Failed Attempts</span>
+                            </div>
+                            <span style="font-size: 14px; font-weight: 600; color: #4CAF50;">ENABLED</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #E8F5E8; border-radius: 12px; padding: 16px; display: flex; align-items: center;">
+                    <div style="width: 24px; height: 24px; background: #4CAF50; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; color: white;">🛡️</div>
+                    <span style="font-size: 14px; color: #4CAF50; font-weight: 500;">Advanced call screening protects you from unwanted callers</span>
+                </div>
+            </div>
+            
+            <!-- About CallBunker Detail Screen -->
+            <div class="screen" id="about-callbunker-screen">
+                <div style="display: flex; align-items: center; margin-bottom: 30px;">
+                    <button onclick="showScreen('settings-screen')" style="background: none; border: none; color: #007AFF; font-size: 16px; margin-right: 8px;">←</button>
+                    <h1 style="font-size: 24px; font-weight: 600; color: #1C1C1E; margin: 0;">About CallBunker</h1>
+                </div>
+                
+                <div style="text-align: center; margin-bottom: 40px;">
+                    <div style="width: 80px; height: 80px; background: #007AFF; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 36px; color: white;">🛡️</div>
+                    <h2 style="font-size: 24px; font-weight: 600; color: #1C1C1E; margin-bottom: 8px;">CallBunker</h2>
+                    <p style="font-size: 16px; color: #8E8E93; margin: 0;">Advanced Communication Security</p>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 12px;">VERSION INFORMATION</h3>
+                    <div style="font-size: 20px; font-weight: 600; color: #1C1C1E;">1.0.0</div>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin-bottom: 12px;">CORE FEATURES</h3>
+                    <div style="background: white; border-radius: 12px; padding: 16px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                            <div style="font-size: 18px; margin-right: 12px;">🛡️</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">Call Screening with PIN/Verbal Auth</span>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                            <div style="font-size: 18px; margin-right: 12px;">📞</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">Protected Native Calling</span>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                            <div style="font-size: 18px; margin-right: 12px;">💬</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">Secure Messaging (Coming Soon)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                            <div style="font-size: 18px; margin-right: 12px;">👥</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">Trusted Contacts Management</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <div style="font-size: 18px; margin-right: 12px;">📊</div>
+                            <span style="font-size: 16px; color: #1C1C1E;">Call History & Analytics</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <p style="font-size: 14px; color: #8E8E93; text-align: center; line-height: 1.5;">CallBunker provides comprehensive communication security through advanced call screening, privacy protection, and intelligent contact management. Your real phone number stays completely hidden while maintaining full functionality.</p>
             </div>
 
             <!-- Tab Navigation -->
@@ -848,7 +1027,10 @@
                 'dialer-screen': 'dialer-tab',
                 'history-screen': 'history-tab',
                 'contacts-screen': 'contacts-tab',
-                'settings-screen': 'settings-tab'
+                'settings-screen': 'settings-tab',
+                'security-settings-screen': 'settings-tab',
+                'privacy-protection-screen': 'settings-tab',
+                'about-callbunker-screen': 'settings-tab'
             };
             
             if (tabMap[screenId]) {
@@ -868,7 +1050,31 @@
                 
                 document.getElementById('user-info-home').innerHTML = homeInfo;
                 document.getElementById('user-info-settings').innerHTML = homeInfo;
+                
+                // Update stats on home screen
+                document.getElementById('blocked-calls').textContent = '6';
+                document.getElementById('trusted-contacts').textContent = '2';
             }
+        }
+        
+        function showSecuritySettings() {
+            showScreen('security-settings-screen');
+        }
+        
+        function showPrivacyProtection() {
+            showScreen('privacy-protection-screen');
+        }
+        
+        function showAboutCallBunker() {
+            showScreen('about-callbunker-screen');
+        }
+        
+        function removeContact(contactId) {
+            // For demo purposes, just remove the element
+            event.target.closest('.contact-item').style.display = 'none';
+            const count = document.getElementById('contact-count');
+            const currentCount = parseInt(count.textContent);
+            count.textContent = currentCount - 1;
         }
         
         // Signup functionality
