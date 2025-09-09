@@ -1329,7 +1329,7 @@
             // Show confirmation dialog
             const confirmed = await showConfirmDialog(
                 'Remove Contact', 
-                'Remove this contact from trusted list?'
+                'Remove this contact from whitelist?'
             );
             
             if (!confirmed) return;
@@ -1866,7 +1866,7 @@
             
             // Refresh the contacts display
             refreshContactsWithWhitelist();
-            showStatusMessage('✅ Contact removed from trusted list', 'success');
+            showStatusMessage('✅ Contact removed from whitelist', 'success');
         }
         
         
@@ -1964,7 +1964,7 @@
                 // Show confirmation dialog
                 const confirmed = await showConfirmDialog(
                     'Remove Contacts', 
-                    `Remove ${count} contact${count !== 1 ? 's' : ''} from trusted list?`
+                    `Remove ${count} contact${count !== 1 ? 's' : ''} from whitelist?`
                 );
                 
                 if (!confirmed) return;
@@ -2328,7 +2328,7 @@
         }
         
         async function removeContact(contactId) {
-            if (confirm('Remove this contact from trusted list?')) {
+            if (confirm('Remove this contact from whitelist?')) {
                 try {
                     const response = await fetch('/demo/api/remove-contact', {
                         method: 'POST',
