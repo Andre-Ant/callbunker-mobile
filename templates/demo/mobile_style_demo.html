@@ -635,11 +635,12 @@
                     </div>
                     <p style="font-size: 14px; color: #8E8E93; margin: 0 0 16px 0;">Your real number is hidden • Tap for details</p>
                     
-                    <div style="display: flex; justify-content: space-around; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="display: flex; justify-content: space-around; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative;">
                         <div style="text-align: center; cursor: pointer;" onclick="showScreen('history-screen')">
                             <div style="font-size: 28px; font-weight: 700; color: #FF3B30; margin-bottom: 4px;" id="blocked-calls">6</div>
                             <div style="font-size: 14px; color: #8E8E93;">Blocked Calls</div>
                         </div>
+                        <div style="position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #E5E5EA;"></div>
                         <div style="text-align: center; cursor: pointer;" onclick="showScreen('contacts-screen')">
                             <div style="font-size: 28px; font-weight: 700; color: #4CAF50; margin-bottom: 4px;" id="trusted-contacts">2</div>
                             <div style="font-size: 14px; color: #8E8E93;">Trusted Contacts</div>
@@ -667,7 +668,7 @@
             <div class="screen" id="dialer-screen">
                 <h1 style="text-align: center; font-size: 24px; font-weight: 600; color: #1C1C1E; margin-bottom: 40px;">Protected Dialer</h1>
                 
-                <div class="phone-display" id="phone-display" style="font-size: 32px; font-weight: 300; text-align: center; color: #1C1C1E; margin-bottom: 16px; min-height: 40px;">Enter number</div>
+                <div class="phone-display" id="phone-display" style="font-size: 32px; font-weight: 300; text-align: center; color: #1C1C1E; margin-bottom: 16px; min-height: 40px; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.2; max-width: 100%; padding: 0 20px;">Enter number</div>
                 
                 <div style="text-align: center; margin-bottom: 40px;">
                     <span style="color: #4CAF50; font-size: 14px; font-weight: 500;">🛡️ Privacy Protected</span>
@@ -1317,11 +1318,36 @@
             '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
         };
         
+        // Create persistent audio context to avoid suspension issues
+        let audioContext = null;
+        
+        function initAudioContext() {
+            if (!audioContext) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (error) {
+                    console.log('Audio context not available');
+                    return false;
+                }
+            }
+            
+            // Resume context if suspended
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            return audioContext.state === 'running' || audioContext.state === 'suspended';
+        }
+        
         function playTone(digit) {
             if (!dtmfTones[digit]) return;
             
+            if (!initAudioContext()) {
+                console.log('Audio context not available for:', digit);
+                return;
+            }
+            
             try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const [lowFreq, highFreq] = dtmfTones[digit];
                 
                 // Create oscillators for the two frequencies
@@ -1338,16 +1364,15 @@
                 
                 // Set volume and duration
                 gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
                 
                 oscillator1.start(audioContext.currentTime);
                 oscillator2.start(audioContext.currentTime);
-                oscillator1.stop(audioContext.currentTime + 0.1);
-                oscillator2.stop(audioContext.currentTime + 0.1);
+                oscillator1.stop(audioContext.currentTime + 0.15);
+                oscillator2.stop(audioContext.currentTime + 0.15);
                 
             } catch (error) {
-                // Fallback - just a simple beep using a single tone
-                console.log('Playing tone for:', digit);
+                console.log('Error playing tone for:', digit, error);
             }
         }
         
@@ -1674,6 +1699,89 @@
                     }, 300);
                 }
             }, 3000);
+        }
+        
+        // Array to store whitelisted contacts
+        let whitelistedContacts = [];
+        
+        // PIN and Verbal Code editing functionality
+        function editPin() {
+            const currentPin = document.getElementById('pin-display').textContent;
+            const newPin = prompt('Enter new 4-digit PIN:', currentPin);
+            
+            if (newPin && /^\d{4}$/.test(newPin)) {
+                document.getElementById('pin-display').textContent = newPin;
+                showStatusMessage('✅ PIN updated successfully!', 'success');
+            } else if (newPin !== null) {
+                showStatusMessage('❌ PIN must be exactly 4 digits', 'error');
+            }
+        }
+        
+        function editVerbalCode() {
+            const currentCode = document.getElementById('verbal-display').textContent.replace(/"/g, '');
+            const newCode = prompt('Enter new verbal code:', currentCode);
+            
+            if (newCode && newCode.trim().length > 0) {
+                document.getElementById('verbal-display').textContent = `"${newCode.trim()}"`;
+                showStatusMessage('✅ Verbal code updated successfully!', 'success');
+            } else if (newCode !== null) {
+                showStatusMessage('❌ Verbal code cannot be empty', 'error');
+            }
+        }
+        
+        // Enhanced whitelist function that adds to contacts
+        function addToWhitelist(number) {
+            const formattedNumber = formatPhoneNumber(number);
+            const newContact = {
+                id: 'whitelist_' + Date.now(),
+                name: 'Whitelisted Caller',
+                phone_number: formattedNumber,
+                added: 'whitelist'
+            };
+            whitelistedContacts.push(newContact);
+            
+            // Update trusted contacts count
+            const trustedCount = document.getElementById('trusted-contacts');
+            if (trustedCount) {
+                const current = parseInt(trustedCount.textContent);
+                trustedCount.textContent = current + 1;
+            }
+            
+            return newContact;
+        }
+        
+        function refreshContactsWithWhitelist() {
+            const contactsList = document.getElementById('contacts-list');
+            if (!contactsList || whitelistedContacts.length === 0) return;
+            
+            const whitelistHTML = whitelistedContacts.map(contact => `
+                <div style="background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #4CAF50;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 16px;">${contact.name}</div>
+                        <div style="color: #8E8E93; font-size: 14px;">${contact.phone_number}</div>
+                        <div style="color: #4CAF50; font-size: 12px; margin-top: 4px;">✅ Added from blocked calls</div>
+                    </div>
+                    <button onclick="removeWhitelistContact('${contact.id}')" style="background: #FF3B30; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;">Remove</button>
+                </div>
+            `).join('');
+            
+            // Add whitelist contacts to the top of the existing list
+            const existingContent = contactsList.innerHTML;
+            if (existingContent.includes('No trusted contacts')) {
+                contactsList.innerHTML = whitelistHTML;
+            } else {
+                contactsList.innerHTML = whitelistHTML + existingContent;
+            }
+        }
+        
+        function removeWhitelistContact(contactId) {
+            whitelistedContacts = whitelistedContacts.filter(contact => contact.id !== contactId);
+            const trustedCount = document.getElementById('trusted-contacts');
+            if (trustedCount) {
+                const current = parseInt(trustedCount.textContent);
+                trustedCount.textContent = Math.max(0, current - 1);
+            }
+            loadContacts(); // Refresh the display
         }
         
         // Signup functionality
