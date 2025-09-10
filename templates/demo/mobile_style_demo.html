@@ -2220,7 +2220,11 @@
                 return;
             }
             
-            const confirmed = confirm(`Call ${formatPhoneNumber(phoneNumber)}?\n\nYour Google Voice number will be shown as caller ID. Your real number stays hidden.`);
+            const confirmed = await showConfirmDialog(
+                `Call ${formatPhoneNumber(phoneNumber)}?`, 
+                `Your Google Voice number will be shown as caller ID. Your real number stays hidden.`,
+                '📞'
+            );
             
             if (confirmed) {
                 const statusDiv = document.getElementById('call-status');
