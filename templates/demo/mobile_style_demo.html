@@ -1903,12 +1903,21 @@
         }
         
         function selectAllContacts() {
-            // If not in selection mode, enter it first
+            // If not in selection mode, enter it first and select all
             if (!contactSelectionMode) {
                 toggleContactSelection();
+                // After entering selection mode, wait for contacts to load then select all
+                setTimeout(() => {
+                    const checkboxes = document.querySelectorAll('.contact-checkbox');
+                    checkboxes.forEach(cb => {
+                        cb.checked = true;
+                    });
+                    updateContactSelectAllButton();
+                }, 100);
+                return;
             }
             
-            // Now select all checkboxes
+            // We're already in selection mode, toggle between all/none
             const checkboxes = document.querySelectorAll('.contact-checkbox');
             const allChecked = Array.from(checkboxes).every(cb => cb.checked);
             
