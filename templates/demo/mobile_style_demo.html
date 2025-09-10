@@ -834,7 +834,7 @@
                 
                 <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <h3 style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin: 0;">BLOCKED CALLS (6)</h3>
+                        <h3 id="blocked-calls-header" style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin: 0;">BLOCKED CALLS (6)</h3>
                         <button id="select-all-btn" onclick="selectAllBlockedCalls()" style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500; display: none;">Select All</button>
                     </div>
                     
@@ -1593,7 +1593,7 @@
             }
             
             // Update header count
-            const header = document.querySelector('h3[style*="BLOCKED CALLS"]');
+            const header = document.getElementById('blocked-calls-header');
             if (header) {
                 header.innerHTML = `BLOCKED CALLS (${count})`;
             }
@@ -1903,19 +1903,12 @@
         }
         
         function selectAllContacts() {
+            // If not in selection mode, enter it first
             if (!contactSelectionMode) {
                 toggleContactSelection();
-                // After entering selection mode, select all
-                setTimeout(() => {
-                    const checkboxes = document.querySelectorAll('.contact-checkbox');
-                    checkboxes.forEach(cb => {
-                        cb.checked = true;
-                    });
-                    updateContactSelectAllButton();
-                }, 100);
-                return;
             }
             
+            // Now select all checkboxes
             const checkboxes = document.querySelectorAll('.contact-checkbox');
             const allChecked = Array.from(checkboxes).every(cb => cb.checked);
             
@@ -2342,6 +2335,12 @@
                     if (contactCount) {
                         contactCount.textContent = result.contacts.length;
                     }
+                    
+                    // Update main screen trusted contacts count
+                    const trustedCount = document.getElementById('trusted-contacts');
+                    if (trustedCount) {
+                        trustedCount.textContent = result.contacts.length;
+                    }
                 } else {
                     contactsList.innerHTML = `
                         <div style="text-align: center; padding: 40px; color: #8E8E93;">
@@ -2353,9 +2352,9 @@
                     
                     // Update contact count to 0
                     const contactCount = document.getElementById('contact-count');
-                    if (contactCount) {
-                        contactCount.textContent = '0';
-                    }
+                    const trustedCount = document.getElementById('trusted-contacts');
+                    if (contactCount) contactCount.textContent = '0';
+                    if (trustedCount) trustedCount.textContent = '0';
                 }
             } catch (error) {
                 console.error('Failed to load contacts:', error);
