@@ -1436,9 +1436,10 @@
             if (selectMultipleMode) {
                 btn.textContent = 'Cancel Selection';
                 btn.style.background = '#FF3B30';
-                selectAllBtn.style.display = 'inline-block';
                 bulkActions.style.display = 'block';
                 checkboxes.forEach(cb => cb.style.display = 'inline-block');
+                // Let updateSelectAllButton handle the visibility based on item count
+                updateSelectAllButton();
             } else {
                 btn.textContent = 'Select Multiple';
                 btn.style.background = '#007AFF';
@@ -1448,14 +1449,20 @@
                     cb.style.display = 'none';
                     cb.checked = false;
                 });
+                updateSelectionCount();
             }
-            updateSelectionCount();
         }
         
         function selectAllBlockedCalls() {
             if (!selectMultipleMode) return;
             
             const checkboxes = document.querySelectorAll('.call-checkbox');
+            
+            // Don't do anything if there are no blocked calls to select
+            if (checkboxes.length === 0) {
+                return;
+            }
+            
             const allChecked = Array.from(checkboxes).every(cb => cb.checked);
             
             checkboxes.forEach(cb => cb.checked = !allChecked);
@@ -1466,6 +1473,17 @@
             const checkboxes = document.querySelectorAll('.call-checkbox');
             const selectAllBtn = document.getElementById('select-all-btn');
             const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+            
+            // Hide the "Select All" button if there are no blocked calls to select
+            if (checkboxes.length === 0) {
+                selectAllBtn.style.display = 'none';
+                return;
+            }
+            
+            // Show the button if we're in selection mode and there are items to select
+            if (selectMultipleMode) {
+                selectAllBtn.style.display = 'inline-block';
+            }
             
             if (checkedCount === 0) {
                 selectAllBtn.textContent = 'Select All';
