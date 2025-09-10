@@ -26,18 +26,18 @@
     <!-- Account Status -->
     <div class="row mb-4">
         <div class="col-md-6">
-            <div class="card border-success" style="background: rgba(25, 135, 84, 0.1);">
+            <div class="card border-success bg-body-tertiary">
                 <div class="card-body">
                     <h5 class="card-title text-success">
                         <i class="fas fa-shield-alt me-2"></i>CallBunker Active
                     </h5>
                     <div class="row">
                         <div class="col-6">
-                            <small class="text-light d-block">Your Defense Number:</small>
+                            <small class="text-body-secondary d-block">Your Defense Number:</small>
                             <code class="text-warning fw-bold fs-5">{{ format_phone(user.assigned_twilio_number) }}</code>
                         </div>
                         <div class="col-6">
-                            <small class="text-light d-block">Protection Status:</small>
+                            <small class="text-body-secondary d-block">Protection Status:</small>
                             <span class="text-success fw-bold fs-6">Defending</span>
                         </div>
                     </div>
@@ -45,13 +45,13 @@
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card border-info" style="background: rgba(13, 202, 240, 0.1);">
+            <div class="card border-info bg-body-tertiary">
                 <div class="card-body">
                     <h6 class="card-title text-info">
                         <i class="fas fa-user-check me-2"></i>Trusted Callers
                     </h6>
                     <div class="d-flex justify-content-between">
-                        <span class="text-light">Bypassing Defense:</span>
+                        <span class="text-body">Bypassing Defense:</span>
                         <span class="badge bg-info">{{ whitelist_count }}</span>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
     </div>
 
     <!-- Mobile-Friendly Dialer Access -->
-    <div class="card border-primary mb-4" style="background: rgba(13, 110, 253, 0.1);">
+    <div class="card border-primary bg-body-tertiary mb-4">
         <div class="card-body text-center py-3">
             <h6 class="text-primary mb-3">
                 <i class="fas fa-phone-alt me-2"></i>Make Protected Calls
@@ -70,12 +70,12 @@
                     <i class="fas fa-phone-alt me-2"></i>Open CallBunker Dialer
                 </a>
             </div>
-            <small class="text-muted mt-2 d-block">Make outgoing calls using your protected Google Voice number</small>
+            <small class="text-body-secondary mt-2 d-block">Make outgoing calls using your protected Google Voice number</small>
         </div>
     </div>
 
     <!-- Authentication Settings -->
-    <div class="card border-warning mb-4" style="background: rgba(255, 193, 7, 0.1);">
+    <div class="card border-warning bg-body-tertiary mb-4">
         <div class="card-header">
             <h5 class="text-warning mb-0">
                 <i class="fas fa-lock me-2"></i>Defense Authorization Codes
@@ -84,7 +84,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <h6 class="text-light">
+                    <h6 class="text-body-emphasis">
                         <i class="fas fa-keypad me-2 text-primary"></i>PIN Code
                     </h6>
                     <div class="input-group">
@@ -92,10 +92,10 @@
                         <input type="text" class="form-control bg-dark text-warning fw-bold" 
                                value="{{ user.pin }}" readonly>
                     </div>
-                    <small class="text-light">Callers enter this on their keypad</small>
+                    <small class="text-body-secondary">Callers enter this on their keypad</small>
                 </div>
                 <div class="col-md-6">
-                    <h6 class="text-light">
+                    <h6 class="text-body-emphasis">
                         <i class="fas fa-microphone me-2 text-success"></i>Verbal Code
                     </h6>
                     <div class="input-group">
@@ -103,11 +103,11 @@
                         <input type="text" class="form-control bg-dark text-warning fw-bold" 
                                value="{{ user.verbal_code }}" readonly>
                     </div>
-                    <small class="text-light">Callers can speak this phrase</small>
+                    <small class="text-body-secondary">Callers can speak this phrase</small>
                 </div>
             </div>
             
-            <div class="alert alert-info mt-3 border-info" style="background: rgba(13, 202, 240, 0.2);">
+            <div class="alert bg-info-subtle text-info-emphasis border-info-subtle mt-3">
                 <i class="fas fa-lightbulb me-2"></i>
                 <strong>Auto-Trust:</strong> After successful authentication, callers bypass CallBunker defense automatically.
             </div>
@@ -115,7 +115,7 @@
     </div>
 
     <!-- Test Call Section -->
-    <div class="card border-success" style="background: rgba(25, 135, 84, 0.1);">
+    <div class="card border-success bg-body-tertiary">
         <div class="card-header">
             <h5 class="text-success mb-0">
                 <i class="fas fa-phone-alt me-2"></i>Test Your Defense
@@ -124,12 +124,12 @@
         <div class="card-body">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <p class="text-light mb-2">
+                    <p class="text-body mb-2">
                         <strong>Ready to test?</strong> Have someone call your Google Voice number:
                     </p>
                     <div class="d-flex align-items-center gap-3">
                         <code class="text-success bg-dark px-3 py-2 rounded fs-5">{{ format_phone(user.google_voice_number) }}</code>
-                        <small class="text-light">
+                        <small class="text-body-secondary">
                             They'll be asked for PIN <code class="text-warning">{{ user.pin }}</code> or to say "<span class="text-warning">{{ user.verbal_code }}</span>"
                         </small>
                     </div>
@@ -149,7 +149,7 @@
     </div>
 
     <!-- Outgoing Calls Protection -->
-    <div class="card border-warning mt-4" style="background: rgba(255, 193, 7, 0.1);">
+    <div class="card border-warning bg-body-tertiary mt-4">
         <div class="card-header">
             <h5 class="text-warning mb-0">
                 <i class="fas fa-phone-alt me-2"></i>Making Protected Outgoing Calls

@@ -113,23 +113,23 @@
                     <i class="fas fa-shield-alt me-2"></i>
                     CallBunker Setup Almost Complete!
                 </h1>
-                <p class="lead">One critical step remains: Authenticate your Defense Number with Google Voice</p>
+                <p class="text-body-emphasis fw-semibold">One critical step remains: Authenticate your Defense Number with Google Voice</p>
             </div>
 
             <!-- Success Message -->
-            <div class="alert alert-success" role="alert">
+            <div class="alert bg-success-subtle text-success-emphasis border-success-subtle" role="alert">
                 <i class="fas fa-check-circle me-2"></i>
                 <strong>Account Created!</strong> Your Defense Number is: 
                 <span class="defense-number">{{ format_phone(user.assigned_twilio_number) }}</span>
             </div>
 
             <!-- Critical Warning -->
-            <div class="warning-box">
-                <h5 class="text-warning">
+            <div class="alert bg-warning-subtle border-warning-subtle p-4">
+                <h5 class="text-warning-emphasis">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     Authentication Required
                 </h5>
-                <p class="mb-0">
+                <p class="mb-0 text-body">
                     <strong>Your CallBunker system won't work until you authenticate this number with Google Voice.</strong>
                     This is required for caller ID masking and call forwarding to function properly.
                 </p>
@@ -140,7 +140,7 @@
                 <div class="step-item">
                     <div class="step-number">1</div>
                     <div class="step-content">
-                        <h4>Open Google Voice Settings</h4>
+                        <h4 class="text-body-emphasis">Open Google Voice Settings</h4>
                         <p>Click the button below to open Google Voice phone settings in a new tab:</p>
                         <a href="{{ google_voice_url }}" target="_blank" class="google-voice-btn">
                             <i class="fab fa-google"></i>
@@ -155,7 +155,7 @@
                 <div class="step-item">
                     <div class="step-number">2</div>
                     <div class="step-content">
-                        <h4>Add Your CallBunker Number</h4>
+                        <h4 class="text-body-emphasis">Add Your CallBunker Number</h4>
                         <p>In Google Voice settings:</p>
                         <ul class="list-unstyled">
                             <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>
@@ -177,7 +177,7 @@
                 <div class="step-item">
                     <div class="step-number">3</div>
                     <div class="step-content">
-                        <h4>Verify the Number</h4>
+                        <h4 class="text-body-emphasis">Verify the Number</h4>
                         <p>Google Voice will call your CallBunker number to verify it:</p>
                         <ul class="list-unstyled">
                             <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>
@@ -203,7 +203,7 @@
                 <div class="step-item">
                     <div class="step-number">4</div>
                     <div class="step-content">
-                        <h4>Enable Call Forwarding</h4>
+                        <h4 class="text-body-emphasis">Enable Call Forwarding</h4>
                         <p>After verification, configure forwarding:</p>
                         <ul class="list-unstyled">
                             <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>
@@ -221,8 +221,8 @@
             </div>
 
             <!-- Help Section -->
-            <div class="step-card bg-info-subtle">
-                <h5 class="text-info mb-3">
+            <div class="step-card bg-info-subtle border-info-subtle">
+                <h5 class="text-info-emphasis mb-3">
                     <i class="fas fa-question-circle me-2"></i>
                     Need Help?
                 </h5>
@@ -237,7 +237,7 @@
                     </div>
                     <div class="col-md-6">
                         <h6>Why This Step?</h6>
-                        <p class="small">
+                        <p class="small text-body">
                             This authentication allows CallBunker to use your Google Voice number 
                             as caller ID when you make outgoing calls, protecting your real number.
                         </p>
@@ -247,11 +247,11 @@
 
             <!-- Completion Form -->
             <div class="step-card border-success">
-                <h4 class="text-success mb-3">
+                <h4 class="text-success-emphasis mb-3">
                     <i class="fas fa-check-circle me-2"></i>
                     I've Completed Google Voice Setup
                 </h4>
-                <p>Once you've successfully verified your Defense Number in Google Voice, click below to activate your CallBunker system:</p>
+                <p class="text-body">Once you've successfully verified your Defense Number in Google Voice, click below to activate your CallBunker system:</p>
                 
                 <form method="POST" action="{{ url_for('multi_user.complete_google_voice_auth', user_id=user.id) }}">
                     <div class="form-check mb-3">
@@ -270,7 +270,7 @@
 
             <!-- Footer -->
             <div class="text-center mt-4">
-                <p class="text-muted small">
+                <p class="text-body-secondary small">
                     <i class="fas fa-shield-alt me-1"></i>
                     CallBunker - Protecting your privacy, one call at a time
                 </p>
