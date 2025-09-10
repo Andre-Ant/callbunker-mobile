@@ -24,7 +24,7 @@ def demo_signup():
         # Check if user already exists
         existing_user = User.query.filter_by(email=data.get('email')).first()
         if existing_user:
-            return jsonify({'success': False, 'error': 'User with this email already exists'})
+            return jsonify({'success': False, 'error': 'This email address is already registered. Please use a different email or sign in with your existing account.'})
         
         # Get available phone number
         from models_multi_user import TwilioPhonePool
