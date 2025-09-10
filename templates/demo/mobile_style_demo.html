@@ -2011,7 +2011,7 @@
         }
         
         // Utility functions
-        function showConfirmDialog(title, message) {
+        function showConfirmDialog(title, message, icon = '⚠️') {
             return new Promise((resolve) => {
                 // Create custom modal instead of browser confirm
                 const modal = document.createElement('div');
@@ -2058,9 +2058,14 @@
                 }
                 
                 const isRemoveAction = title === 'Remove Contact' || title === 'Remove Contacts';
-                const iconHtml = isRemoveAction ? 
-                    '<div style="width: 60px; height: 60px; background: #FF3B30; border-radius: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 24px; color: white;">🗑️</div>' :
-                    '<div style="width: 60px; height: 60px; background: #007AFF; border-radius: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 24px; color: white;">❓</div>';
+                const isCallAction = icon === '📞';
+                
+                // Choose background color based on action type
+                let bgColor = '#007AFF'; // Default blue
+                if (isRemoveAction) bgColor = '#FF3B30'; // Red for remove
+                if (isCallAction) bgColor = '#4CAF50'; // Green for call
+                
+                const iconHtml = `<div style="width: 60px; height: 60px; background: ${bgColor}; border-radius: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 24px; color: white;">${icon}</div>`;
                 
                 modal.innerHTML = `
                     <div class="confirm-dialog-content" style="
@@ -2091,7 +2096,7 @@
                             ">Cancel</button>
                             <button id="confirm-ok" class="confirm-remove-btn" style="
                                 flex: 1; 
-                                background: #FF3B30; 
+                                background: ${isCallAction ? '#4CAF50' : (isRemoveAction ? '#FF3B30' : '#007AFF')}; 
                                 color: white; 
                                 border: none; 
                                 border-radius: 12px; 
@@ -2100,7 +2105,7 @@
                                 font-weight: 600; 
                                 cursor: pointer;
                                 transition: all 0.2s ease;
-                            ">${isRemoveAction ? 'Remove' : 'OK'}</button>
+                            ">${isCallAction ? 'Call' : (isRemoveAction ? 'Remove' : 'OK')}</button>
                         </div>
                     </div>
                 `;
