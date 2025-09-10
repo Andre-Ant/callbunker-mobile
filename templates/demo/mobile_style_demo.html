@@ -2147,6 +2147,84 @@
             });
         }
         
+        function showInfoDialog(icon, title, message) {
+            return new Promise((resolve) => {
+                // Create custom modal for info messages
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0,0,0,0.6);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10000;
+                    padding: 20px;
+                    backdrop-filter: blur(4px);
+                    animation: fadeIn 0.2s ease-out;
+                `;
+                
+                const iconHtml = `<div style="width: 60px; height: 60px; background: #007AFF; border-radius: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 24px; color: white;">${icon}</div>`;
+                
+                modal.innerHTML = `
+                    <div class="confirm-dialog-content" style="
+                        background: white; 
+                        border-radius: 20px; 
+                        padding: 32px 24px 24px 24px; 
+                        max-width: 340px; 
+                        width: 100%; 
+                        text-align: center; 
+                        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                        border: 1px solid rgba(255,255,255,0.8);
+                    ">
+                        ${iconHtml}
+                        <h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 600; color: #1C1C1E;">${title}</h3>
+                        <p style="margin: 0 0 28px 0; font-size: 16px; color: #6C6C70; line-height: 1.5;">${message}</p>
+                        <button id="info-ok" style="
+                            width: 100%; 
+                            background: #007AFF; 
+                            color: white; 
+                            border: none; 
+                            border-radius: 12px; 
+                            padding: 14px 16px; 
+                            font-size: 16px; 
+                            font-weight: 600; 
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        ">OK</button>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                document.getElementById('info-ok').onclick = () => {
+                    modal.style.animation = 'fadeIn 0.15s ease-out reverse';
+                    setTimeout(() => {
+                        if (document.body.contains(modal)) {
+                            document.body.removeChild(modal);
+                        }
+                        resolve();
+                    }, 150);
+                };
+                
+                // Close on backdrop click
+                modal.onclick = (e) => {
+                    if (e.target === modal) {
+                        modal.style.animation = 'fadeIn 0.15s ease-out reverse';
+                        setTimeout(() => {
+                            if (document.body.contains(modal)) {
+                                document.body.removeChild(modal);
+                            }
+                            resolve();
+                        }, 150);
+                    }
+                };
+            });
+        }
+        
         // Signup functionality
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -2216,12 +2294,12 @@
         
         async function makeCall() {
             if (!phoneNumber || phoneNumber.length < 3) {
-                alert('Please enter a valid phone number');
+                await showInfoDialog('📱', 'Phone Number Required', 'Please enter a valid phone number to make a call.');
                 return;
             }
             
             if (!currentUser) {
-                alert('Please sign up first');
+                await showInfoDialog('👤', 'Account Required', 'Please sign up first to use the protected dialer.');
                 return;
             }
             
@@ -2387,7 +2465,7 @@
         
         async function addContact() {
             if (!currentUser) {
-                alert('Please sign up first');
+                await showInfoDialog('👤', 'Account Required', 'Please sign up first to use the protected dialer.');
                 return;
             }
             
@@ -2395,7 +2473,7 @@
             const phone = document.getElementById('contact-phone').value.trim();
             
             if (!name || !phone) {
-                alert('Please enter both name and phone number');
+                await showInfoDialog('📝', 'Missing Information', 'Please enter both name and phone number to add contact.');
                 return;
             }
             
