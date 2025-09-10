@@ -634,7 +634,7 @@
                     
                     <div style="display: flex; justify-content: space-around; background: white; border-radius: 12px; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
                         <div style="text-align: center; cursor: pointer; padding: 20px; flex: 1;" onclick="showScreen('history-screen')">
-                            <div style="font-size: 28px; font-weight: 700; color: #FF3B30; margin-bottom: 4px;" id="blocked-calls">6</div>
+                            <div style="font-size: 28px; font-weight: 700; color: #FF3B30; margin-bottom: 4px;" id="blocked-calls">0</div>
                             <div style="font-size: 14px; color: #8E8E93;">Blocked Calls</div>
                         </div>
                         <div style="position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #E5E5EA;"></div>
@@ -834,7 +834,7 @@
                 
                 <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <h3 id="blocked-calls-header" style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin: 0;">BLOCKED CALLS (6)</h3>
+                        <h3 id="blocked-calls-header" style="font-size: 14px; font-weight: 500; color: #8E8E93; text-transform: uppercase; margin: 0;">BLOCKED CALLS (0)</h3>
                         <button id="select-all-btn" onclick="selectAllBlockedCalls()" style="background: #007AFF; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 14px; font-weight: 500; display: none;">Select All</button>
                     </div>
                     
@@ -851,82 +851,11 @@
                     </div>
                     
                     <div class="blocked-calls-list" id="blocked-calls-list">
-                        <div class="blocked-call-item" data-number="5559998888" style="display: flex; align-items: center; margin-bottom: 16px;">
-                            <input type="checkbox" class="call-checkbox" style="display: none; margin-right: 12px;" onchange="updateSelectAllButton()">
-                            <div style="width: 40px; height: 40px; background: #FF3B30; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 18px;">!</div>
-                            <div style="flex: 1;">
-                                <div style="font-size: 16px; font-weight: 600; color: #1C1C1E;">(555) 999-8888</div>
-                                <div style="font-size: 14px; color: #8E8E93;">Blocked 2 hours ago • Failed authentication</div>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button onclick="whitelistNumber('5559998888')" style="background: #4CAF50; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Whitelist</button>
-                                <button onclick="removeBlockedCall('5559998888')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer;">Remove</button>
-                            </div>
-                        </div>
-                        
-                        <div class="blocked-call-item" data-number="5551230000" style="display: flex; align-items: center; margin-bottom: 16px;">
-                            <input type="checkbox" class="call-checkbox" style="display: none; margin-right: 12px;" onchange="updateSelectAllButton()">
-                            <div style="width: 40px; height: 40px; background: #FF3B30; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 18px;">!</div>
-                            <div style="flex: 1;">
-                                <div style="font-size: 16px; font-weight: 600; color: #1C1C1E;">(555) 123-0000</div>
-                                <div style="font-size: 14px; color: #8E8E93;">Blocked 1 day ago • Unknown caller</div>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button onclick="whitelistNumber('5551230000')" style="background: #4CAF50; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Whitelist</button>
-                                <button onclick="removeBlockedCall('5551230000')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer;">Remove</button>
-                            </div>
-                        </div>
-                        
-                        <div class="blocked-call-item" data-number="5557774444" style="display: flex; align-items: center; margin-bottom: 16px;">
-                            <input type="checkbox" class="call-checkbox" style="display: none; margin-right: 12px;" onchange="updateSelectAllButton()">
-                            <div style="width: 40px; height: 40px; background: #FF3B30; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 18px;">!</div>
-                            <div style="flex: 1;">
-                                <div style="font-size: 16px; font-weight: 600; color: #1C1C1E;">(555) 777-4444</div>
-                                <div style="font-size: 14px; color: #8E8E93;">Blocked 3 days ago • Spam detected</div>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button onclick="whitelistNumber('5557774444')" style="background: #4CAF50; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Whitelist</button>
-                                <button onclick="removeBlockedCall('5557774444')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer;">Remove</button>
-                            </div>
-                        </div>
-                        
-                        <div class="blocked-call-item" data-number="5552345678" style="display: flex; align-items: center; margin-bottom: 16px;">
-                            <input type="checkbox" class="call-checkbox" style="display: none; margin-right: 12px;" onchange="updateSelectAllButton()">
-                            <div style="width: 40px; height: 40px; background: #FF3B30; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 18px;">!</div>
-                            <div style="flex: 1;">
-                                <div style="font-size: 16px; font-weight: 600; color: #1C1C1E;">(555) 234-5678</div>
-                                <div style="font-size: 14px; color: #8E8E93;">Blocked 5 hours ago • Invalid PIN</div>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button onclick="whitelistNumber('5552345678')" style="background: #4CAF50; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Whitelist</button>
-                                <button onclick="removeBlockedCall('5552345678')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer;">Remove</button>
-                            </div>
-                        </div>
-                        
-                        <div class="blocked-call-item" data-number="5558765432" style="display: flex; align-items: center; margin-bottom: 16px;">
-                            <input type="checkbox" class="call-checkbox" style="display: none; margin-right: 12px;" onchange="updateSelectAllButton()">
-                            <div style="width: 40px; height: 40px; background: #FF3B30; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 18px;">!</div>
-                            <div style="flex: 1;">
-                                <div style="font-size: 16px; font-weight: 600; color: #1C1C1E;">(555) 876-5432</div>
-                                <div style="font-size: 14px; color: #8E8E93;">Blocked 30 minutes ago • Suspicious activity</div>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button onclick="whitelistNumber('5558765432')" style="background: #4CAF50; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Whitelist</button>
-                                <button onclick="removeBlockedCall('5558765432')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer;">Remove</button>
-                            </div>
-                        </div>
-                        
-                        <div class="blocked-call-item" data-number="5553219876" style="display: flex; align-items: center; margin-bottom: 16px;">
-                            <input type="checkbox" class="call-checkbox" style="display: none; margin-right: 12px;" onchange="updateSelectAllButton()">
-                            <div style="width: 40px; height: 40px; background: #FF3B30; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 18px;">!</div>
-                            <div style="flex: 1;">
-                                <div style="font-size: 16px; font-weight: 600; color: #1C1C1E;">(555) 321-9876</div>
-                                <div style="font-size: 14px; color: #8E8E93;">Blocked 15 minutes ago • Too many attempts</div>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button onclick="whitelistNumber('5553219876')" style="background: #4CAF50; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">Whitelist</button>
-                                <button onclick="removeBlockedCall('5553219876')" style="background: #FF3B30; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px; cursor: pointer;">Remove</button>
-                            </div>
+                        <!-- Blocked calls will be loaded dynamically -->
+                        <div style="text-align: center; padding: 40px 20px; color: #8E8E93;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">📵</div>
+                            <div style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">No Blocked Calls</div>
+                            <div style="font-size: 14px;">Your call screening is working perfectly!</div>
                         </div>
                     </div>
                     
@@ -1308,7 +1237,7 @@
         function updateUserInfo() {
             if (currentUser) {
                 // Update stats on home screen only
-                document.getElementById('blocked-calls').textContent = '6';
+                document.getElementById('blocked-calls').textContent = '0';
                 document.getElementById('trusted-contacts').textContent = '2';
             }
         }
