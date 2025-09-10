@@ -519,6 +519,7 @@ def contact_support():
 # ============================================================================
 
 @multi_user_bp.route('/user/<int:user_id>/google-voice-auth')
+@multi_user_bp.route('/google-voice-auth/<user_id>')
 def google_voice_auth(user_id):
     """Critical step: Guide user through Google Voice authentication of their CallBunker number"""
     user = User.query.get_or_404(user_id)
