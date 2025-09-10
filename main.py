@@ -332,6 +332,17 @@ def full_functional_demo():
     response.headers['Expires'] = '0'
     return response
 
+@app.route('/demo/full-functional-fresh')
+def full_functional_demo_fresh():
+    """Complete end-to-end functional demo - FRESH VERSION TO BYPASS CACHE"""
+    import time
+    response = make_response(render_template('demo/mobile_style_demo.html'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    response.headers['Last-Modified'] = str(int(time.time()))
+    return response
+
 @app.route('/mobile-preview')
 def mobile_preview():
     """Mobile signup preview route"""
