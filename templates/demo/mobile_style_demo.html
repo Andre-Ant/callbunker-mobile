@@ -932,7 +932,7 @@
                         <div style="width: 40px; height: 40px; background: #F8F9FA; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px; font-size: 18px;">🛡️</div>
                         <div style="flex: 1;">
                             <div style="font-size: 16px; font-weight: 600; color: #1C1C1E; margin-bottom: 2px;">Security Settings</div>
-                            <div style="font-size: 14px; color: #8E8E93;">PIN: 8322, Verbal: "Black widow"</div>
+                            <div style="font-size: 14px; color: #8E8E93;" id="settings-security-preview">PIN: 8322, Verbal: "Black widow"</div>
                         </div>
                     </div>
                     
@@ -1232,6 +1232,11 @@
             if (screenId === 'contacts-screen') {
                 loadContactsScreen();
             }
+            
+            // Update settings display when switching to settings screens
+            if (screenId === 'settings-screen' || screenId === 'security-settings-screen') {
+                updateSettingsDisplay();
+            }
         }
         
         function updateUserInfo() {
@@ -1239,6 +1244,31 @@
                 // Update stats on home screen only
                 document.getElementById('blocked-calls').textContent = '0';
                 document.getElementById('trusted-contacts').textContent = '2';
+                
+                // Update settings with real user data
+                updateSettingsDisplay();
+            }
+        }
+        
+        function updateSettingsDisplay() {
+            if (currentUser) {
+                // Update settings preview in main settings screen
+                const settingsPreview = document.getElementById('settings-security-preview');
+                if (settingsPreview) {
+                    settingsPreview.textContent = `PIN: ${currentUser.pin}, Verbal: "${currentUser.verbal_code}"`;
+                }
+                
+                // Update PIN display in security settings screen
+                const pinDisplay = document.getElementById('pin-display');
+                if (pinDisplay) {
+                    pinDisplay.textContent = currentUser.pin;
+                }
+                
+                // Update verbal code display in security settings screen
+                const verbalDisplay = document.getElementById('verbal-display');
+                if (verbalDisplay) {
+                    verbalDisplay.textContent = currentUser.verbal_code;
+                }
             }
         }
         
@@ -2199,6 +2229,9 @@
                 
                 if (result.success) {
                     currentUser = result.user;
+                    
+                    // Update settings display with real user data
+                    updateSettingsDisplay();
                     
                     // Show success modal
                     document.getElementById('modal-defense-number').textContent = result.user.assigned_twilio_number;
