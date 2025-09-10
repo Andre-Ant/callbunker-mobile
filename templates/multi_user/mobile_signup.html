@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CallBunker Signup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #007AFF;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            color: #8e8e93;
+            line-height: 1.4;
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .input {
+            width: 100%;
+            border: 1px solid #e5e5ea;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 16px;
+            background: #f8f9fa;
+            color: #1c1c1e;
+            box-sizing: border-box;
+        }
+        
+        .input:focus {
+            border-color: #007AFF;
+            outline: none;
+            background: white;
+        }
+        
+        .help-text {
+            font-size: 14px;
+            color: #8e8e93;
+            margin-top: 6px;
+        }
+        
+        .help-link {
+            color: #007AFF;
+            text-decoration: none;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .get-number-btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+        
+        .get-number-btn:hover {
+            background: #0056CC;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .col {
+            flex: 1;
+        }
+        
+        .signup-button {
+            background: #007AFF;
+            border: none;
+            border-radius: 8px;
+            padding: 16px;
+            width: 100%;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .signup-button:hover {
+            background: #0056CC;
+        }
+        
+        .signup-button:disabled {
+            background: #8e8e93;
+            cursor: not-allowed;
+        }
+        
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .info-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        
+        .step {
+            text-align: center;
+        }
+        
+        .step-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .step-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 4px;
+        }
+        
+        .step-subtitle {
+            font-size: 12px;
+            color: #8e8e93;
+            line-height: 1.3;
+        }
+        
+        .step-link {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 8px;
+            background: #007AFF;
+            color: white;
+            border-radius: 6px;
+            font-size: 11px;
+            text-decoration: none;
+        }
+        
+        .success-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .success-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            margin: 20px;
+        }
+        
+        .success-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .success-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 12px;
+        }
+        
+        .defense-number {
+            background: #e8f5e8;
+            color: #4caf50;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 16px 0;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        
+        .continue-btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">🛡️ Join CallBunker</div>
+            <div class="subtitle">The last line of defense against spam calls</div>
+        </div>
+        
+        <div class="form-card">
+            <form method="POST" id="signupForm">
+                <div class="form-group">
+                    <label for="name" class="label">Full Name</label>
+                    <input type="text" class="input" id="name" name="name" required>
+                    <div class="help-text">Your name for account identification</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="label">Email Address</label>
+                    <input type="email" class="input" id="email" name="email" required>
+                    <div class="help-text">For account management and notifications</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="google_voice_number" class="label">Your Google Voice Number</label>
+                    <div class="input-group">
+                        <input type="tel" class="input" id="google_voice_number" name="google_voice_number" 
+                               placeholder="(555) 123-4567" required style="flex: 1;">
+                        <a href="https://voice.google.com" target="_blank" class="get-number-btn">
+                            Get Number
+                        </a>
+                    </div>
+                    <div class="help-text">The Google Voice number callers will dial. <a href="https://voice.google.com" target="_blank" class="help-link">Don't have one? Get it free here</a></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="real_phone_number" class="label">Your Real Phone Number</label>
+                    <input type="tel" class="input" id="real_phone_number" name="real_phone_number" 
+                           placeholder="(555) 987-6543" required>
+                    <div class="help-text">Where screened calls should be forwarded</div>
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="pin" class="label">4-Digit PIN</label>
+                            <input type="text" class="input" id="pin" name="pin" 
+                                   value="1122" maxlength="4" pattern="[0-9]{4}" required>
+                            <div class="help-text">Callers enter this on keypad</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="verbal_code" class="label">Verbal Code</label>
+                            <input type="text" class="input" id="verbal_code" name="verbal_code" 
+                                   value="open sesame" required>
+                            <div class="help-text">Callers can say this instead</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="signup-button" {% if available_numbers == 0 %}disabled{% endif %}>
+                    {% if available_numbers > 0 %}
+                    🚀 Create My CallBunker Account
+                    {% else %}
+                    Join Waiting List
+                    {% endif %}
+                </button>
+            </form>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-title">
+                ℹ️ How CallBunker Works
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-icon">👤</div>
+                    <div class="step-title">1. Sign Up</div>
+                    <div class="step-subtitle">Get your dedicated Defense Number</div>
+                </div>
+                <div class="step">
+                    <div class="step-icon">🔗</div>
+                    <div class="step-title">2. Link Google Voice</div>
+                    <div class="step-subtitle">Forward to your Defense Number</div>
+                    <a href="https://voice.google.com" target="_blank" class="step-link">Setup</a>
+                </div>
+                <div class="step">
+                    <div class="step-icon">🛡️</div>
+                    <div class="step-title">3. Calls Screened</div>
+                    <div class="step-subtitle">PIN/verbal authentication</div>
+                </div>
+                <div class="step">
+                    <div class="step-icon">✅</div>
+                    <div class="step-title">4. You Get Calls</div>
+                    <div class="step-subtitle">Only verified callers</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <div class="success-icon">🎉</div>
+            <div class="success-title">Account Created!</div>
+            <div>Your Defense Number is:</div>
+            <div class="defense-number" id="defenseNumber"></div>
+            <div style="font-size: 14px; color: #8e8e93; margin-bottom: 16px;">
+                Next: Configure Google Voice call forwarding
+            </div>
+            <button class="continue-btn" onclick="continueToSetup()">Continue Setup</button>
+        </div>
+    </div>
+    
+    <script>
+        // Form validation
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simulate successful signup
+            const defenseNumber = '+1 (631) 641-7735'; // This would come from the server
+            document.getElementById('defenseNumber').textContent = defenseNumber;
+            document.getElementById('successModal').style.display = 'flex';
+        });
+        
+        function continueToSetup() {
+            // This would redirect to Google Voice auth page
+            window.location.href = '/multi/google-voice-auth';
+        }
+        
+        // Phone number formatting
+        function formatPhoneNumber(input) {
+            const value = input.value.replace(/\D/g, '');
+            if (value.length >= 10) {
+                const formatted = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
+                input.value = formatted;
+            }
+        }
+        
+        document.getElementById('google_voice_number').addEventListener('input', function() {
+            formatPhoneNumber(this);
+        });
+        
+        document.getElementById('real_phone_number').addEventListener('input', function() {
+            formatPhoneNumber(this);
+        });
+    </script>
+</body>
+</html>

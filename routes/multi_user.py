@@ -34,6 +34,54 @@ def format_phone_display(phone):
         return f"({digits[1:4]}) {digits[4:7]}-{digits[7:11]}"
     return phone
 
+@multi_user_bp.route('/mobile-signup', methods=['GET', 'POST'])
+def mobile_signup():
+    """Clean mobile-style signup interface"""
+    if request.method == 'GET':
+        available_numbers = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).count()
+        return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
+    
+    # Handle POST - create user with same logic as regular signup
+    try:
+        email = request.form.get('email', '').strip().lower()
+        name = request.form.get('name', '').strip()
+        google_voice_number = normalize_phone(request.form.get('google_voice_number', '').strip())
+        real_phone_number = normalize_phone(request.form.get('real_phone_number', '').strip())
+        pin = request.form.get('pin', '1122').strip()
+        verbal_code = request.form.get('verbal_code', 'open sesame').strip()
+        
+        # Assign next available Twilio number from pool
+        available_number = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).first()
+        if not available_number:
+            flash('No phone numbers available. Please try again later.', 'error')
+            return redirect(url_for('multi_user.mobile_signup'))
+        
+        # Create new user
+        user = User(
+            email=email,
+            name=name,
+            google_voice_number=google_voice_number,
+            real_phone_number=real_phone_number,
+            pin=pin,
+            verbal_code=verbal_code,
+            assigned_twilio_number=available_number.phone_number
+        )
+        
+        # Assign the phone number
+        available_number.assigned_to_user_id = user.id
+        available_number.is_assigned = True
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        # Redirect to Google Voice auth
+        return redirect(url_for('multi_user.google_voice_auth', user_id=user.id))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Signup failed: {str(e)}', 'error')
+        return redirect(url_for('multi_user.mobile_signup'))
+
 @multi_user_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     """New user signup with Google Voice integration"""
