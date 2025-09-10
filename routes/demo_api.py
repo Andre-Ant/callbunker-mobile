@@ -94,6 +94,7 @@ def demo_signup():
             
     except Exception as e:
         db.session.rollback()
+        print(f"Signup error: {type(e).__name__}: {str(e)}")  # Debug logging
         return jsonify({'success': False, 'error': 'Unable to create account. Please try again later.'})
 
 @demo_api_bp.route('/make-call', methods=['POST'])
