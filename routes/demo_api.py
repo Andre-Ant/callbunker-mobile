@@ -21,8 +21,9 @@ def demo_signup():
     try:
         data = request.get_json()
         
-        # Check if user already exists
-        existing_user = User.query.filter_by(email=data.get('email')).first()
+        # Check if user already exists (normalize email the same way)
+        normalized_email = data.get('email', '').lower().strip()
+        existing_user = User.query.filter_by(email=normalized_email).first()
         if existing_user:
             return jsonify({'success': False, 'error': 'This email address is already registered. Please use a different email or sign in with your existing account.'})
         
