@@ -704,10 +704,10 @@
                     <button class="dial-btn" onclick="playTone('#'); addDigit('#')" style="width: 70px; height: 70px; border-radius: 35px; border: none; background: #F8F9FA; font-size: 24px; font-weight: 400; color: #1C1C1E; margin: 0 auto; display: flex; align-items: center; justify-content: center;">#</button>
                 </div>
                 
-                <div style="display: flex; justify-content: center; align-items: center; gap: 60px;">
+                <div style="display: flex; justify-content: center; align-items: center; gap: 40px;">
                     <button onclick="clearNumber()" style="width: 50px; height: 50px; border-radius: 25px; border: none; background: #FF3B30; color: white; font-size: 18px; display: flex; align-items: center; justify-content: center;">⌫</button>
                     <button onclick="makeCall()" style="width: 64px; height: 64px; border-radius: 32px; border: none; background: #4CAF50; color: white; font-size: 24px; display: flex; align-items: center; justify-content: center;">📞</button>
-                    <div style="width: 50px;"></div>
+                    <button id="speaker-btn" onclick="toggleSpeaker()" style="width: 50px; height: 50px; border-radius: 25px; border: none; background: #8E8E93; color: white; font-size: 18px; display: flex; align-items: center; justify-content: center;">🔊</button>
                 </div>
                 
                 <div id="call-status"></div>
@@ -2273,6 +2273,23 @@
                 return `(${match[1]}) ${match[2]}-${match[3]}`;
             }
             return number;
+        }
+        
+        let speakerEnabled = false;
+        
+        function toggleSpeaker() {
+            const speakerBtn = document.getElementById('speaker-btn');
+            speakerEnabled = !speakerEnabled;
+            
+            if (speakerEnabled) {
+                speakerBtn.style.background = '#007AFF';
+                speakerBtn.innerHTML = '🔊';
+                showInfoDialog('📢', 'Speaker Enabled', 'Speaker mode is now active for calls.');
+            } else {
+                speakerBtn.style.background = '#8E8E93';
+                speakerBtn.innerHTML = '🔊';
+                showInfoDialog('📱', 'Speaker Disabled', 'Speaker mode is now disabled.');
+            }
         }
         
         async function makeCall() {
