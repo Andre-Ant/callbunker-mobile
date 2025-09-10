@@ -7,6 +7,8 @@ from flask import Blueprint, request, jsonify
 from models_multi_user import db, User, UserWhitelist
 from datetime import datetime, timedelta
 import json
+from sqlalchemy.exc import IntegrityError
+import psycopg2
 
 demo_api_bp = Blueprint('demo_api', __name__, url_prefix='/demo/api')
 
@@ -64,7 +66,17 @@ def demo_signup():
         available_number.assigned_to_user_id = user.id
         
         # Commit everything
-        db.session.commit()
+        try:
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+            # Check if it's a duplicate email error
+            if 'duplicate key value violates unique constraint' in str(e) and 'email' in str(e):
+                return jsonify({'success': False, 'error': 'This email address is already registered. Please use a different email or sign in with your existing account.'})
+            elif 'duplicate key value violates unique constraint' in str(e):
+                return jsonify({'success': False, 'error': 'This information is already registered. Please check your details and try again.'})
+            else:
+                return jsonify({'success': False, 'error': 'Unable to create account. Please try again.'})
         
         return jsonify({
             'success': True,
@@ -82,7 +94,7 @@ def demo_signup():
             
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)})
+        return jsonify({'success': False, 'error': 'Unable to create account. Please try again later.'})
 
 @demo_api_bp.route('/make-call', methods=['POST'])
 def demo_make_call():
