@@ -374,20 +374,8 @@
     </div>
     
     <script>
-        // Form validation
-        document.getElementById('signupForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Simulate successful signup
-            const defenseNumber = '+1 (631) 641-7735'; // This would come from the server
-            document.getElementById('defenseNumber').textContent = defenseNumber;
-            document.getElementById('successModal').style.display = 'flex';
-        });
-        
-        function continueToSetup() {
-            // This would redirect to Google Voice auth page
-            window.location.href = '/multi/google-voice-auth';
-        }
+        // Form validation - let the form submit normally to Flask
+        // Phone number formatting only
         
         // Phone number formatting
         function formatPhoneNumber(input) {

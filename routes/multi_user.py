@@ -88,7 +88,7 @@ def signup():
     if request.method == 'GET':
         # Check available Twilio numbers
         available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
-        response = make_response(render_template('multi_user/signup.html', available_numbers=available_numbers))
+        response = make_response(render_template('multi_user/mobile_signup.html', available_numbers=available_numbers))
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
@@ -107,23 +107,23 @@ def signup():
         # Validation
         if not all([email, name, google_voice_number, real_phone_number]):
             flash('All fields are required', 'error')
-            return render_template('multi_user/signup.html', available_numbers=available_numbers)
+            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
         
         # Check if email already exists
         if User.query.filter_by(email=email).first():
             flash('Email already registered', 'error')
-            return render_template('multi_user/signup.html', available_numbers=available_numbers)
+            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
         
         # Check if Google Voice number already registered
         if User.query.filter_by(google_voice_number=google_voice_number).first():
             flash('Google Voice number already registered', 'error')
-            return render_template('multi_user/signup.html', available_numbers=available_numbers)
+            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
         
         # Get next available Twilio number with database lock to prevent race conditions
         available_twilio = TwilioPhonePool.query.filter_by(is_assigned=False).with_for_update().first()
         if not available_twilio:
             flash('No CallBunker numbers available. Please contact support.', 'error')
-            return render_template('multi_user/signup.html', available_numbers=0)
+            return render_template('multi_user/mobile_signup.html', available_numbers=0)
         
         # Create new user
         user = User(
