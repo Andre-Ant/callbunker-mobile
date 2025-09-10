@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Voice Setup Required - CallBunker</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .setup-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .step-card {
+            background: var(--bs-card-bg);
+            border: 1px solid var(--bs-border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .step-number {
+            background: var(--bs-primary);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        .step-content {
+            flex: 1;
+        }
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+        .defense-number {
+            background: var(--bs-success);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+        .warning-box {
+            background: var(--bs-warning-bg-subtle);
+            border: 2px solid var(--bs-warning);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .google-voice-btn {
+            background: #4285F4;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .google-voice-btn:hover {
+            background: #3367D6;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+        }
+        .complete-btn {
+            background: var(--bs-success);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        .complete-btn:hover {
+            background: var(--bs-success-dark);
+            transform: translateY(-2px);
+        }
+        .video-container {
+            background: var(--bs-dark);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            color: var(--bs-light);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="setup-container">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h1 class="display-6 text-primary">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    CallBunker Setup Almost Complete!
+                </h1>
+                <p class="lead">One critical step remains: Authenticate your Defense Number with Google Voice</p>
+            </div>
+
+            <!-- Success Message -->
+            <div class="alert alert-success" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Account Created!</strong> Your Defense Number is: 
+                <span class="defense-number">{{ format_phone(user.assigned_twilio_number) }}</span>
+            </div>
+
+            <!-- Critical Warning -->
+            <div class="warning-box">
+                <h5 class="text-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Authentication Required
+                </h5>
+                <p class="mb-0">
+                    <strong>Your CallBunker system won't work until you authenticate this number with Google Voice.</strong>
+                    This is required for caller ID masking and call forwarding to function properly.
+                </p>
+            </div>
+
+            <!-- Step 1 -->
+            <div class="step-card">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Open Google Voice Settings</h4>
+                        <p>Click the button below to open Google Voice phone settings in a new tab:</p>
+                        <a href="{{ google_voice_url }}" target="_blank" class="google-voice-btn">
+                            <i class="fab fa-google"></i>
+                            Open Google Voice Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card">
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Add Your CallBunker Number</h4>
+                        <p>In Google Voice settings:</p>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>
+                                Click <strong>"Add another number"</strong> or <strong>"Link a number"</strong>
+                            </li>
+                            <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>
+                                Enter your Defense Number: <code>{{ format_phone(user.assigned_twilio_number) }}</code>
+                            </li>
+                            <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>
+                                Select <strong>"Work"</strong> or <strong>"Other"</strong> as the phone type
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card">
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Verify the Number</h4>
+                        <p>Google Voice will call your CallBunker number to verify it:</p>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>
+                                Click <strong>"Send code"</strong> in Google Voice
+                            </li>
+                            <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>
+                                <strong>Important:</strong> The call will reach your real phone number: 
+                                <code>{{ format_phone(user.real_phone_number) }}</code>
+                            </li>
+                            <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>
+                                Answer the call and follow the verification instructions
+                            </li>
+                            <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>
+                                Enter the verification code in Google Voice
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step-card">
+                <div class="step-item">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>Enable Call Forwarding</h4>
+                        <p>After verification, configure forwarding:</p>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>
+                                Make sure your CallBunker number is <strong>enabled</strong> for forwarding
+                            </li>
+                            <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>
+                                Set it as <strong>active</strong> for receiving calls
+                            </li>
+                            <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>
+                                Save your settings in Google Voice
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Section -->
+            <div class="step-card bg-info-subtle">
+                <h5 class="text-info mb-3">
+                    <i class="fas fa-question-circle me-2"></i>
+                    Need Help?
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Common Issues:</h6>
+                        <ul>
+                            <li>Can't find "Add number"? Look for "Linked numbers" section</li>
+                            <li>Verification call not coming through? Check your real phone is on</li>
+                            <li>Google Voice showing error? Try refreshing and retry</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Why This Step?</h6>
+                        <p class="small">
+                            This authentication allows CallBunker to use your Google Voice number 
+                            as caller ID when you make outgoing calls, protecting your real number.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completion Form -->
+            <div class="step-card border-success">
+                <h4 class="text-success mb-3">
+                    <i class="fas fa-check-circle me-2"></i>
+                    I've Completed Google Voice Setup
+                </h4>
+                <p>Once you've successfully verified your Defense Number in Google Voice, click below to activate your CallBunker system:</p>
+                
+                <form method="POST" action="{{ url_for('multi_user.complete_google_voice_auth', user_id=user.id) }}">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmAuth" required>
+                        <label class="form-check-label" for="confirmAuth">
+                            I have successfully added and verified <strong>{{ format_phone(user.assigned_twilio_number) }}</strong> 
+                            in my Google Voice account, and call forwarding is enabled.
+                        </label>
+                    </div>
+                    <button type="submit" class="complete-btn">
+                        <i class="fas fa-rocket me-2"></i>
+                        Activate My CallBunker System
+                    </button>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-4">
+                <p class="text-muted small">
+                    <i class="fas fa-shield-alt me-1"></i>
+                    CallBunker - Protecting your privacy, one call at a time
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

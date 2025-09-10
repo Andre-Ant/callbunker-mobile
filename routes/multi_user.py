@@ -98,7 +98,8 @@ def signup():
         db.session.commit()
         
         flash(f'Account created! Your Defense Number is {format_phone_display(user.assigned_twilio_number)}', 'success')
-        return redirect(url_for('multi_user.user_dashboard', user_id=user.id))
+        # Redirect to Google Voice authentication step (critical!)
+        return redirect(url_for('multi_user.google_voice_auth', user_id=user.id))
         
     except Exception as e:
         db.session.rollback()
@@ -463,3 +464,35 @@ def api_call_bridge(user_id):
 def contact_support():
     """Support contact page for users needing help"""
     return render_template('multi_user/contact_support.html')
+
+
+# ============================================================================
+# GOOGLE VOICE AUTHENTICATION - Critical Missing Step!
+# ============================================================================
+
+@multi_user_bp.route('/user/<int:user_id>/google-voice-auth')
+def google_voice_auth(user_id):
+    """Critical step: Guide user through Google Voice authentication of their CallBunker number"""
+    user = User.query.get_or_404(user_id)
+    
+    # Create direct Google Voice setup URL with the user's assigned Twilio number
+    twilio_number = user.assigned_twilio_number
+    google_voice_url = f"https://voice.google.com/u/0/settings/phones?authuser=0"
+    
+    return render_template('multi_user/google_voice_auth.html',
+                         user=user,
+                         twilio_number=twilio_number,
+                         google_voice_url=google_voice_url,
+                         format_phone=format_phone_display)
+
+@multi_user_bp.route('/user/<int:user_id>/complete-auth', methods=['POST'])
+def complete_google_voice_auth(user_id):
+    """Mark Google Voice authentication as complete and proceed to dashboard"""
+    user = User.query.get_or_404(user_id)
+    
+    # Here you could add verification logic if needed
+    # For now, trust the user completed the process
+    
+    flash('Google Voice authentication completed! Your CallBunker system is now active.', 'success')
+    return redirect(url_for('multi_user.user_dashboard', user_id=user.id))
+
