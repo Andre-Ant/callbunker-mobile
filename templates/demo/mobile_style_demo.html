@@ -1903,17 +1903,11 @@
         }
         
         function selectAllContacts() {
-            // If not in selection mode, enter it first and select all
+            // If not in selection mode, enter it first
             if (!contactSelectionMode) {
+                // Set a flag to auto-select after mode switch
+                window.autoSelectAllAfterModeSwitch = true;
                 toggleContactSelection();
-                // After entering selection mode, wait for contacts to load then select all
-                setTimeout(() => {
-                    const checkboxes = document.querySelectorAll('.contact-checkbox');
-                    checkboxes.forEach(cb => {
-                        cb.checked = true;
-                    });
-                    updateContactSelectAllButton();
-                }, 100);
                 return;
             }
             
@@ -2349,6 +2343,18 @@
                     const trustedCount = document.getElementById('trusted-contacts');
                     if (trustedCount) {
                         trustedCount.textContent = result.contacts.length;
+                    }
+                    
+                    // Auto-select all if flag is set (for "Select All" button)
+                    if (window.autoSelectAllAfterModeSwitch) {
+                        window.autoSelectAllAfterModeSwitch = false;
+                        setTimeout(() => {
+                            const checkboxes = document.querySelectorAll('.contact-checkbox');
+                            checkboxes.forEach(cb => {
+                                cb.checked = true;
+                            });
+                            updateContactSelectAllButton();
+                        }, 50);
                     }
                 } else {
                     contactsList.innerHTML = `
