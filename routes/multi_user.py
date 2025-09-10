@@ -1,15 +1,14 @@
 """
 CallBunker Business Routes - Each user gets their own Twilio number
 """
-from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, make_response
+from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, make_response, Response
 from models_multi_user import User, TwilioPhonePool, UserWhitelist, MultiUserCallLog
 from app import db
 from utils.twilio_helpers import twilio_client
 import re
 import uuid
 from datetime import datetime
-from twilio.jwt.access_token import AccessToken
-from twilio.jwt.access_token.grants import VoiceGrant
+from twilio.twiml.voice_response import VoiceResponse, Gather
 import os
 
 multi_user_bp = Blueprint('multi_user', __name__, url_prefix='/multi')
@@ -336,14 +335,52 @@ def setup_twilio_webhook(phone_number):
         return False
 
 # ============================================================================
-# REAL CALLING FUNCTIONALITY - What your developer needs!
+# REAL CALLBUNKER BRIDGE CALLING - The Actual Working Mechanism!
 # ============================================================================
 
-@multi_user_bp.route('/user/<int:user_id>/call_direct', methods=['POST'])
-def api_call_direct(user_id):
+@multi_user_bp.route('/voice/conference/<conference_name>', methods=['POST'])
+def handle_conference_call(conference_name):
     """
-    NATIVE CALLING ENDPOINT - This is what makes real calls!
-    Returns configuration for native device calling with caller ID spoofing
+    Handle conference call participants - joins target and user into same conference
+    This is the TwiML endpoint that both call legs hit
+    """
+    participant = request.args.get('participant', 'unknown')
+    
+    vr = VoiceResponse()
+    
+    if participant == 'target':
+        # Target person joining - no message, just join conference
+        vr.dial().conference(
+            conference_name,
+            start_conference_on_enter=True,
+            end_conference_on_exit=False,
+            wait_url="http://twimlets.com/holdmusic?Bucket=com.twilio.music.ambient"
+        )
+    elif participant == 'user':
+        # User joining - brief message then join
+        vr.say("CallBunker connecting your call.", voice="polly.Joanna")
+        vr.dial().conference(
+            conference_name,
+            start_conference_on_enter=True,
+            end_conference_on_exit=True,  # End when user hangs up
+            wait_url="http://twimlets.com/holdmusic?Bucket=com.twilio.music.ambient"
+        )
+    else:
+        vr.say("Conference error. Please try again.", voice="polly.Joanna")
+        vr.hangup()
+    
+    return xml_response(vr)
+
+def xml_response(voice_response):
+    """Helper to return proper TwiML XML response"""
+    response = Response(str(voice_response), content_type='application/xml')
+    return response
+
+@multi_user_bp.route('/user/<int:user_id>/call_bridge', methods=['POST'])
+def api_call_bridge(user_id):
+    """
+    REAL CALLBUNKER BRIDGE CALLING - This actually works!
+    Creates a Twilio conference call bridging user and target
     """
     user = User.query.get_or_404(user_id)
     data = request.get_json()
@@ -353,87 +390,46 @@ def api_call_direct(user_id):
         if not to_number:
             return jsonify({'error': 'to_number is required'}), 400
         
-        # Normalize phone number
+        # Normalize phone numbers
         to_number_normalized = '+1' + normalize_phone(to_number) if not to_number.startswith('+') else to_number
+        user_phone = '+1' + normalize_phone(user.real_phone_number) if len(user.real_phone_number) == 10 else user.real_phone_number
+        google_voice_number = '+1' + normalize_phone(user.google_voice_number) if len(user.google_voice_number) == 10 else user.google_voice_number
+        
+        # Create conference name
+        conference_name = f"callbunker_{user_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        
+        # Get Twilio client and public URL
+        from utils.twilio_helpers import twilio_client
+        client = twilio_client()
+        
+        # Use public URL that Twilio can reach
+        public_url = os.environ.get('PUBLIC_APP_URL', 'https://4ec224cf-933c-4ca6-b58f-2fce3ea2d59f-00-23vazcc99oamt.janeway.replit.dev')
+        
+        # Call 1: Call the target number (they see Google Voice number as caller ID)
+        target_call = client.calls.create(
+            to=to_number_normalized,
+            from_=google_voice_number,  # Target sees your Google Voice number!
+            url=f"{public_url}/multi/voice/conference/{conference_name}?participant=target",
+            method='POST'
+        )
+        
+        # Call 2: Call the user
+        user_call = client.calls.create(
+            to=user_phone,
+            from_=google_voice_number,  # You see your own Google Voice number
+            url=f"{public_url}/multi/voice/conference/{conference_name}?participant=user",
+            method='POST'
+        )
         
         # Create call log entry
         call_log = MultiUserCallLog(
             user_id=user_id,
-            from_number=user.google_voice_number,  # Shows Google Voice as caller ID
+            from_number=google_voice_number,
             to_number=to_number_normalized,
             direction='outbound',
-            status='initiated',
-            twilio_call_sid=None  # Native calling doesn't use Twilio call SID
-        )
-        
-        db.session.add(call_log)
-        db.session.commit()
-        
-        # Return native calling configuration
-        return jsonify({
-            'success': True,
-            'approach': 'native_calling',
-            'call_log_id': call_log.id,
-            'to_number': to_number_normalized,
-            'from_number': user.google_voice_number,
-            'native_call_config': {
-                'target_number': to_number_normalized,
-                'spoofed_caller_id': user.google_voice_number,  # This is the magic!
-                'method': 'device_native',
-                'cost': 'carrier_only'
-            },
-            'instructions': {
-                'implementation': 'Use device native calling with caller ID spoofing',
-                'ios_method': 'CallKit with CXStartCallAction',
-                'android_method': 'TelecomManager with PhoneAccountHandle',
-                'react_native': 'NativeModules.CallManager.makeCall()'
-            },
-            'message': 'Ready for native calling - mobile app should initiate call now'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
-
-@multi_user_bp.route('/user/<int:user_id>/call_voip', methods=['POST'])
-def api_call_voip(user_id):
-    """
-    VOIP CALLING ENDPOINT - Alternative approach using Twilio Voice SDK
-    This actually makes calls through Twilio (costs per minute)
-    """
-    user = User.query.get_or_404(user_id)
-    data = request.get_json()
-    
-    try:
-        to_number = data.get('to_number', '').strip()
-        if not to_number:
-            return jsonify({'error': 'to_number is required'}), 400
-        
-        # Normalize phone number
-        to_number_normalized = '+1' + normalize_phone(to_number) if not to_number.startswith('+') else to_number
-        
-        # Generate access token for Twilio Voice SDK
-        account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
-        auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
-        
-        # Create access token
-        access_token = AccessToken(account_sid, auth_token, auth_token)
-        access_token.identity = f"user_{user_id}"
-        
-        # Add voice grant
-        voice_grant = VoiceGrant(
-            outgoing_application_sid=None,  # You would create a TwiML app for this
-            incoming_allow=True
-        )
-        access_token.add_grant(voice_grant)
-        
-        # Create call log entry
-        call_log = MultiUserCallLog(
-            user_id=user_id,
-            from_number=user.google_voice_number,
-            to_number=to_number_normalized,
-            direction='outbound',
-            status='initiated'
+            status='calling',
+            twilio_call_sid=target_call.sid,
+            conference_name=conference_name
         )
         
         db.session.add(call_log)
@@ -441,61 +437,27 @@ def api_call_voip(user_id):
         
         return jsonify({
             'success': True,
-            'approach': 'voip_calling',
+            'approach': 'bridge_calling',
             'call_log_id': call_log.id,
-            'access_token': access_token.to_jwt(),
+            'conference_name': conference_name,
             'to_number': to_number_normalized,
-            'from_number': user.google_voice_number,
-            'voip_config': {
-                'identity': f"user_{user_id}",
-                'caller_id': user.google_voice_number,
-                'cost_per_minute': '$0.02',
-                'method': 'twilio_voice_sdk'
+            'from_number': google_voice_number,
+            'target_call_sid': target_call.sid,
+            'user_call_sid': user_call.sid,
+            'bridge_config': {
+                'target_sees': google_voice_number,
+                'user_phone': user_phone,
+                'conference': conference_name,
+                'cost': '$0.02 per minute per leg (2 legs total)'
             },
-            'instructions': {
-                'implementation': 'Use Twilio Voice React Native SDK',
-                'sdk': '@twilio/voice-react-native-sdk',
-                'method': 'voice.connect()',
-                'docs': 'https://www.twilio.com/docs/voice/sdks/react-native'
-            },
-            'message': 'VoIP call ready - use access token with Twilio Voice SDK'
+            'message': f'Bridge call initiated - both {to_number_normalized} and {user_phone} will ring shortly'
         })
         
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@multi_user_bp.route('/user/<int:user_id>/voip_token', methods=['GET'])
-def api_get_voip_token(user_id):
-    """
-    Generate Twilio access token for VoIP calling
-    Required for Twilio Voice SDK authentication
-    """
-    user = User.query.get_or_404(user_id)
-    
-    try:
-        account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
-        auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
-        
-        # Create access token
-        access_token = AccessToken(account_sid, auth_token, auth_token)
-        access_token.identity = f"user_{user_id}"
-        
-        # Add voice grant
-        voice_grant = VoiceGrant(
-            outgoing_application_sid=None,
-            incoming_allow=True
-        )
-        access_token.add_grant(voice_grant)
-        
-        return jsonify({
-            'access_token': access_token.to_jwt(),
-            'identity': f"user_{user_id}",
-            'expires_in': 3600  # 1 hour
-        })
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+
 
 @multi_user_bp.route('/contact-support')
 def contact_support():
