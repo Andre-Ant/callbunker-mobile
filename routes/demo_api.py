@@ -15,6 +15,31 @@ demo_api_bp = Blueprint('demo_api', __name__, url_prefix='/demo/api')
 # In-memory call history for demo purposes
 demo_call_history = {}
 
+# Demo blocked numbers for testing
+demo_blocked_numbers = [
+    {
+        'id': 1,
+        'phone_number': '+15559998888',
+        'blocked_reason': 'Spam caller - Telemarketing',
+        'blocked_at': '2025-09-09T14:30:00Z',
+        'attempts': 5
+    },
+    {
+        'id': 2,
+        'phone_number': '+15551230000',
+        'blocked_reason': 'Failed authentication multiple times',
+        'blocked_at': '2025-09-09T10:15:00Z',
+        'attempts': 3
+    },
+    {
+        'id': 3,
+        'phone_number': '+15557774444',
+        'blocked_reason': 'Automated robocall detected',
+        'blocked_at': '2025-09-09T08:45:00Z',
+        'attempts': 7
+    }
+]
+
 @demo_api_bp.route('/signup', methods=['POST'])
 def demo_signup():
     """Create new user account for demo"""
@@ -404,6 +429,19 @@ def demo_get_call_history(user_id):
         return jsonify({
             "error": str(e)
         }), 500
+
+@demo_api_bp.route('/blocked-numbers/<int:user_id>', methods=['GET'])
+def demo_get_blocked_numbers(user_id):
+    """Get blocked numbers for demo testing"""
+    try:
+        # Return the demo blocked numbers for testing
+        return jsonify({
+            'success': True,
+            'blocked_numbers': demo_blocked_numbers
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 @demo_api_bp.route('/user/<int:user_id>/status', methods=['GET'])
 def demo_user_status(user_id):
