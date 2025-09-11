@@ -148,6 +148,11 @@ def test_page():
     </html>
     """
 
+@multi_user_bp.route('/mobile')
+def mobile_simple():
+    """Mobile-optimized simple signup"""
+    return render_template('multi_user/mobile_simple.html')
+
 @multi_user_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     """New user signup with Google Voice integration"""

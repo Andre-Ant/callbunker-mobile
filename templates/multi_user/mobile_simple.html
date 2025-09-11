@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Signup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 10px;
+            font-size: 16px;
+        }
+        input, button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Mobile Signup</h1>
+        
+        <form method="POST" action="/multi/signup">
+            <input type="text" name="name" placeholder="Your Name" value="Mobile User" required>
+            
+            <input type="email" name="email" placeholder="Email" value="mobile@example.com" required>
+            
+            <input type="tel" name="google_voice_number" placeholder="Google Voice: 5551234567" value="5551234567" required>
+            
+            <input type="tel" name="real_phone_number" placeholder="Real Phone: 5559876543" value="5559876543" required>
+            
+            <input type="text" name="pin" placeholder="PIN: 1122" value="1122" maxlength="4" required>
+            
+            <input type="text" name="verbal_code" placeholder="Verbal Code" value="open sesame" required>
+            
+            <button type="submit">🚀 Create Account</button>
+        </form>
+        
+        <p><strong>Status:</strong> <span id="status">Ready</span></p>
+    </div>
+    
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            document.getElementById('status').textContent = 'Submitting...';
+        });
+    </script>
+</body>
+</html>
