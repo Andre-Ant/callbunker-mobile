@@ -158,7 +158,7 @@ def signup():
     """New user signup with Google Voice integration"""
     if request.method == 'GET':
         # Check available Twilio numbers
-        available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
+        available_numbers = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).count()
         response = make_response(render_template('multi_user/mobile_signup.html', available_numbers=available_numbers))
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
@@ -173,7 +173,7 @@ def signup():
         real_phone_number = normalize_phone(request.form.get('real_phone_number', '').strip())
         
         # Check available numbers for template
-        available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
+        available_numbers = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).count()
         
         # Validation
         if not all([email, name, google_voice_number, real_phone_number]):
@@ -191,7 +191,7 @@ def signup():
             return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
         
         # Get next available Twilio number with database lock to prevent race conditions
-        available_twilio = TwilioPhonePool.query.filter_by(is_assigned=False).with_for_update().first()
+        available_twilio = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).with_for_update().first()
         if not available_twilio:
             flash('No CallBunker numbers available. Please contact support.', 'error')
             return render_template('multi_user/mobile_signup.html', available_numbers=0)
@@ -223,7 +223,7 @@ def signup():
     except Exception as e:
         db.session.rollback()
         flash(f'Registration failed: {str(e)}', 'error')
-        available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
+        available_numbers = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).count()
         return render_template('multi_user/signup.html', available_numbers=available_numbers)
 
 @multi_user_bp.route('/user/<int:user_id>/dashboard')
