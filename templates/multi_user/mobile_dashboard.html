@@ -700,6 +700,7 @@
                 <div class="dialer-display">
                     <div class="phone-number" id="phone-display">Enter number</div>
                     <div class="privacy-badge">🛡️ Privacy Protected • 🔊 Touch Tones</div>
+                    <div id="call-status" class="call-status" aria-live="polite" style="font-size: 14px; color: #007aff; margin-top: 8px; min-height: 20px;"></div>
                 </div>
                 
                 <div class="dialpad">
@@ -993,6 +994,22 @@
         let deviceReady = false;
         const USER_ID = {{ user.id }};
         
+        // Safe DOM helpers
+        function $(id) { return document.getElementById(id); }
+        function setText(id, text) {
+            const el = $(id);
+            if (!el) {
+                console.warn('Missing element:', id);
+                return;
+            }
+            el.textContent = text;
+        }
+        
+        // Global error handler to catch any remaining DOM issues
+        window.addEventListener('error', (e) => {
+            console.error('GlobalError:', e.filename, e.lineno, e.message);
+        });
+        
         // Initialize Twilio Voice SDK
         async function initializeTwilioVoice() {
             try {
@@ -1012,23 +1029,27 @@
                         console.log('Twilio Device ready for calls');
                         deviceReady = true;
                         twilioDevice = Twilio.Device;
+                        setText('call-status', 'Voice SDK ready for no-callback calling');
                         showCustomAlert('Voice Ready', 'CallBunker no-callback calling is ready! Only target phones will ring.');
                     });
                     
                     Twilio.Device.error((error) => {
                         console.error('Twilio Device error:', error);
+                        setText('call-status', 'Voice SDK error');
                         showCustomAlert('Voice Error', 'Voice SDK error: ' + error.message);
                     });
                     
                     Twilio.Device.connect((connection) => {
                         console.log('Call connected:', connection);
                         currentCall = connection;
+                        setText('call-status', 'Call connected - speaking through Voice SDK');
                         showCustomAlert('Connected', 'Call connected! Speaking through Voice SDK - only target phone rang.');
                     });
                     
                     Twilio.Device.disconnect((connection) => {
                         console.log('Call disconnected:', connection);
                         currentCall = null;
+                        setText('call-status', '');
                         showCustomAlert('Call Ended', 'Call has been disconnected.');
                         loadCallHistory(); // Refresh call history
                     });
@@ -1250,6 +1271,7 @@
                     // Use Voice SDK for true no-callback calling - only target phone rings
                     if (deviceReady && twilioDevice && Twilio.Device.status() === 'ready') {
                         console.log('Making Voice SDK call to:', normalizedNumber);
+                        setText('call-status', 'Calling...');
                         const call = Twilio.Device.connect({
                             To: normalizedNumber
                         });
@@ -1261,18 +1283,21 @@
                         updateDisplay();
                     } else {
                         // Voice SDK not ready - try to initialize and retry
+                        setText('call-status', 'Initializing...');
                         showCustomAlert('Initializing Voice...', 'Setting up no-callback calling system...');
                         await initializeTwilioVoice();
                         
                         // Wait for device to be ready then retry
                         setTimeout(() => {
                             if (deviceReady && twilioDevice && Twilio.Device.status() === 'ready') {
+                                setText('call-status', 'Calling...');
                                 const call = Twilio.Device.connect({ To: normalizedNumber });
                                 currentCall = call;
                                 showCustomAlert('Connected', 'Call connected via Voice SDK! Only target phone rang.');
                                 phoneNumber = '';
                                 updateDisplay();
                             } else {
+                                setText('call-status', 'Error - Voice SDK not ready');
                                 showCustomAlert('Voice SDK Error', 'Voice system not ready. Please refresh page and wait for "Voice Ready" message.');
                             }
                         }, 3000);
