@@ -1288,6 +1288,12 @@
         // Load call history from API
         async function loadCallHistory() {
             try {
+                const historyContainer = document.getElementById('call-history-list');
+                if (!historyContainer) {
+                    console.warn('call-history-list element not found');
+                    return;
+                }
+
                 const response = await fetch(`/multi/user/${USER_ID}/calls`, {
                     headers: {
                         'X-API-Key': 'demo-key-callbunker-2025',
@@ -1300,8 +1306,6 @@
                 }
                 
                 const calls = await response.json();
-                
-                const historyContainer = document.getElementById('call-history-list');
                 
                 if (calls.length === 0) {
                     historyContainer.innerHTML = `
@@ -1345,6 +1349,14 @@
         // Load contacts from API
         async function loadContacts() {
             try {
+                const contactsList = document.getElementById('contacts-list');
+                const contactsHeader = document.getElementById('contacts-header');
+                
+                if (!contactsList || !contactsHeader) {
+                    console.warn('contacts DOM elements not found');
+                    return;
+                }
+
                 const response = await fetch(`/multi/user/${USER_ID}/contacts`, {
                     headers: {
                         'X-API-Key': 'demo-key-callbunker-2025',
@@ -1357,9 +1369,6 @@
                 }
                 
                 const contacts = await response.json();
-                
-                const contactsList = document.getElementById('contacts-list');
-                const contactsHeader = document.getElementById('contacts-header');
                 
                 contactsHeader.textContent = `Trusted Contacts (${contacts.length})`;
                 
@@ -1404,6 +1413,14 @@
         // Load analytics from API
         async function loadAnalytics() {
             try {
+                const blockedCallsStat = document.getElementById('blocked-calls-stat');
+                const trustedContactsStat = document.getElementById('trusted-contacts-stat');
+                
+                if (!blockedCallsStat || !trustedContactsStat) {
+                    console.warn('analytics DOM elements not found');
+                    return;
+                }
+
                 const response = await fetch(`/multi/user/${USER_ID}/analytics`, {
                     headers: {
                         'X-API-Key': 'demo-key-callbunker-2025',
@@ -1417,8 +1434,8 @@
                 
                 const analytics = await response.json();
                 
-                document.getElementById('blocked-calls-stat').textContent = analytics.blocked_calls;
-                document.getElementById('trusted-contacts-stat').textContent = analytics.trusted_contacts;
+                blockedCallsStat.textContent = analytics.blocked_calls;
+                trustedContactsStat.textContent = analytics.trusted_contacts;
             } catch (error) {
                 console.error('Failed to load analytics:', error);
             }
@@ -1688,6 +1705,12 @@
                 const messageEl = document.getElementById('modal-message');
                 const buttonsEl = document.getElementById('modal-buttons');
                 
+                if (!overlay || !titleEl || !messageEl || !buttonsEl) {
+                    console.error('Modal elements not found');
+                    resolve();
+                    return;
+                }
+                
                 titleEl.textContent = title;
                 messageEl.textContent = message;
                 buttonsEl.innerHTML = `
@@ -1706,6 +1729,12 @@
                 const titleEl = document.getElementById('modal-title');
                 const messageEl = document.getElementById('modal-message');
                 const buttonsEl = document.getElementById('modal-buttons');
+                
+                if (!overlay || !titleEl || !messageEl || !buttonsEl) {
+                    console.error('Modal elements not found');
+                    resolve(false);
+                    return;
+                }
                 
                 titleEl.textContent = title;
                 messageEl.textContent = message;
