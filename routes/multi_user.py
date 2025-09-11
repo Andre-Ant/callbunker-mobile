@@ -696,10 +696,13 @@ def api_call_bridge(user_id):
         # Use public URL that Twilio can reach
         public_url = os.environ.get('PUBLIC_APP_URL', 'https://4ec224cf-933c-4ca6-b58f-2fce3ea2d59f-00-23vazcc99oamt.janeway.replit.dev')
         
-        # Call 1: Call the target number (they see Google Voice number as caller ID)
+        # Use verified CallBunker Defense Number as caller ID (works reliably)
+        defense_number = user.assigned_twilio_number
+        
+        # Call 1: Call the target number (they see your Defense Number as caller ID)
         target_call = client.calls.create(
             to=to_number_normalized,
-            from_=google_voice_number,  # Target sees your Google Voice number!
+            from_=defense_number,  # Target sees your verified Defense Number
             url=f"{public_url}/multi/voice/conference/{conference_name}?participant=target",
             method='POST'
         )
@@ -707,7 +710,7 @@ def api_call_bridge(user_id):
         # Call 2: Call the user
         user_call = client.calls.create(
             to=user_phone,
-            from_=google_voice_number,  # You see your own Google Voice number
+            from_=defense_number,  # You see your Defense Number calling you
             url=f"{public_url}/multi/voice/conference/{conference_name}?participant=user",
             method='POST'
         )
@@ -715,7 +718,7 @@ def api_call_bridge(user_id):
         # Create call log entry
         call_log = MultiUserCallLog(
             user_id=user_id,
-            from_number=google_voice_number,
+            from_number=defense_number,
             to_number=to_number_normalized,
             direction='outbound',
             status='calling',
