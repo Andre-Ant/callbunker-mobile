@@ -264,7 +264,8 @@ def signup():
             real_phone_number=real_phone_number,
             assigned_twilio_number=available_twilio.phone_number,
             pin=request.form.get('pin', '1122').strip(),
-            verbal_code=request.form.get('verbal_code', 'open sesame').strip()
+            verbal_code=request.form.get('verbal_code', 'open sesame').strip(),
+            password_hash=generate_password_hash(password)
         )
         
         # Mark Twilio number as assigned and save everything in one transaction
@@ -277,6 +278,12 @@ def signup():
         db.session.commit()
         
         flash(f'Account created! Your Defense Number is {format_phone_display(user.assigned_twilio_number)}', 'success')
+        
+        # Set up login session for the new user
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session['logged_in'] = True
+        
         # Redirect to Google Voice authentication step (critical!)
         return redirect(url_for('multi_user.google_voice_auth', user_id=user.id))
         
