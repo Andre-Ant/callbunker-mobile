@@ -1106,6 +1106,7 @@ def voice_sdk_outbound():
         # Log the call
         call_log = MultiUserCallLog(
             user_id=user.id,
+            from_number=user.assigned_twilio_number,  # Add missing from_number
             to_number=to_number_normalized,
             direction='outbound',
             status='calling',
