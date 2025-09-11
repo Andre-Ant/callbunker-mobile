@@ -1171,6 +1171,10 @@
         
         function updateDisplay() {
             const display = document.getElementById('phone-display');
+            if (!display) {
+                console.error('phone-display element not found');
+                return;
+            }
             if (phoneNumber) {
                 display.textContent = formatPhone(phoneNumber);
                 display.style.color = '#1c1c1e';
