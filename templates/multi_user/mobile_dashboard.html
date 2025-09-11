@@ -629,6 +629,7 @@
             font-family: monospace;
         }
     </style>
+    <script src="https://sdk.twilio.com/js/client/releases/1.14.1/twilio.min.js"></script>
 </head>
 <body>
     <div class="header">
@@ -989,6 +990,48 @@
         let audioContext;
         const USER_ID = {{ user.id }};
         
+        // Twilio Voice SDK
+        let twilioDevice = null;
+        let currentCall = null;
+        
+        // Initialize Twilio Voice SDK
+        async function initializeTwilioVoice() {
+            try {
+                const response = await fetch(`/multi/user/${USER_ID}/voice-token`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Use correct Twilio v1 syntax
+                    Twilio.Device.setup(data.token);
+                    
+                    Twilio.Device.ready(() => {
+                        console.log('Twilio Device ready for calls');
+                        twilioDevice = Twilio.Device;  // Reference the singleton
+                    });
+                    
+                    Twilio.Device.error((error) => {
+                        console.error('Twilio Device error:', error);
+                    });
+                    
+                    Twilio.Device.connect((connection) => {
+                        console.log('Call connected:', connection);
+                        currentCall = connection;
+                        showCustomAlert('Connected', 'You are now connected. Speak into your device.');
+                    });
+                    
+                    Twilio.Device.disconnect((connection) => {
+                        console.log('Call disconnected:', connection);
+                        currentCall = null;
+                        showCustomAlert('Call Ended', 'Call has been disconnected.');
+                    });
+                } else {
+                    console.error('Failed to get voice token:', data.error);
+                }
+            } catch (error) {
+                console.error('Error initializing Twilio Voice:', error);
+            }
+        }
+        
         // DTMF frequencies for each button
         const dtmfTones = {
             '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
@@ -1190,13 +1233,23 @@
             
             if (confirmed) {
                 try {
-                    showCustomAlert('Calling...', 'Initiating protected call to ' + formatPhone(phoneNumber));
+                    showCustomAlert('CallBunker Direct', 'Target phone ringing... You speak through this interface (no callback needed!).');
                     
-                    const response = await fetch(`/multi/user/${USER_ID}/call_bridge`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-API-Key': 'demo-key-callbunker-2025',
+                    // Use direct calling - only target phone rings, you speak through Voice SDK
+                    if (twilioDevice && Twilio.Device.status() === 'ready') {
+                        // Direct call using Voice SDK (no conference needed)
+                        const call = Twilio.Device.connect({
+                            To: phoneNumber
+                        });
+                        currentCall = call;
+                        showCustomAlert('Connecting...', 'Target phone ringing. You speak through this interface.');
+                    } else {
+                        // Fallback to API call if Voice SDK not ready
+                        const response = await fetch(`/multi/user/${USER_ID}/call_direct`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-API-Key': 'demo-key-callbunker-2025',
                             'X-CSRF-Token': 'demo-csrf-callbunker'
                         },
                         body: JSON.stringify({
@@ -1664,6 +1717,8 @@
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Twilio Voice SDK for true no-callback calling
+            initializeTwilioVoice();
             loadAnalytics();
         });
     </script>

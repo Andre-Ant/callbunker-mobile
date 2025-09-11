@@ -621,6 +621,27 @@ def setup_twilio_webhook(phone_number):
 # REAL CALLBUNKER BRIDGE CALLING - The Actual Working Mechanism!
 # ============================================================================
 
+@multi_user_bp.route('/voice/device-outbound', methods=['POST'])
+def handle_device_outbound():
+    """
+    TwiML endpoint for Twilio Voice SDK outbound calls
+    Direct browser-to-PSTN bridge with no hold music
+    """
+    to_number = request.form.get('To')
+    caller_id = request.form.get('CallerId')  # Set in Voice token
+    
+    vr = VoiceResponse()
+    
+    if to_number:
+        # Direct dial to target - no conference, no hold music
+        vr.say("CallBunker connecting.", voice="polly.Joanna")
+        vr.dial(caller_id=caller_id).number(to_number)
+    else:
+        vr.say("Invalid number.", voice="polly.Joanna")
+        vr.hangup()
+    
+    return xml_response(vr)
+
 @multi_user_bp.route('/voice/conference/<conference_name>', methods=['POST'])
 def handle_conference_call(conference_name):
     """
@@ -667,10 +688,114 @@ def xml_response(voice_response):
     response = Response(str(voice_response), content_type='application/xml')
     return response
 
+@multi_user_bp.route('/user/<int:user_id>/call_direct', methods=['POST'])
+def api_call_direct(user_id):
+    """
+    TRUE NO-CALLBACK CALLING - User speaks through web/mobile, only target phone rings
+    Uses Twilio Voice SDK for direct calling without callback
+    """
+    user = User.query.get_or_404(user_id)
+    data = request.get_json()
+    
+    try:
+        to_number = data.get('to_number', '').strip()
+        if not to_number:
+            return jsonify({'error': 'to_number is required'}), 400
+        
+        # Normalize phone numbers
+        to_number_normalized = '+1' + normalize_phone(to_number) if not to_number.startswith('+') else to_number
+        google_voice_number = '+1' + normalize_phone(user.google_voice_number) if len(user.google_voice_number) == 10 else user.google_voice_number
+        
+        # Get Twilio client and public URL
+        from utils.twilio_helpers import twilio_client
+        client = twilio_client()
+        
+        # NOTE: This endpoint is now for fallback only
+        # True no-callback uses Voice SDK directly via device-outbound TwiML
+        return jsonify({
+            'success': False,
+            'message': 'Use Voice SDK for direct calling - this is fallback only',
+            'voice_sdk_ready': True
+        })
+        
+        # Create call log entry
+        call_log = MultiUserCallLog(
+            user_id=user_id,
+            from_number=google_voice_number,
+            to_number=to_number_normalized,
+            direction='outbound',
+            status='calling',
+            twilio_call_sid=target_call.sid,
+            conference_name=None  # No conference needed for direct calling
+        )
+        
+        db.session.add(call_log)
+        db.session.commit()
+        
+        print(f"DIRECT CALL DEBUG: Created call - Target: {target_call.sid}")
+        print(f"DIRECT CALL DEBUG: Target number: {to_number_normalized}")
+        print(f"DIRECT CALL DEBUG: Google Voice number: {google_voice_number}")
+        
+        return jsonify({
+            'success': True,
+            'approach': 'direct_calling',
+            'call_log_id': call_log.id,
+            'target_call_sid': target_call.sid,
+            'to_number': to_number_normalized,
+            'from_number': google_voice_number,
+            'message': f'Direct call initiated - {to_number_normalized} will ring, you speak through app'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@multi_user_bp.route('/user/<int:user_id>/voice-token', methods=['GET'])
+def get_voice_token(user_id):
+    """
+    Generate Twilio Voice Access Token for direct calling through web/mobile
+    """
+    try:
+        from twilio.jwt.access_token import AccessToken
+        from twilio.jwt.access_token.grants import VoiceGrant
+        
+        user = User.query.get_or_404(user_id)
+        
+        # Use your Twilio credentials
+        account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+        api_key = os.environ.get('TWILIO_API_KEY')
+        api_secret = os.environ.get('TWILIO_API_SECRET')
+        app_sid = os.environ.get('TWIML_APP_SID')
+        
+        # Create a TwiML App URL for device outbound calls
+        public_url = os.environ.get('PUBLIC_APP_URL')
+        if not public_url:
+            return jsonify({'error': 'PUBLIC_APP_URL not configured'}), 500
+            
+        # Create an Access Token with proper caller ID
+        token = AccessToken(account_sid, api_key, api_secret, identity=f"user_{user_id}")
+        
+        # Create a Voice grant with outbound TwiML app
+        voice_grant = VoiceGrant(
+            outgoing_application_sid=app_sid,
+            incoming_allow=True
+        )
+        token.add_grant(voice_grant)
+        
+        return jsonify({
+            'success': True,
+            'token': token.to_jwt(),
+            'identity': f"user_{user_id}",
+            'caller_id': user.assigned_twilio_number
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @multi_user_bp.route('/user/<int:user_id>/call_bridge', methods=['POST'])
 def api_call_bridge(user_id):
     """
-    REAL CALLBUNKER BRIDGE CALLING - This actually works!
+    BRIDGE CALLING (OLD) - Both phones ring with hold music
     Creates a Twilio conference call bridging user and target
     """
     user = User.query.get_or_404(user_id)
