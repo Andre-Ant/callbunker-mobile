@@ -1007,6 +1007,7 @@
                     Twilio.Device.ready(() => {
                         console.log('Twilio Device ready for calls');
                         twilioDevice = Twilio.Device;  // Reference the singleton
+                        showCustomAlert('Voice Ready', 'CallBunker no-callback calling is ready! Only target phones will ring.');
                     });
                     
                     Twilio.Device.error((error) => {
@@ -1259,7 +1260,11 @@
                             return;
                         }
                         
-                        // Fallback to old bridge calling (will be removed)
+                        // Force no-callback calling - disable bridge calling
+                        showCustomAlert('Error', 'Voice SDK required for no-callback calling. Please refresh page and wait for "Device ready" message.');
+                        return;
+                        
+                        // OLD bridge calling disabled
                         const response = await fetch(`/multi/user/${USER_ID}/call_bridge`, {
                             method: 'POST',
                             headers: {
