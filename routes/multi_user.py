@@ -747,7 +747,7 @@ def api_call_mobile_app(user_id):
         # Call ONLY the target number (no callback to user's phone!)
         target_call = client.calls.create(
             to=to_number_normalized,
-            from_=google_voice_number,  # Target sees your Google Voice number
+            from_=user.assigned_twilio_number,  # Use assigned Twilio number as caller ID
             url=f"{public_url}/multi/voice/conference/{conference_name}?participant=target",
             method='POST'
         )

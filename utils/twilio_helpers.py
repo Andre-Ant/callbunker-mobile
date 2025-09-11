@@ -55,25 +55,24 @@ def generate_voice_access_token(user_id: int) -> str:
     account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
     api_key = os.environ.get("TWILIO_API_KEY") 
     api_secret = os.environ.get("TWILIO_API_SECRET")
+    twiml_app_sid = os.environ.get("TWIML_APP_SID")
     
-    # Use environment vars if available, otherwise use account SID/token
-    if not api_key or not api_secret:
-        # For now, use account SID and token (less secure but works)
-        api_key = account_sid
-        api_secret = os.environ.get("TWILIO_AUTH_TOKEN")
+    # Validate required credentials
+    if not account_sid or not api_key or not api_secret:
+        raise ValueError("TWILIO_ACCOUNT_SID, TWILIO_API_KEY, and TWILIO_API_SECRET must be set")
     
-    if not account_sid or not api_secret:
-        raise ValueError("Twilio credentials not properly configured")
+    if not twiml_app_sid:
+        raise ValueError("TWIML_APP_SID must be set for Voice SDK calling")
     
     # Create unique identity for this user
     identity = f"callbunker_user_{user_id}"
     
-    # Create access token
+    # Create access token with proper API key credentials
     access_token = AccessToken(account_sid, api_key, api_secret, identity=identity)
     
-    # Create Voice grant
+    # Create Voice grant with TwiML Application SID
     voice_grant = VoiceGrant(
-        outgoing_application_sid=None,  # We'll handle calls via REST API
+        outgoing_application_sid=twiml_app_sid,  # Required for outgoing calls
         incoming_allow=True  # Allow incoming calls to this identity
     )
     
