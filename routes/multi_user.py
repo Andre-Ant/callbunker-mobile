@@ -121,6 +121,11 @@ def mobile_signup():
         flash(f'Signup failed: {str(e)}', 'error')
         return redirect(url_for('multi_user.mobile_signup'))
 
+@multi_user_bp.route('/debug-signup')
+def debug_signup():
+    """Simple debug signup page"""
+    return render_template('multi_user/debug_signup.html')
+
 @multi_user_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     """New user signup with Google Voice integration"""

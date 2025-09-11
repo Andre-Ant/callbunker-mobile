@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Signup</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 8px; border: 1px solid #ccc; }
+        button { background: #007AFF; color: white; padding: 12px 24px; border: none; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Debug Signup Form</h1>
+    
+    <form method="POST" action="/multi/signup">
+        <div class="form-group">
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" name="name" value="Test User">
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="test@example.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="google_voice_number">Google Voice Number:</label>
+            <input type="tel" id="google_voice_number" name="google_voice_number" value="5551234567">
+        </div>
+        
+        <div class="form-group">
+            <label for="real_phone_number">Real Phone Number:</label>
+            <input type="tel" id="real_phone_number" name="real_phone_number" value="5559876543">
+        </div>
+        
+        <div class="form-group">
+            <label for="pin">PIN:</label>
+            <input type="text" id="pin" name="pin" value="1122">
+        </div>
+        
+        <div class="form-group">
+            <label for="verbal_code">Verbal Code:</label>
+            <input type="text" id="verbal_code" name="verbal_code" value="open sesame">
+        </div>
+        
+        <button type="submit">Submit</button>
+    </form>
+    
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            console.log('Form submission attempted');
+            console.log('Form data:', new FormData(e.target));
+        });
+    </script>
+</body>
+</html>
