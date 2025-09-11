@@ -74,6 +74,7 @@ def format_phone_display(phone):
 def mobile_signup():
     """Clean mobile-style signup interface"""
     if request.method == 'GET':
+        session.clear()  # Clear any old session data
         available_numbers = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).count()
         return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
     
@@ -156,7 +157,9 @@ def mobile_simple():
 @multi_user_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     """New user signup with Google Voice integration"""
+    # Clear any existing flash messages on GET request to ensure clean signup
     if request.method == 'GET':
+        session.clear()
         # Check available Twilio numbers
         available_numbers = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).count()
         response = make_response(render_template('multi_user/mobile_signup.html', available_numbers=available_numbers))
