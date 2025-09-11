@@ -629,7 +629,7 @@
             font-family: monospace;
         }
     </style>
-    <script src="https://sdk.twilio.com/js/client/releases/1.14.1/twilio.min.js"></script>
+    <script src="https://sdk.twilio.com/js/client/releases/1.14/twilio.min.js"></script>
 </head>
 <body>
     <div class="header">
@@ -1032,9 +1032,15 @@
                 if (data.success) {
                     // Use correct Twilio Voice SDK syntax
                     try {
-                        Twilio.Device.setup(data.access_token);
+                        console.log('Setting up Twilio Device with token...');
+                        Twilio.Device.setup(data.access_token, {
+                            debug: true,
+                            rtc: true
+                        });
+                        console.log('Twilio Device setup completed');
                     } catch (setupError) {
-                        console.error('Twilio setup error:', setupError);
+                        console.error('Twilio setup error details:', setupError);
+                        showCustomAlert('Voice SDK Error', `Setup failed: ${setupError.message || 'Unknown error'}`);
                         throw setupError;
                     }
                     
