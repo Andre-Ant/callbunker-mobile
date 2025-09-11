@@ -629,7 +629,8 @@
             font-family: monospace;
         }
     </style>
-    <script src="https://sdk.twilio.com/js/voice/releases/2.11/twilio.min.js"></script>
+    <script src="https://sdk.twilio.com/js/voice/releases/2.11/twilio.min.js" onerror="console.error('Failed to load Twilio SDK 2.11')"></script>
+    <script src="https://sdk.twilio.com/js/client/releases/1.14/twilio.min.js" onerror="console.error('Failed to load Twilio SDK 1.14 fallback')"></script>
 </head>
 <body>
     <div class="header">
@@ -1020,6 +1021,15 @@
         
         // Initialize Twilio Voice SDK
         async function initializeTwilioVoice() {
+            // Check if Twilio SDK loaded properly
+            if (typeof Twilio === 'undefined') {
+                console.error('Twilio SDK not loaded');
+                showCustomAlert('SDK Error', 'Twilio SDK failed to load. Please refresh page.');
+                return;
+            }
+            
+            console.log('Twilio SDK loaded successfully:', typeof Twilio);
+            
             try {
                 const response = await fetch(`/multi/user/${USER_ID}/voice_token`, {
                     headers: {
@@ -1030,15 +1040,14 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Use correct Twilio Voice SDK syntax
                     try {
-                        console.log('Setting up Twilio Device 2.11 with token...');
+                        console.log('Setting up Twilio Device with token...');
                         
-                        // Use Twilio Voice SDK 2.11+ syntax
-                        device = new Twilio.Device(data.access_token, {
-                            debug: true,
-                            logLevel: 'debug'
+                        // Use reliable 1.x SDK syntax
+                        Twilio.Device.setup(data.access_token, {
+                            debug: true
                         });
+                        device = Twilio.Device;
                         
                         console.log('Twilio Device created successfully');
                         deviceReady = true;
