@@ -528,7 +528,7 @@ def google_voice_auth(user_id):
     twilio_number = user.assigned_twilio_number
     google_voice_url = f"https://voice.google.com/u/0/settings/phones?authuser=0"
     
-    return render_template('multi_user/google_voice_auth.html',
+    return render_template('multi_user/mobile_google_voice_auth.html',
                          user=user,
                          twilio_number=twilio_number,
                          google_voice_url=google_voice_url,
