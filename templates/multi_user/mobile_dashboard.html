@@ -1786,6 +1786,14 @@
             document.getElementById('modal-overlay').style.display = 'none';
         }
         
+        // Expose functions globally for onclick handlers
+        window.switchTab = switchTab;
+        window.showScreen = showScreen;
+        window.addDigit = addDigit;
+        window.backspace = backspace;
+        window.makeCall = makeCall;
+        window.hideModal = hideModal;
+
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize Twilio Voice SDK for true no-callback calling
