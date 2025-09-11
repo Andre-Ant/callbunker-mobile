@@ -60,10 +60,9 @@ def home():
         <div class="hero">
             <h1>CallBunker</h1>
             <p>Advanced Mobile Communication Security Platform</p>
-            <a href="/demo/full-functional" class="btn">🚀 Full Functional Demo</a>
-            <a href="/mobile-preview" class="btn">📱 Signup Interface</a>
-            <a href="/main-app-demo" class="btn">🏠 Main App Interface</a>
-            <a href="/mobile" class="btn">📞 Mobile Demo</a>
+            <a href="/multi/signup" class="btn">🚀 Sign Up for CallBunker</a>
+            <a href="/mobile-preview" class="btn">📱 Preview Signup Interface</a>
+            <a href="/demo/full-functional" class="btn">📞 Try Demo (No Signup)</a>
         </div>
         
         <div class="features">
