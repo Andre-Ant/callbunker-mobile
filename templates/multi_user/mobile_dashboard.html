@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{{ user.name }} - CallBunker Dashboard</title>
+    <title>{{ user.name }}'s CallBunker</title>
     <style>
         * {
             margin: 0;
@@ -15,257 +15,1294 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             background: #f8f9fa;
-            min-height: 100vh;
-            padding: 20px;
-            color: #212529;
-        }
-        
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding-bottom: 70px; /* Space for fixed tab bar */
         }
         
         .header {
+            background: white;
+            padding: 20px;
             text-align: center;
-            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
         }
         
         .header h1 {
-            color: #198754;
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        
-        .header p {
-            color: #6c757d;
-            font-size: 14px;
-        }
-        
-        .status-card {
-            background: #d1e7dd;
-            border: 2px solid #a3cfbb;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            text-align: center;
-        }
-        
-        .status-card h2 {
-            color: #0f5132;
+            color: #1c1c1e;
             font-size: 20px;
-            margin-bottom: 8px;
+            font-weight: 600;
         }
         
-        .status-card p {
-            color: #0f5132;
-            font-size: 14px;
-        }
-        
-        .info-grid {
-            display: grid;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .info-card {
-            background: white;
-            border-radius: 12px;
+        .content {
+            flex: 1;
+            overflow-y: auto;
             padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         
-        .info-card h3 {
-            color: #495057;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .screen {
+            display: none;
         }
         
-        .info-value {
-            color: #212529;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .phone-number {
-            font-family: monospace;
-            font-size: 16px;
-            color: #198754;
-            background: #f8f9fa;
-            padding: 8px 12px;
-            border-radius: 6px;
-            display: inline-block;
-        }
-        
-        .actions-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        
-        .actions-card h3 {
-            color: #212529;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-        
-        .action-btn {
-            background: #0d6efd;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            text-decoration: none;
+        .screen.active {
             display: block;
-            text-align: center;
-            margin-bottom: 10px;
-            transition: all 0.2s ease;
         }
         
-        .action-btn:hover {
-            background: #0b5ed7;
-            color: white;
-            text-decoration: none;
-            transform: translateY(-1px);
-        }
-        
-        .action-btn.secondary {
-            background: #6c757d;
-        }
-        
-        .action-btn.secondary:hover {
-            background: #565e64;
-        }
-        
-        .action-btn.warning {
-            background: #fd7e14;
-        }
-        
-        .action-btn.warning:hover {
-            background: #e8681a;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .stat-card {
+        .card {
             background: white;
             border-radius: 12px;
             padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
             text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         
         .stat-number {
             font-size: 24px;
-            font-weight: 700;
-            color: #198754;
-            margin-bottom: 5px;
+            font-weight: bold;
+            color: #007aff;
         }
         
         .stat-label {
             font-size: 12px;
-            color: #6c757d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: #8e8e93;
+            margin-top: 4px;
         }
         
-        .footer {
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            padding: 20px;
             text-align: center;
-            margin-top: 30px;
-            color: #6c757d;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .action-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .action-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1c1c1e;
+        }
+        
+        .action-subtitle {
+            font-size: 12px;
+            color: #8e8e93;
+            margin-top: 4px;
+        }
+        
+        /* Messages Screen */
+        .messages-center {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .message-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            color: #c7c7cc;
+        }
+        
+        .message-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 12px;
+        }
+        
+        .message-subtitle {
+            font-size: 16px;
+            color: #8e8e93;
+            line-height: 1.4;
+        }
+        
+        /* Dialer */
+        .dialer-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+        
+        .dialer-display {
+            text-align: center;
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .phone-number {
+            font-size: 28px;
+            color: #1c1c1e;
+            margin-bottom: 8px;
+            min-height: 35px;
+        }
+        
+        .privacy-badge {
+            background: #e8f5e8;
+            color: #4caf50;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            display: inline-block;
+        }
+        
+        .dialpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+            flex: 1;
+            align-content: center;
+        }
+        
+        .dial-btn {
+            height: 60px;
+            width: 60px;
+            justify-self: center;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: 300;
+            color: #1c1c1e;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .dial-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .dial-letters {
+            font-size: 8px;
+            color: #8e8e93;
+            margin-top: -2px;
+        }
+        
+        .call-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+        
+        .call-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 28px;
+            border: none;
+            background: #4caf50;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+        }
+        
+        .call-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .back-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 23px;
+            border: none;
+            background: #f2f2f7;
+            color: #ff3b30;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* List Items */
+        .list-item {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .list-item:active {
+            transform: scale(0.98);
+        }
+        
+        .list-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            background: #f2f2f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        
+        .list-content {
+            flex: 1;
+        }
+        
+        .list-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1c1c1e;
+        }
+        
+        .list-subtitle {
+            font-size: 14px;
+            color: #8e8e93;
+            margin-top: 2px;
+        }
+        
+        .list-meta {
+            font-size: 14px;
+            color: #4caf50;
+            font-weight: 500;
+        }
+        
+        .list-arrow {
+            color: #c7c7cc;
+            font-size: 16px;
+        }
+        
+        /* Detail Views */
+        .detail-screen {
+            display: none;
+            padding: 16px;
+        }
+        
+        .detail-screen.active {
+            display: block;
+        }
+        
+        .detail-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .back-arrow {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #007aff;
+            cursor: pointer;
+            margin-right: 12px;
+        }
+        
+        .detail-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1c1c1e;
+        }
+        
+        .detail-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            color: #8e8e93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .detail-value {
+            font-size: 16px;
+            color: #1c1c1e;
+            font-weight: 500;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .feature-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f2f2f7;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-icon {
+            margin-right: 8px;
+            color: #4caf50;
+        }
+        
+        .feature-text {
+            color: #1c1c1e;
             font-size: 14px;
         }
         
-        .icon {
-            width: 16px;
-            height: 16px;
-            margin-right: 8px;
+        /* Tab Bar */
+        .tab-bar {
+            background: white;
+            border-top: 1px solid #eee;
+            padding: 10px 0;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tab {
+            text-align: center;
+            cursor: pointer;
+            padding: 8px 4px;
+        }
+        
+        .tab.active {
+            color: #007aff;
+        }
+        
+        .tab:not(.active) {
+            color: #8e8e93;
+        }
+        
+        .tab-icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        
+        .tab-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* Info Section */
+        .info-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f2f2f7;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-size: 14px;
+            color: #8e8e93;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            font-size: 14px;
+            color: #1c1c1e;
+            font-weight: 600;
+            font-family: monospace;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>🛡️ {{ user.name }}'s CallBunker</h1>
-            <p>Your privacy protection is active</p>
-        </div>
-
-        <!-- Status -->
-        <div class="status-card">
-            <h2>✅ CallBunker Active</h2>
-            <p>Your calls are protected and monitored</p>
-        </div>
-
-        <!-- User Info -->
-        <div class="info-grid">
-            <div class="info-card">
-                <h3>Defense Number</h3>
-                <div class="phone-number">{{ format_phone(user.assigned_twilio_number) }}</div>
+    <div class="header">
+        <h1 id="screen-title">{{ user.name }}'s CallBunker</h1>
+    </div>
+    
+    <div class="content">
+        <!-- Home Screen -->
+        <div class="screen active" id="home">
+            <div class="card" onclick="showAnalytics()" style="cursor: pointer;">
+                <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                    <div style="font-size: 32px; color: #4caf50; margin-right: 12px;">🛡️</div>
+                    <div>
+                        <div style="font-size: 18px; font-weight: 600; color: #1c1c1e;">Privacy Protected</div>
+                        <div style="font-size: 14px; color: #8e8e93;">Your real number is hidden • CallBunker active</div>
+                    </div>
+                </div>
+                <div class="stats">
+                    <div>
+                        <div class="stat-number" id="blocked-calls-stat" style="color: #ff3b30;">0</div>
+                        <div class="stat-label">Blocked Calls</div>
+                    </div>
+                    <div>
+                        <div class="stat-number" id="trusted-contacts-stat" style="color: #4caf50;">{{ whitelist_count }}</div>
+                        <div class="stat-label">Trusted Contacts</div>
+                    </div>
+                </div>
             </div>
             
-            <div class="info-card">
-                <h3>Google Voice</h3>
-                <div class="phone-number">{{ format_phone(user.google_voice_number) }}</div>
+            <div class="actions">
+                <button class="action-btn" onclick="switchTab('dialer')">
+                    <div class="action-icon" style="color: #007aff;">📞</div>
+                    <div class="action-title">Protected Call</div>
+                    <div class="action-subtitle">Hide your number</div>
+                </button>
+                <button class="action-btn" onclick="switchTab('contacts')">
+                    <div class="action-icon" style="color: #ff9500;">👥</div>
+                    <div class="action-title">Trusted Contacts</div>
+                    <div class="action-subtitle">Manage whitelist</div>
+                </button>
+            </div>
+
+            <!-- Account Information -->
+            <div class="info-section">
+                <div style="font-size: 16px; font-weight: 600; color: #1c1c1e; margin-bottom: 12px;">Account Details</div>
+                <div class="info-row">
+                    <div class="info-label">Defense Number</div>
+                    <div class="info-value">{{ format_phone(user.assigned_twilio_number) }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Google Voice</div>
+                    <div class="info-value">{{ format_phone(user.google_voice_number) }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Real Phone</div>
+                    <div class="info-value">{{ format_phone(user.real_phone_number) }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">PIN Code</div>
+                    <div class="info-value">{{ user.pin }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dialer Screen -->
+        <div class="screen" id="dialer">
+            <div class="dialer-container">
+                <div class="dialer-display">
+                    <div class="phone-number" id="phone-display">Enter number</div>
+                    <div class="privacy-badge">🛡️ Privacy Protected • 🔊 Touch Tones</div>
+                </div>
+                
+                <div class="dialpad">
+                    <button class="dial-btn" onclick="addDigit('1')">1</button>
+                    <button class="dial-btn" onclick="addDigit('2')">2<br><span class="dial-letters">ABC</span></button>
+                    <button class="dial-btn" onclick="addDigit('3')">3<br><span class="dial-letters">DEF</span></button>
+                    <button class="dial-btn" onclick="addDigit('4')">4<br><span class="dial-letters">GHI</span></button>
+                    <button class="dial-btn" onclick="addDigit('5')">5<br><span class="dial-letters">JKL</span></button>
+                    <button class="dial-btn" onclick="addDigit('6')">6<br><span class="dial-letters">MNO</span></button>
+                    <button class="dial-btn" onclick="addDigit('7')">7<br><span class="dial-letters">PQRS</span></button>
+                    <button class="dial-btn" onclick="addDigit('8')">8<br><span class="dial-letters">TUV</span></button>
+                    <button class="dial-btn" onclick="addDigit('9')">9<br><span class="dial-letters">WXYZ</span></button>
+                    <button class="dial-btn" onclick="addDigit('*')">*</button>
+                    <button class="dial-btn" onclick="addDigit('0')">0<br><span class="dial-letters">+</span></button>
+                    <button class="dial-btn" onclick="addDigit('#')">#</button>
+                </div>
+                
+                <div class="call-actions">
+                    <button class="back-btn" onclick="backspace()">⌫</button>
+                    <button class="call-btn" onclick="makeCall()">📞</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Messages Screen -->
+        <div class="screen" id="messages">
+            <div class="messages-center">
+                <div class="message-icon">💬</div>
+                <div class="message-title">SMS Coming Soon</div>
+                <div class="message-subtitle">Secure messaging with privacy protection will be available shortly.</div>
+            </div>
+        </div>
+        
+        <!-- History Screen -->
+        <div class="screen" id="history">
+            <div id="call-history-list">
+                <!-- Call history will be loaded here -->
+                <div style="text-align: center; padding: 40px; color: #8e8e93;">
+                    Loading call history...
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contacts Screen -->
+        <div class="screen" id="contacts">
+            <div style="background: #e8f5e8; padding: 16px; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center;">
+                <span style="color: #4caf50; font-size: 20px; margin-right: 8px;">🛡️</span>
+                <span style="color: #4caf50; font-size: 14px;">Trusted contacts bypass screening</span>
             </div>
             
-            <div class="info-card">
-                <h3>Real Phone</h3>
-                <div class="phone-number">{{ format_phone(user.real_phone_number) }}</div>
+            <div style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1c1c1e;" id="contacts-header">Trusted Contacts ({{ whitelist_count }})</div>
+                    <button onclick="showAddContactForm()" style="background: #007aff; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Add Contact</button>
+                </div>
             </div>
             
-            <div class="info-card">
-                <h3>PIN Code</h3>
-                <div class="info-value">{{ user.pin }}</div>
+            <div id="contacts-list">
+                <!-- Trusted contacts will be loaded here -->
+                <div style="text-align: center; padding: 40px; color: #8e8e93;">
+                    Loading contacts...
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Screen -->
+        <div class="screen" id="settings">
+            <div class="list-item" onclick="showDetail('security')">
+                <div class="list-avatar">🛡️</div>
+                <div class="list-content">
+                    <div class="list-title">Security Settings</div>
+                    <div class="list-subtitle">PIN: {{ user.pin }}, Verbal: "{{ user.verbal_code }}"</div>
+                </div>
+                <div class="list-arrow">›</div>
+            </div>
+            <div class="list-item" onclick="showDetail('privacy')">
+                <div class="list-avatar">🔒</div>
+                <div class="list-content">
+                    <div class="list-title">Privacy Protection</div>
+                    <div class="list-subtitle">Call Screening & Authentication</div>
+                </div>
+                <div class="list-arrow">›</div>
+            </div>
+            <div class="list-item" onclick="showDetail('about')">
+                <div class="list-avatar">ℹ️</div>
+                <div class="list-content">
+                    <div class="list-title">About CallBunker</div>
+                    <div class="list-subtitle">Version 1.0.0</div>
+                </div>
+                <div class="list-arrow">›</div>
+            </div>
+        </div>
+        
+        <!-- Security Detail Screen -->
+        <div class="detail-screen" id="security-detail">
+            <div class="detail-header">
+                <button class="back-arrow" onclick="hideDetail()">‹</button>
+                <div class="detail-title">Security Settings</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">PIN Authentication</div>
+                <div style="display: flex; align-items: center; margin-top: 8px;" id="pin-display">
+                    <div style="flex: 1; padding: 8px; background: #f8f9fa; border-radius: 6px; font-size: 16px; margin-right: 8px; color: #1c1c1e;" id="pin-value">{{ user.pin }}</div>
+                    <button onclick="editPin()" style="background: #007aff; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px;">Edit</button>
+                </div>
+                <div style="display: none; align-items: center; margin-top: 8px;" id="pin-edit">
+                    <input type="text" id="pin-input" value="{{ user.pin }}" style="flex: 1; padding: 8px; border: 1px solid #e5e5ea; border-radius: 6px; font-size: 16px; margin-right: 8px;">
+                    <button onclick="savePin()" style="background: #4caf50; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px; margin-right: 4px;">Save</button>
+                    <button onclick="cancelPinEdit()" style="background: #8e8e93; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px;">Cancel</button>
+                </div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Verbal Authentication</div>
+                <div style="display: flex; align-items: center; margin-top: 8px;" id="verbal-display">
+                    <div style="flex: 1; padding: 8px; background: #f8f9fa; border-radius: 6px; font-size: 16px; margin-right: 8px; color: #1c1c1e;" id="verbal-value">"{{ user.verbal_code }}"</div>
+                    <button onclick="editVerbal()" style="background: #007aff; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px;">Edit</button>
+                </div>
+                <div style="display: none; align-items: center; margin-top: 8px;" id="verbal-edit">
+                    <input type="text" id="verbal-input" value="{{ user.verbal_code }}" style="flex: 1; padding: 8px; border: 1px solid #e5e5ea; border-radius: 6px; font-size: 16px; margin-right: 8px;">
+                    <button onclick="saveVerbal()" style="background: #4caf50; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px; margin-right: 4px;">Save</button>
+                    <button onclick="cancelVerbalEdit()" style="background: #8e8e93; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px;">Cancel</button>
+                </div>
             </div>
         </div>
 
-        <!-- Statistics -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number">{{ whitelist_count }}</div>
-                <div class="stat-label">Trusted Contacts</div>
+        <!-- Privacy Detail Screen -->
+        <div class="detail-screen" id="privacy-detail">
+            <div class="detail-header">
+                <button class="back-arrow" onclick="hideDetail()">‹</button>
+                <div class="detail-title">Privacy Protection</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number">0</div>
-                <div class="stat-label">Calls Today</div>
+            
+            <div class="detail-card">
+                <div class="detail-label">CallBunker Defense System</div>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">🛡️</span>
+                        <span class="feature-text">Real number always hidden</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">🔍</span>
+                        <span class="feature-text">Automatic call screening</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">🚫</span>
+                        <span class="feature-text">Spam call blocking</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">👥</span>
+                        <span class="feature-text">Trusted contact bypass</span>
+                    </li>
+                </ul>
             </div>
         </div>
 
-        <!-- Actions -->
-        <div class="actions-card">
-            <h3>Quick Actions</h3>
-            <a href="/multi/user/{{ user.id }}/whitelist" class="action-btn">
-                📞 Manage Trusted Contacts
-            </a>
-            <a href="/multi/user/{{ user.id }}/call-history" class="action-btn">
-                📋 View Call History
-            </a>
-            <a href="/multi/user/{{ user.id }}/settings" class="action-btn secondary">
-                ⚙️ Account Settings
-            </a>
-            <a href="/multi/user/{{ user.id }}/tutorial" class="action-btn warning">
-                📚 Setup Tutorial
-            </a>
-        </div>
+        <!-- About Detail Screen -->
+        <div class="detail-screen" id="about-detail">
+            <div class="detail-header">
+                <button class="back-arrow" onclick="hideDetail()">‹</button>
+                <div class="detail-title">About CallBunker</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Version</div>
+                <div class="detail-value">CallBunker 1.0.0</div>
+            </div>
 
-        <!-- Footer -->
-        <div class="footer">
-            CallBunker - Protecting your privacy, one call at a time
+            <div class="detail-card">
+                <div class="detail-label">Your Account</div>
+                <div style="margin-top: 8px;">
+                    <div style="font-size: 14px; color: #1c1c1e; margin-bottom: 4px;">{{ user.name }}</div>
+                    <div style="font-size: 12px; color: #8e8e93;">{{ user.email }}</div>
+                </div>
+            </div>
         </div>
     </div>
+    
+    <div class="tab-bar">
+        <div class="tab active" onclick="switchTab('home')">
+            <div class="tab-icon">🏠</div>
+            <div class="tab-label">Home</div>
+        </div>
+        <div class="tab" onclick="switchTab('dialer')">
+            <div class="tab-icon">📞</div>
+            <div class="tab-label">Dialer</div>
+        </div>
+        <div class="tab" onclick="switchTab('messages')">
+            <div class="tab-icon">💬</div>
+            <div class="tab-label">Messages</div>
+        </div>
+        <div class="tab" onclick="switchTab('history')">
+            <div class="tab-icon">📋</div>
+            <div class="tab-label">History</div>
+        </div>
+        <div class="tab" onclick="switchTab('contacts')">
+            <div class="tab-icon">👥</div>
+            <div class="tab-label">Contacts</div>
+        </div>
+        <div class="tab" onclick="switchTab('settings')">
+            <div class="tab-icon">⚙️</div>
+            <div class="tab-label">Settings</div>
+        </div>
+    </div>
+
+    <!-- Custom Modal Overlay -->
+    <div id="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div id="modal-content" style="background: white; border-radius: 12px; padding: 24px; margin: 20px; max-width: 320px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+            <div id="modal-title" style="font-size: 18px; font-weight: 600; color: #1c1c1e; margin-bottom: 12px;"></div>
+            <div id="modal-message" style="font-size: 14px; color: #8e8e93; margin-bottom: 24px; line-height: 1.4;"></div>
+            <div id="modal-buttons" style="display: flex; gap: 12px;">
+                <!-- Buttons will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let phoneNumber = '';
+        let audioContext;
+        const USER_ID = {{ user.id }};
+        
+        // DTMF frequencies for each button
+        const dtmfTones = {
+            '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
+            '4': [770, 1209], '5': [770, 1336], '6': [770, 1477],
+            '7': [852, 1209], '8': [852, 1336], '9': [852, 1477],
+            '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
+        };
+        
+        const titles = {
+            home: "{{ user.name }}'s CallBunker",
+            dialer: 'Protected Dialer',
+            messages: 'Messages',
+            history: 'Call History',
+            contacts: 'Trusted Contacts',
+            settings: 'Settings'
+        };
+        
+        // Initialize audio context
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        // Play DTMF tone for dialer button
+        function playDTMFTone(digit) {
+            initAudio();
+            
+            if (!dtmfTones[digit]) return;
+            
+            const [lowFreq, highFreq] = dtmfTones[digit];
+            const duration = 0.15; // 150ms tone duration
+            
+            // Create oscillators for the two frequencies
+            const oscillator1 = audioContext.createOscillator();
+            const oscillator2 = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            // Set frequencies
+            oscillator1.frequency.setValueAtTime(lowFreq, audioContext.currentTime);
+            oscillator2.frequency.setValueAtTime(highFreq, audioContext.currentTime);
+            
+            // Set gain (volume)
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            // Connect the audio graph
+            oscillator1.connect(gainNode);
+            oscillator2.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Start and stop the tone
+            oscillator1.start(audioContext.currentTime);
+            oscillator2.start(audioContext.currentTime);
+            oscillator1.stop(audioContext.currentTime + duration);
+            oscillator2.stop(audioContext.currentTime + duration);
+        }
+        
+        function switchTab(tab) {
+            // Hide all screens and detail screens
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.detail-screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            // Show selected screen
+            document.getElementById(tab).classList.add('active');
+            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+            
+            // Update title
+            document.getElementById('screen-title').textContent = titles[tab];
+            
+            // Load data when switching to certain tabs
+            if (tab === 'history') {
+                loadCallHistory();
+            } else if (tab === 'contacts') {
+                loadContacts();
+            } else if (tab === 'home') {
+                loadAnalytics();
+            }
+            
+            return false;
+        }
+        
+        function addDigit(digit) {
+            // Play DTMF tone
+            playDTMFTone(digit);
+            
+            phoneNumber += digit;
+            updateDisplay();
+        }
+        
+        function backspace() {
+            if (phoneNumber.length > 0) {
+                // Play a subtle click sound for backspace
+                initAudio();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+                
+                phoneNumber = phoneNumber.slice(0, -1);
+                updateDisplay();
+            }
+        }
+        
+        function updateDisplay() {
+            const display = document.getElementById('phone-display');
+            if (phoneNumber) {
+                display.textContent = formatPhone(phoneNumber);
+                display.style.color = '#1c1c1e';
+            } else {
+                display.textContent = 'Enter number';
+                display.style.color = '#c7c7cc';
+            }
+        }
+        
+        function formatPhone(number) {
+            const cleaned = number.replace(/\D/g, '');
+            const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+            if (match) {
+                return [match[1], match[2], match[3]].filter(Boolean).join('-');
+            }
+            return number;
+        }
+        
+        async function makeCall() {
+            if (!phoneNumber) {
+                showCustomAlert('Enter Number', 'Please enter a phone number to call.');
+                return;
+            }
+            
+            const confirmed = await showCustomConfirm(
+                'Protected Call',
+                `Call ${phoneNumber}? Your Google Voice number will be shown as caller ID. Your real number stays hidden.`,
+                'Call Now',
+                'Cancel'
+            );
+            
+            if (confirmed) {
+                try {
+                    showCustomAlert('Calling...', 'Initiating protected call to ' + phoneNumber);
+                    
+                    const response = await fetch(`/multi/user/${USER_ID}/call_bridge`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            to_number: phoneNumber
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showCustomAlert('Call Initiated', result.message);
+                        // Clear the dialer
+                        phoneNumber = '';
+                        updateDisplay();
+                    } else {
+                        showCustomAlert('Call Failed', result.error || 'Failed to initiate call');
+                    }
+                } catch (error) {
+                    showCustomAlert('Error', 'Network error occurred. Please try again.');
+                }
+            }
+        }
+        
+        // Load call history from API
+        async function loadCallHistory() {
+            try {
+                const response = await fetch(`/multi/user/${USER_ID}/calls`);
+                const calls = await response.json();
+                
+                const historyContainer = document.getElementById('call-history-list');
+                
+                if (calls.length === 0) {
+                    historyContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #8e8e93;">
+                            <div style="font-size: 32px; margin-bottom: 12px;">📞</div>
+                            <div style="font-size: 16px; margin-bottom: 4px;">No Call History</div>
+                            <div style="font-size: 14px;">Your protected calls will appear here</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let historyHTML = '';
+                calls.forEach(call => {
+                    const date = new Date(call.created_at);
+                    const timeAgo = getTimeAgo(date);
+                    const duration = call.duration_seconds ? formatDuration(call.duration_seconds) : '0:00';
+                    
+                    historyHTML += `
+                        <div class="list-item">
+                            <div class="list-avatar">${call.direction === 'outbound' ? '📞' : '📱'}</div>
+                            <div class="list-content">
+                                <div class="list-title">${call.direction === 'outbound' ? call.to_number : call.from_number}</div>
+                                <div class="list-subtitle">${timeAgo} • ${call.status}</div>
+                            </div>
+                            <div class="list-meta">${duration}</div>
+                        </div>
+                    `;
+                });
+                
+                historyContainer.innerHTML = historyHTML;
+            } catch (error) {
+                document.getElementById('call-history-list').innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #ff3b30;">
+                        Failed to load call history
+                    </div>
+                `;
+            }
+        }
+        
+        // Load contacts from API
+        async function loadContacts() {
+            try {
+                const response = await fetch(`/multi/user/${USER_ID}/contacts`);
+                const contacts = await response.json();
+                
+                const contactsList = document.getElementById('contacts-list');
+                const contactsHeader = document.getElementById('contacts-header');
+                
+                contactsHeader.textContent = `Trusted Contacts (${contacts.length})`;
+                
+                if (contacts.length === 0) {
+                    contactsList.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #8e8e93;">
+                            <div style="font-size: 32px; margin-bottom: 12px;">👥</div>
+                            <div style="font-size: 16px; margin-bottom: 4px;">No Trusted Contacts</div>
+                            <div style="font-size: 14px;">Add contacts to bypass call screening</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let contactsHTML = '';
+                contacts.forEach(contact => {
+                    const initials = getInitialsFromPhone(contact.display_name);
+                    contactsHTML += `
+                        <div class="list-item contact-item" data-contact-id="${contact.id}">
+                            <div class="list-avatar" style="background: #007aff; color: white; font-weight: 600;">${initials}</div>
+                            <div class="list-content">
+                                <div class="list-title">${contact.display_name}</div>
+                                <div class="list-subtitle">${contact.custom_pin ? 'Custom PIN set' : 'Default settings'}</div>
+                            </div>
+                            <div class="contact-actions" style="display: flex; gap: 4px;">
+                                <button onclick="event.stopPropagation(); removeContact(${contact.id})" style="background: #ff3b30; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                contactsList.innerHTML = contactsHTML;
+            } catch (error) {
+                document.getElementById('contacts-list').innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #ff3b30;">
+                        Failed to load contacts
+                    </div>
+                `;
+            }
+        }
+        
+        // Load analytics from API
+        async function loadAnalytics() {
+            try {
+                const response = await fetch(`/multi/user/${USER_ID}/analytics`);
+                const analytics = await response.json();
+                
+                document.getElementById('blocked-calls-stat').textContent = analytics.blocked_calls;
+                document.getElementById('trusted-contacts-stat').textContent = analytics.trusted_contacts;
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+            }
+        }
+        
+        async function removeContact(contactId) {
+            const confirmed = await showCustomConfirm(
+                'Remove Contact?',
+                'This contact will no longer bypass call screening.',
+                'Remove',
+                'Cancel'
+            );
+            
+            if (confirmed) {
+                try {
+                    const response = await fetch(`/multi/user/${USER_ID}/contacts/${contactId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        showCustomAlert('Removed', 'Contact has been removed from trusted contacts.');
+                        loadContacts(); // Reload the contacts list
+                        loadAnalytics(); // Update stats
+                    } else {
+                        showCustomAlert('Error', 'Failed to remove contact.');
+                    }
+                } catch (error) {
+                    showCustomAlert('Error', 'Network error occurred.');
+                }
+            }
+        }
+        
+        function showAddContactForm() {
+            // Simple prompt for now - could be enhanced with a proper modal form
+            const phoneNumber = prompt('Enter phone number for trusted contact:');
+            if (phoneNumber && phoneNumber.trim()) {
+                addContact(phoneNumber.trim());
+            }
+        }
+        
+        async function addContact(phoneNumber) {
+            try {
+                const response = await fetch(`/multi/user/${USER_ID}/contacts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        phone_number: phoneNumber
+                    })
+                });
+                
+                if (response.ok) {
+                    showCustomAlert('Added', 'Contact has been added to trusted contacts.');
+                    loadContacts(); // Reload the contacts list
+                    loadAnalytics(); // Update stats
+                } else {
+                    const error = await response.json();
+                    showCustomAlert('Error', error.error || 'Failed to add contact.');
+                }
+            } catch (error) {
+                showCustomAlert('Error', 'Network error occurred.');
+            }
+        }
+        
+        // Settings functions
+        function showDetail(detailType) {
+            // Hide main settings screen
+            document.getElementById('settings').classList.remove('active');
+            
+            // Show detail screen
+            document.getElementById(detailType + '-detail').classList.add('active');
+            
+            // Update header title
+            const titles = {
+                security: 'Security Settings',
+                privacy: 'Privacy Protection', 
+                about: 'About CallBunker'
+            };
+            document.getElementById('screen-title').textContent = titles[detailType];
+            
+            return false;
+        }
+        
+        function hideDetail() {
+            // Hide all detail screens
+            document.querySelectorAll('.detail-screen').forEach(s => s.classList.remove('active'));
+            
+            // Show main settings screen
+            document.getElementById('settings').classList.add('active');
+            
+            // Update header title
+            document.getElementById('screen-title').textContent = 'Settings';
+        }
+        
+        function editPin() {
+            document.getElementById('pin-display').style.display = 'none';
+            document.getElementById('pin-edit').style.display = 'flex';
+            document.getElementById('pin-input').focus();
+        }
+        
+        async function savePin() {
+            const newPin = document.getElementById('pin-input').value;
+            if (newPin && /^\d{4}$/.test(newPin)) {
+                try {
+                    const response = await fetch(`/multi/user/${USER_ID}/settings`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            pin: newPin
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        document.getElementById('pin-value').textContent = newPin;
+                        document.getElementById('pin-display').style.display = 'flex';
+                        document.getElementById('pin-edit').style.display = 'none';
+                        showCustomAlert('PIN Updated', 'Your new PIN ' + newPin + ' will be used for call authentication.');
+                        updateSettingsDisplay();
+                    } else {
+                        showCustomAlert('Error', 'Failed to update PIN.');
+                    }
+                } catch (error) {
+                    showCustomAlert('Error', 'Network error occurred.');
+                }
+            } else {
+                showCustomAlert('Invalid PIN', 'Please enter a valid 4-digit PIN number.');
+                document.getElementById('pin-input').focus();
+            }
+        }
+        
+        function cancelPinEdit() {
+            const currentPin = document.getElementById('pin-value').textContent;
+            document.getElementById('pin-input').value = currentPin;
+            document.getElementById('pin-display').style.display = 'flex';
+            document.getElementById('pin-edit').style.display = 'none';
+        }
+        
+        function editVerbal() {
+            document.getElementById('verbal-display').style.display = 'none';
+            document.getElementById('verbal-edit').style.display = 'flex';
+            document.getElementById('verbal-input').focus();
+        }
+        
+        async function saveVerbal() {
+            const newVerbal = document.getElementById('verbal-input').value.trim();
+            if (newVerbal && newVerbal.length >= 3) {
+                try {
+                    const response = await fetch(`/multi/user/${USER_ID}/settings`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            verbal_code: newVerbal
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        document.getElementById('verbal-value').textContent = '"' + newVerbal + '"';
+                        document.getElementById('verbal-display').style.display = 'flex';
+                        document.getElementById('verbal-edit').style.display = 'none';
+                        showCustomAlert('Verbal Code Updated', 'Your new code "' + newVerbal + '" will be used for voice authentication.');
+                        updateSettingsDisplay();
+                    } else {
+                        showCustomAlert('Error', 'Failed to update verbal code.');
+                    }
+                } catch (error) {
+                    showCustomAlert('Error', 'Network error occurred.');
+                }
+            } else {
+                showCustomAlert('Invalid Code', 'Please enter a verbal code with at least 3 characters.');
+                document.getElementById('verbal-input').focus();
+            }
+        }
+        
+        function cancelVerbalEdit() {
+            const currentVerbal = document.getElementById('verbal-value').textContent.replace(/"/g, '');
+            document.getElementById('verbal-input').value = currentVerbal;
+            document.getElementById('verbal-display').style.display = 'flex';
+            document.getElementById('verbal-edit').style.display = 'none';
+        }
+        
+        function updateSettingsDisplay() {
+            // Update the PIN and verbal code display in the main settings list
+            const pin = document.getElementById('pin-value').textContent;
+            const verbal = document.getElementById('verbal-value').textContent.replace(/"/g, '');
+            
+            // Find and update the settings subtitle
+            const settingsItems = document.querySelectorAll('#settings .list-subtitle');
+            settingsItems.forEach(item => {
+                if (item.textContent.includes('PIN:')) {
+                    item.textContent = `PIN: ${pin}, Verbal: "${verbal}"`;
+                }
+            });
+        }
+        
+        function showAnalytics() {
+            // Load and display analytics data
+            loadAnalytics();
+        }
+        
+        // Utility functions
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 30) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
+        }
+        
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function getInitialsFromPhone(phone) {
+            // Extract digits and use last 2 digits as initials
+            const digits = phone.replace(/\D/g, '');
+            return digits.slice(-2) || 'XX';
+        }
+        
+        // Modal functions
+        function showCustomAlert(title, message) {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('modal-overlay');
+                const titleEl = document.getElementById('modal-title');
+                const messageEl = document.getElementById('modal-message');
+                const buttonsEl = document.getElementById('modal-buttons');
+                
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                buttonsEl.innerHTML = `
+                    <button onclick="hideModal(); resolve();" style="flex: 1; background: #007aff; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500;">OK</button>
+                `;
+                
+                overlay.style.display = 'flex';
+                
+                window.resolve = resolve;
+            });
+        }
+        
+        function showCustomConfirm(title, message, confirmText, cancelText) {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('modal-overlay');
+                const titleEl = document.getElementById('modal-title');
+                const messageEl = document.getElementById('modal-message');
+                const buttonsEl = document.getElementById('modal-buttons');
+                
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                buttonsEl.innerHTML = `
+                    <button onclick="hideModal(); window.modalResolve(false);" style="flex: 1; background: #8e8e93; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500; margin-right: 8px;">${cancelText}</button>
+                    <button onclick="hideModal(); window.modalResolve(true);" style="flex: 1; background: #007aff; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500;">${confirmText}</button>
+                `;
+                
+                overlay.style.display = 'flex';
+                
+                window.modalResolve = resolve;
+            });
+        }
+        
+        function hideModal() {
+            document.getElementById('modal-overlay').style.display = 'none';
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAnalytics();
+        });
+    </script>
 </body>
 </html>
