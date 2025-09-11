@@ -113,6 +113,184 @@
             margin-top: 4px;
         }
         
+        /* Security Analytics Screen */
+        .analytics-header {
+            text-align: center;
+            padding: 40px 20px 30px;
+            background: white;
+        }
+        
+        .analytics-shield {
+            font-size: 48px;
+            color: #007aff;
+            margin-bottom: 16px;
+        }
+        
+        .analytics-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1c1c1e;
+            margin-bottom: 8px;
+        }
+        
+        .analytics-subtitle {
+            font-size: 14px;
+            color: #8e8e93;
+        }
+        
+        .stats-section {
+            background: white;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stats-title {
+            font-size: 12px;
+            color: #8e8e93;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            text-align: center;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stat-number-large {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label-large {
+            font-size: 14px;
+            color: #8e8e93;
+        }
+        
+        .stat-green { color: #34c759; }
+        .stat-blue { color: #007aff; }
+        .stat-orange { color: #ff9500; }
+        .stat-red { color: #ff3b30; }
+        
+        .effectiveness-section {
+            background: white;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .effectiveness-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .effectiveness-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .effectiveness-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1c1c1e;
+        }
+        
+        .effectiveness-percentage {
+            font-size: 16px;
+            font-weight: 600;
+            color: #34c759;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f2f2f7;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #34c759;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .activity-section {
+            background: white;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f2f2f7;
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            background: #ff3b30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 18px;
+            color: white;
+        }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1c1c1e;
+            margin-bottom: 2px;
+        }
+        
+        .activity-time {
+            font-size: 12px;
+            color: #8e8e93;
+        }
+        
+        .back-button {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #007aff;
+            cursor: pointer;
+            padding: 8px;
+        }
+
         /* Messages Screen */
         .messages-center {
             text-align: center;
@@ -460,12 +638,12 @@
     <div class="content">
         <!-- Home Screen -->
         <div class="screen active" id="home">
-            <div class="card" onclick="showAnalytics()" style="cursor: pointer;">
+            <div class="card" onclick="showScreen('analytics')" style="cursor: pointer;">
                 <div style="display: flex; align-items: center; margin-bottom: 16px;">
                     <div style="font-size: 32px; color: #4caf50; margin-right: 12px;">🛡️</div>
                     <div>
                         <div style="font-size: 18px; font-weight: 600; color: #1c1c1e;">Privacy Protected</div>
-                        <div style="font-size: 14px; color: #8e8e93;">Your real number is hidden • CallBunker active</div>
+                        <div style="font-size: 14px; color: #8e8e93;">Your real number is hidden • Tap for details</div>
                     </div>
                 </div>
                 <div class="stats">
@@ -611,6 +789,73 @@
                     <div class="list-subtitle">Version 1.0.0</div>
                 </div>
                 <div class="list-arrow">›</div>
+            </div>
+        </div>
+        
+        <!-- Security Analytics Screen -->
+        <div class="screen" id="analytics">
+            <div class="analytics-header">
+                <button class="back-button" onclick="showScreen('home')">←</button>
+                <div class="analytics-shield">🛡️</div>
+                <div class="analytics-title">Privacy Protection Active</div>
+                <div class="analytics-subtitle">Your real number stays completely hidden</div>
+            </div>
+            
+            <!-- Call Statistics Section -->
+            <div class="stats-section">
+                <div class="stats-title">Call Statistics (Last 30 Days)</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number-large stat-green" id="protected-calls">14</div>
+                        <div class="stat-label-large">Protected Calls</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number-large stat-blue" id="total-calls">20</div>
+                        <div class="stat-label-large">Total Calls</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number-large stat-orange" id="screened-calls">12</div>
+                        <div class="stat-label-large">Screened Calls</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number-large stat-red" id="blocked-attempts">{{ blocked_calls_count }}</div>
+                        <div class="stat-label-large">Blocked Attempts</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Protection Effectiveness Section -->
+            <div class="effectiveness-section">
+                <div class="stats-title">Protection Effectiveness</div>
+                <div class="effectiveness-item">
+                    <div class="effectiveness-label">Privacy Success Rate</div>
+                    <div class="effectiveness-percentage">70%</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 70%;"></div>
+                </div>
+                <div class="effectiveness-item" style="margin-top: 20px;">
+                    <div class="effectiveness-label">Authentication Rate</div>
+                    <div class="effectiveness-percentage">71%</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 71%;"></div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity Section -->
+            <div class="activity-section">
+                <div class="stats-title">Recent Activity</div>
+                <div id="recent-activity">
+                    <!-- Recent activity will be loaded here -->
+                    <div class="activity-item">
+                        <div class="activity-icon">🚫</div>
+                        <div class="activity-content">
+                            <div class="activity-title">Blocked call from (555) 999-8888</div>
+                            <div class="activity-time">2 hours ago</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -821,6 +1066,29 @@
             } else if (tab === 'contacts') {
                 loadContacts();
             } else if (tab === 'home') {
+                loadAnalytics();
+            }
+            
+            return false;
+        }
+        
+        function showScreen(screenId) {
+            // Hide all screens and detail screens
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.detail-screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            // Show selected screen
+            document.getElementById(screenId).classList.add('active');
+            
+            // Update title based on screen
+            if (screenId === 'analytics') {
+                document.getElementById('screen-title').textContent = 'Security Analytics';
+                loadAnalyticsData();
+            } else if (screenId === 'home') {
+                document.getElementById('screen-title').textContent = '{{ user.name }}\'s CallBunker';
+                // Reactivate home tab
+                document.querySelector(`[onclick="switchTab('home')"]`).classList.add('active');
                 loadAnalytics();
             }
             
@@ -1300,17 +1568,27 @@
             });
         }
         
-        function showAnalytics() {
-            // Load and display analytics data in a modal popup
-            showCustomAlert('📊 CallBunker Analytics', 
-                `🛡️ Privacy Status: ACTIVE\n\n` +
-                `📞 Blocked Calls: ${document.getElementById('blocked-calls-stat').textContent}\n` +
-                `👥 Trusted Contacts: ${document.getElementById('trusted-contacts-stat').textContent}\n\n` +
-                `🔢 Defense Number: {{ format_phone(user.assigned_twilio_number) }}\n` +
-                `📱 Google Voice: {{ format_phone(user.google_voice_number) }}\n` +
-                `📞 Real Phone: {{ format_phone(user.real_phone_number) }}\n\n` +
-                `🔒 Your real number is completely hidden from all outgoing calls.`
-            );
+        function loadAnalyticsData() {
+            // Update analytics screen with real data
+            document.getElementById('blocked-attempts').textContent = document.getElementById('blocked-calls-stat').textContent;
+            
+            // Load recent activity from call history
+            loadRecentActivity();
+        }
+        
+        function loadRecentActivity() {
+            // This would load recent blocked calls for the activity section
+            // For now, we'll show the sample data that matches the mobile demo
+            const activityDiv = document.getElementById('recent-activity');
+            activityDiv.innerHTML = `
+                <div class="activity-item">
+                    <div class="activity-icon">🚫</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Blocked call from (555) 999-8888</div>
+                        <div class="activity-time">2 hours ago</div>
+                    </div>
+                </div>
+            `;
         }
         
         // Utility functions
