@@ -1004,6 +1004,14 @@
             }
             el.textContent = text;
         }
+        function setHTML(id, html) {
+            const el = $(id);
+            if (!el) {
+                console.warn('Missing element:', id);
+                return;
+            }
+            el.innerHTML = html;
+        }
         
         // Global error handler to catch any remaining DOM issues
         window.addEventListener('error', (e) => {
@@ -1132,7 +1140,7 @@
             document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
             
             // Update title
-            document.getElementById('screen-title').textContent = titles[tab];
+            setText('screen-title', titles[tab]);
             
             // Load data when switching to certain tabs
             if (tab === 'history') {
@@ -1157,10 +1165,10 @@
             
             // Update title based on screen
             if (screenId === 'analytics') {
-                document.getElementById('screen-title').textContent = 'Security Analytics';
+                setText('screen-title', 'Security Analytics');
                 loadAnalyticsData();
             } else if (screenId === 'home') {
-                document.getElementById('screen-title').textContent = '{{ user.name }}\'s CallBunker';
+                setText('screen-title', '{{ user.name }}\'s CallBunker');
                 // Reactivate home tab
                 document.querySelector(`[onclick="switchTab('home')"]`).classList.add('active');
                 loadAnalytics();
@@ -1200,16 +1208,16 @@
         }
         
         function updateDisplay() {
-            const display = document.getElementById('phone-display');
+            const display = $('phone-display');
             if (!display) {
                 console.error('phone-display element not found');
                 return;
             }
             if (phoneNumber) {
-                display.textContent = formatPhone(phoneNumber);
+                setText('phone-display', formatPhone(phoneNumber));
                 display.style.color = '#1c1c1e';
             } else {
-                display.textContent = 'Enter number';
+                setText('phone-display', 'Enter number');
                 display.style.color = '#c7c7cc';
             }
         }
@@ -1333,7 +1341,7 @@
                 const calls = await response.json();
                 
                 if (calls.length === 0) {
-                    historyContainer.innerHTML = `
+                    setHTML('call-history-list', `
                         <div style="text-align: center; padding: 40px; color: #8e8e93;">
                             <div style="font-size: 32px; margin-bottom: 12px;">📞</div>
                             <div style="font-size: 16px; margin-bottom: 4px;">No Call History</div>
@@ -1361,9 +1369,9 @@
                     `;
                 });
                 
-                historyContainer.innerHTML = historyHTML;
+                setHTML('call-history-list', historyHTML);
             } catch (error) {
-                document.getElementById('call-history-list').innerHTML = `
+                setHTML('call-history-list', `
                     <div style="text-align: center; padding: 40px; color: #ff3b30;">
                         Failed to load call history
                     </div>
@@ -1398,7 +1406,7 @@
                 contactsHeader.textContent = `Trusted Contacts (${contacts.length})`;
                 
                 if (contacts.length === 0) {
-                    contactsList.innerHTML = `
+                    setHTML('contacts-list', `
                         <div style="text-align: center; padding: 40px; color: #8e8e93;">
                             <div style="font-size: 32px; margin-bottom: 12px;">👥</div>
                             <div style="font-size: 16px; margin-bottom: 4px;">No Trusted Contacts</div>
@@ -1425,9 +1433,9 @@
                     `;
                 });
                 
-                contactsList.innerHTML = contactsHTML;
+                setHTML('contacts-list', contactsHTML);
             } catch (error) {
-                document.getElementById('contacts-list').innerHTML = `
+                setHTML('contacts-list', `
                     <div style="text-align: center; padding: 40px; color: #ff3b30;">
                         Failed to load contacts
                     </div>
@@ -1459,8 +1467,8 @@
                 
                 const analytics = await response.json();
                 
-                blockedCallsStat.textContent = analytics.blocked_calls;
-                trustedContactsStat.textContent = analytics.trusted_contacts;
+                setText('blocked-calls-stat', analytics.blocked_calls);
+                setText('trusted-contacts-stat', analytics.trusted_contacts);
             } catch (error) {
                 console.error('Failed to load analytics:', error);
             }
@@ -1548,7 +1556,7 @@
                 privacy: 'Privacy Protection', 
                 about: 'About CallBunker'
             };
-            document.getElementById('screen-title').textContent = titles[detailType];
+            setText('screen-title', titles[detailType]);
             
             return false;
         }
@@ -1561,7 +1569,7 @@
             document.getElementById('settings').classList.add('active');
             
             // Update header title
-            document.getElementById('screen-title').textContent = 'Settings';
+            setText('screen-title', 'Settings');
         }
         
         function editPin() {
@@ -1587,7 +1595,7 @@
                     });
                     
                     if (response.ok) {
-                        document.getElementById('pin-value').textContent = newPin;
+                        setText('pin-value', newPin);
                         document.getElementById('pin-display').style.display = 'flex';
                         document.getElementById('pin-edit').style.display = 'none';
                         showCustomAlert('PIN Updated', 'Your new PIN ' + newPin + ' will be used for call authentication.');
@@ -1605,7 +1613,7 @@
         }
         
         function cancelPinEdit() {
-            const currentPin = document.getElementById('pin-value').textContent;
+            const currentPinEl = $('pin-value'); const currentPin = currentPinEl ? currentPinEl.textContent : '';
             document.getElementById('pin-input').value = currentPin;
             document.getElementById('pin-display').style.display = 'flex';
             document.getElementById('pin-edit').style.display = 'none';
@@ -1660,8 +1668,8 @@
         
         function updateSettingsDisplay() {
             // Update the PIN and verbal code display in the main settings list
-            const pin = document.getElementById('pin-value').textContent;
-            const verbal = document.getElementById('verbal-value').textContent.replace(/"/g, '');
+            const pinEl = $('pin-value'); const pin = pinEl ? pinEl.textContent : '';
+            const verbalEl = $('verbal-value'); const verbal = verbalEl ? verbalEl.textContent.replace(/"/g, '') : '';
             
             // Find and update the settings subtitle
             const settingsItems = document.querySelectorAll('#settings .list-subtitle');
@@ -1684,7 +1692,7 @@
             // This would load recent blocked calls for the activity section
             // For now, we'll show the sample data that matches the mobile demo
             const activityDiv = document.getElementById('recent-activity');
-            activityDiv.innerHTML = `
+            setHTML('recent-activity', `
                 <div class="activity-item">
                     <div class="activity-icon">🚫</div>
                     <div class="activity-content">
@@ -1738,7 +1746,7 @@
                 
                 titleEl.textContent = title;
                 messageEl.textContent = message;
-                buttonsEl.innerHTML = `
+                setHTML('modal-buttons', `
                     <button onclick="hideModal(); resolve();" style="flex: 1; background: #007aff; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500;">OK</button>
                 `;
                 
@@ -1763,7 +1771,7 @@
                 
                 titleEl.textContent = title;
                 messageEl.textContent = message;
-                buttonsEl.innerHTML = `
+                setHTML('modal-buttons', `
                     <button onclick="hideModal(); window.modalResolve(false);" style="flex: 1; background: #8e8e93; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500; margin-right: 8px;">${cancelText}</button>
                     <button onclick="hideModal(); window.modalResolve(true);" style="flex: 1; background: #007aff; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500;">${confirmText}</button>
                 `;
