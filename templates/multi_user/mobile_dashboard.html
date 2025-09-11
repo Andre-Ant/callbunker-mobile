@@ -988,48 +988,57 @@
         // Global variables
         let phoneNumber = '';
         let audioContext;
-        const USER_ID = {{ user.id }};
-        
-        // Twilio Voice SDK
         let twilioDevice = null;
         let currentCall = null;
+        let deviceReady = false;
+        const USER_ID = {{ user.id }};
         
         // Initialize Twilio Voice SDK
         async function initializeTwilioVoice() {
             try {
-                const response = await fetch(`/multi/user/${USER_ID}/voice-token`);
+                const response = await fetch(`/multi/user/${USER_ID}/voice_token`, {
+                    headers: {
+                        'X-API-Key': 'demo-key-callbunker-2025',
+                        'X-CSRF-Token': 'demo-csrf-callbunker'
+                    }
+                });
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Use correct Twilio v1 syntax
-                    Twilio.Device.setup(data.token);
+                    // Use correct Twilio Voice SDK syntax
+                    Twilio.Device.setup(data.access_token);
                     
                     Twilio.Device.ready(() => {
                         console.log('Twilio Device ready for calls');
-                        twilioDevice = Twilio.Device;  // Reference the singleton
+                        deviceReady = true;
+                        twilioDevice = Twilio.Device;
                         showCustomAlert('Voice Ready', 'CallBunker no-callback calling is ready! Only target phones will ring.');
                     });
                     
                     Twilio.Device.error((error) => {
                         console.error('Twilio Device error:', error);
+                        showCustomAlert('Voice Error', 'Voice SDK error: ' + error.message);
                     });
                     
                     Twilio.Device.connect((connection) => {
                         console.log('Call connected:', connection);
                         currentCall = connection;
-                        showCustomAlert('Connected', 'You are now connected. Speak into your device.');
+                        showCustomAlert('Connected', 'Call connected! Speaking through Voice SDK - only target phone rang.');
                     });
                     
                     Twilio.Device.disconnect((connection) => {
                         console.log('Call disconnected:', connection);
                         currentCall = null;
                         showCustomAlert('Call Ended', 'Call has been disconnected.');
+                        loadCallHistory(); // Refresh call history
                     });
                 } else {
-                    console.error('Failed to get voice token:', data.error);
+                    console.error('Failed to get Voice token:', data.error);
+                    showCustomAlert('Voice Error', 'Failed to initialize Voice SDK. Please refresh page.');
                 }
             } catch (error) {
-                console.error('Error initializing Twilio Voice:', error);
+                console.error('Voice SDK initialization error:', error);
+                showCustomAlert('Initialization Error', 'Could not connect to Voice service. Please check your connection.');
             }
         }
         
@@ -1231,71 +1240,47 @@
             
             const confirmed = await showCustomConfirm(
                 'Protected Call',
-                `Call ${formatPhone(phoneNumber)}? Your Google Voice number will be shown as caller ID. Your real number stays hidden.`,
+                `Call ${formatPhone(phoneNumber)}? Your CallBunker number will be shown as caller ID. Only target phone will ring.`,
                 'Call Now',
                 'Cancel'
             );
             
             if (confirmed) {
                 try {
-                    showCustomAlert('CallBunker Direct', 'Connecting... Only target phone will ring. You speak through this interface.');
-                    
-                    // Use direct calling - only target phone rings, you speak through Voice SDK
-                    if (twilioDevice && Twilio.Device.status() === 'ready') {
-                        // Direct call using Voice SDK (no conference needed)
+                    // Use Voice SDK for true no-callback calling - only target phone rings
+                    if (deviceReady && twilioDevice && Twilio.Device.status() === 'ready') {
+                        console.log('Making Voice SDK call to:', normalizedNumber);
                         const call = Twilio.Device.connect({
-                            To: phoneNumber
+                            To: normalizedNumber
                         });
                         currentCall = call;
-                        showCustomAlert('Connecting...', 'Target phone ringing. You speak through this interface.');
-                    } else {
-                        // Initialize Voice SDK if not ready, then make call
-                        if (!twilioDevice) {
-                            await initializeTwilioVoice();
-                            setTimeout(() => {
-                                if (twilioDevice && Twilio.Device.status() === 'ready') {
-                                    const call = Twilio.Device.connect({ To: phoneNumber });
-                                    currentCall = call;
-                                    showCustomAlert('Connected', 'You are now connected. Target phone is ringing.');
-                                } else {
-                                    showCustomAlert('Error', 'Voice SDK not ready. Please refresh page.');
-                                }
-                            }, 2000);
-                            return;
-                        }
+                        showCustomAlert('Connecting...', 'Target phone ringing. You speak through this interface - no hold music!');
                         
-                        // Force no-callback calling - disable bridge calling
-                        showCustomAlert('Error', 'Voice SDK required for no-callback calling. Please refresh page and wait for "Device ready" message.');
-                        return;
-                        
-                        // OLD bridge calling disabled
-                        const response = await fetch(`/multi/user/${USER_ID}/call_bridge`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-API-Key': 'demo-key-callbunker-2025',
-                            'X-CSRF-Token': 'demo-csrf-callbunker'
-                        },
-                        body: JSON.stringify({
-                            to_number: normalizedNumber
-                        })
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        showCustomAlert('Call Initiated', result.message);
                         // Clear the dialer
                         phoneNumber = '';
                         updateDisplay();
-                        // Refresh call history to show the new call
-                        loadCallHistory();
                     } else {
-                        showCustomAlert('Call Failed', result.error || 'Failed to initiate call');
+                        // Voice SDK not ready - try to initialize and retry
+                        showCustomAlert('Initializing Voice...', 'Setting up no-callback calling system...');
+                        await initializeTwilioVoice();
+                        
+                        // Wait for device to be ready then retry
+                        setTimeout(() => {
+                            if (deviceReady && twilioDevice && Twilio.Device.status() === 'ready') {
+                                const call = Twilio.Device.connect({ To: normalizedNumber });
+                                currentCall = call;
+                                showCustomAlert('Connected', 'Call connected via Voice SDK! Only target phone rang.');
+                                phoneNumber = '';
+                                updateDisplay();
+                            } else {
+                                showCustomAlert('Voice SDK Error', 'Voice system not ready. Please refresh page and wait for "Voice Ready" message.');
+                            }
+                        }, 3000);
+                        return;
                     }
                 } catch (error) {
-                    console.error('Call error:', error);
-                    showCustomAlert('Error', 'Network error occurred. Please try again.');
+                    console.error('Voice SDK call error:', error);
+                    showCustomAlert('Call Error', 'Failed to place call. Please check your connection and try again.');
                 }
             }
         }

@@ -978,6 +978,69 @@ def get_voice_access_token(user_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@multi_user_bp.route('/voice/outbound', methods=['POST'])
+def voice_sdk_outbound():
+    """
+    TwiML handler for Voice SDK outbound calls
+    This endpoint is called by Twilio when a Voice SDK client makes an outbound call
+    """
+    try:
+        # Get the destination number from Voice SDK call
+        to_number = request.form.get('To')
+        caller_identity = request.form.get('From')  # The user identity from Voice SDK
+        
+        if not to_number:
+            return Response('<Response><Say>Invalid destination number</Say></Response>', mimetype='application/xml')
+        
+        # Extract user ID from caller identity (format: callbunker_user_123)
+        if not caller_identity or not caller_identity.startswith('callbunker_user_'):
+            return Response('<Response><Say>Invalid caller identity</Say></Response>', mimetype='application/xml')
+        
+        user_id = int(caller_identity.replace('callbunker_user_', ''))
+        user = User.query.get(user_id)
+        
+        if not user or not user.assigned_twilio_number:
+            return Response('<Response><Say>User not found or no assigned number</Say></Response>', mimetype='application/xml')
+        
+        # Normalize the destination number
+        def normalize_phone_number(phone_number):
+            digits = re.sub(r'\D', '', phone_number)
+            if len(digits) == 10:
+                return '+1' + digits
+            elif len(digits) == 11 and digits.startswith('1'):
+                return '+' + digits
+            return phone_number
+        
+        to_number_normalized = normalize_phone_number(to_number)
+        
+        # Create TwiML response to dial the target number using user's CallBunker number as caller ID
+        vr = VoiceResponse()
+        dial = vr.dial(caller_id=user.assigned_twilio_number)
+        dial.number(to_number_normalized)
+        
+        # Log the call
+        call_log = MultiUserCallLog(
+            user_id=user.id,
+            to_number=to_number_normalized,
+            direction='outbound',
+            status='calling',
+            twilio_call_sid=request.form.get('CallSid', 'voice_sdk_call'),
+            conference_name=None
+        )
+        db.session.add(call_log)
+        db.session.commit()
+        
+        print(f"VOICE SDK OUTBOUND: User {user_id} calling {to_number_normalized} via Voice SDK")
+        print(f"VOICE SDK OUTBOUND: Using caller ID {user.assigned_twilio_number}")
+        
+        return Response(str(vr), mimetype='application/xml')
+        
+    except Exception as e:
+        print(f"VOICE SDK OUTBOUND ERROR: {str(e)}")
+        vr = VoiceResponse()
+        vr.say("Sorry, there was an error placing your call. Please try again.")
+        return Response(str(vr), mimetype='application/xml')
+
 @multi_user_bp.route('/contact-support')
 def contact_support():
     """Support contact page for users needing help"""
