@@ -1031,7 +1031,12 @@
                 
                 if (data.success) {
                     // Use correct Twilio Voice SDK syntax
-                    Twilio.Device.setup(data.access_token);
+                    try {
+                        Twilio.Device.setup(data.access_token);
+                    } catch (setupError) {
+                        console.error('Twilio setup error:', setupError);
+                        throw setupError;
+                    }
                     
                     Twilio.Device.ready(() => {
                         console.log('Twilio Device ready for calls');
@@ -1809,7 +1814,8 @@
         window.makeCall = makeCall;
         window.hideModal = hideModal;
         window.showAddContactForm = showAddContactForm;
-        window.deleteContact = deleteContact;
+        window.deleteContact = removeContact;  // Expose removeContact as deleteContact
+        window.removeContact = removeContact;
         window.updatePin = updatePin;
         window.updateVerbalCode = updateVerbalCode;
 
