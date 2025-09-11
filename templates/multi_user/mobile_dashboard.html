@@ -985,6 +985,9 @@
         </div>
     </div>
 
+    <!-- Add Twilio Voice SDK -->
+    <script src="https://sdk.twilio.com/js/client/v1.13/twilio.js"></script>
+
     <script>
         // Global variables
         let phoneNumber = '';
@@ -992,6 +995,7 @@
         let twilioDevice = null;
         let currentCall = null;
         let deviceReady = false;
+        let tokenRefreshTimer = null;
         const USER_ID = {{ user.id }};
         
         // Safe DOM helpers
@@ -1018,12 +1022,12 @@
             console.error('GlobalError:', e.filename, e.lineno, e.message);
         });
         
-        // Initialize CallBunker Voice System (Simplified)
+        // Initialize CallBunker Voice System with Real Twilio Device
         async function initializeTwilioVoice() {
             console.log('Initializing CallBunker Voice System...');
             
             try {
-                // Test voice token endpoint
+                // Get voice token from backend
                 const response = await fetch(`/multi/user/${USER_ID}/voice_token`, {
                     headers: {
                         'X-API-Key': 'demo-key-callbunker-2025',
@@ -1032,25 +1036,99 @@
                 });
                 const data = await response.json();
                 
-                if (data.success) {
-                    console.log('Voice token verified successfully');
-                    
-                    // Set up simplified calling system
-                    deviceReady = true;
-                    setText('call-status', 'Voice System ready for calling');
-                    showCustomAlert('Voice Ready', 'CallBunker calling system is ready! Use the dialer to make calls.');
-                    
-                    // Store for calling functionality
-                    window.callbunkerToken = data.access_token;
-                        
-                    console.log('CallBunker Voice System initialized successfully');
-                } else {
-                    console.error('Failed to get Voice token:', data.error);
-                    showCustomAlert('Voice Error', 'Failed to initialize Voice SDK. Please refresh page.');
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to get voice token');
                 }
+                
+                console.log('Voice token received, setting up Twilio Device...');
+                
+                // Clear any existing device
+                if (twilioDevice) {
+                    twilioDevice.destroy();
+                }
+                
+                // Set up Twilio Device with proper event handlers
+                Twilio.Device.setup(data.access_token, {
+                    codecPreferences: ['opus', 'pcmu'],
+                    enableRingingState: true,
+                    fakeLocalDTMF: true,
+                    enableImprovedSignalingErrorPrecision: true
+                });
+                
+                // Device ready event
+                Twilio.Device.ready(function() {
+                    console.log('Twilio Device is ready for calls');
+                    deviceReady = true;
+                    twilioDevice = Twilio.Device;
+                    setText('call-status', 'Voice Ready');
+                    showCustomAlert('Voice Ready', 'CallBunker no-callback calling is ready! Only target phones will ring.');
+                });
+                
+                // Device error event
+                Twilio.Device.error(function(error) {
+                    console.error('Twilio Device error:', error);
+                    deviceReady = false;
+                    twilioDevice = null;
+                    setText('call-status', 'Voice Error');
+                    showCustomAlert('Voice Error', `Voice system error: ${error.message}. Please refresh page.`);
+                });
+                
+                // Call connect event
+                Twilio.Device.connect(function(call) {
+                    console.log('Call connected');
+                    currentCall = call;
+                    setText('call-status', 'Connected');
+                });
+                
+                // Call disconnect event  
+                Twilio.Device.disconnect(function(call) {
+                    console.log('Call disconnected');
+                    currentCall = null;
+                    setText('call-status', 'Call ended');
+                });
+                
+                // Set up token refresh (tokens expire in ~1 hour)
+                if (tokenRefreshTimer) {
+                    clearTimeout(tokenRefreshTimer);
+                }
+                tokenRefreshTimer = setTimeout(refreshVoiceToken, 50 * 60 * 1000); // Refresh after 50 minutes
+                
+                console.log('Twilio Device setup complete, waiting for ready event...');
+                
             } catch (error) {
                 console.error('Voice SDK initialization error:', error);
-                showCustomAlert('Initialization Error', 'Could not connect to Voice service. Please check your connection.');
+                deviceReady = false;
+                twilioDevice = null;
+                showCustomAlert('Initialization Error', `Could not initialize Voice system: ${error.message}. Please refresh page.`);
+            }
+        }
+        
+        // Refresh voice token to prevent expiry
+        async function refreshVoiceToken() {
+            try {
+                console.log('Refreshing voice token...');
+                const response = await fetch(`/multi/user/${USER_ID}/voice_token`, {
+                    headers: {
+                        'X-API-Key': 'demo-key-callbunker-2025',
+                        'X-CSRF-Token': 'demo-csrf-callbunker'
+                    }
+                });
+                const data = await response.json();
+                
+                if (data.success && twilioDevice) {
+                    Twilio.Device.updateToken(data.access_token);
+                    console.log('Voice token refreshed successfully');
+                    
+                    // Schedule next refresh
+                    tokenRefreshTimer = setTimeout(refreshVoiceToken, 50 * 60 * 1000);
+                } else {
+                    console.error('Failed to refresh token, re-initializing...');
+                    await initializeTwilioVoice();
+                }
+            } catch (error) {
+                console.error('Token refresh error:', error);
+                // Try full re-initialization on refresh failure
+                await initializeTwilioVoice();
             }
         }
         
