@@ -1304,15 +1304,48 @@
             return number;
         }
         
+        function normalizePhoneNumber(phoneNumber) {
+            // Remove all non-digit characters
+            const digits = phoneNumber.replace(/\D/g, '');
+            
+            // Handle different phone number formats
+            if (digits.length === 10) {
+                // US number without country code
+                return '+1' + digits;
+            } else if (digits.length === 11 && digits.startsWith('1')) {
+                // US number with country code
+                return '+' + digits;
+            } else if (digits.length === 11 && !digits.startsWith('1')) {
+                // International number without + sign
+                return '+' + digits;
+            } else if (digits.length > 11) {
+                // International number, keep as is with + prefix
+                return '+' + digits;
+            }
+            
+            // For numbers that don't fit standard patterns, assume US format
+            if (digits.length >= 7) {
+                return '+1' + digits;
+            }
+            
+            return phoneNumber; // Return original if too short
+        }
+        
         function makeCall() {
             if (phoneNumber) {
+                const normalizedNumber = normalizePhoneNumber(phoneNumber);
+                const displayNumber = formatPhone(phoneNumber);
+                
                 showCustomConfirm(
                     'Protected Call',
-                    'Call ' + phoneNumber + '? Your Google Voice number will be shown as caller ID. Your real number stays hidden.',
+                    'Call ' + displayNumber + '? Your Google Voice number will be shown as caller ID. Your real number stays hidden.',
                     'Call Now',
                     'Cancel',
                     function() {
-                        showCustomAlert('Calling...', 'Initiating protected call to ' + phoneNumber);
+                        showCustomAlert('Calling...', 'Initiating protected call to ' + displayNumber + '\n\nNormalized: ' + normalizedNumber);
+                        // Clear the dialer after successful call initiation
+                        phoneNumber = '';
+                        updateDisplay();
                     }
                 );
             } else {

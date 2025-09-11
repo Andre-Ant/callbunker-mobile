@@ -877,30 +877,62 @@
             return number;
         }
         
+        function normalizePhoneNumber(phoneNumber) {
+            // Remove all non-digit characters
+            const digits = phoneNumber.replace(/\D/g, '');
+            
+            // Handle different phone number formats
+            if (digits.length === 10) {
+                // US number without country code
+                return '+1' + digits;
+            } else if (digits.length === 11 && digits.startsWith('1')) {
+                // US number with country code
+                return '+' + digits;
+            } else if (digits.length === 11 && !digits.startsWith('1')) {
+                // International number without + sign
+                return '+' + digits;
+            } else if (digits.length > 11) {
+                // International number, keep as is with + prefix
+                return '+' + digits;
+            }
+            
+            // For numbers that don't fit standard patterns, assume US format
+            if (digits.length >= 7) {
+                return '+1' + digits;
+            }
+            
+            return phoneNumber; // Return original if too short
+        }
+        
         async function makeCall() {
             if (!phoneNumber) {
                 showCustomAlert('Enter Number', 'Please enter a phone number to call.');
                 return;
             }
             
+            // Normalize the phone number to prevent formatting issues
+            const normalizedNumber = normalizePhoneNumber(phoneNumber);
+            
             const confirmed = await showCustomConfirm(
                 'Protected Call',
-                `Call ${phoneNumber}? Your Google Voice number will be shown as caller ID. Your real number stays hidden.`,
+                `Call ${formatPhone(phoneNumber)}? Your Google Voice number will be shown as caller ID. Your real number stays hidden.`,
                 'Call Now',
                 'Cancel'
             );
             
             if (confirmed) {
                 try {
-                    showCustomAlert('Calling...', 'Initiating protected call to ' + phoneNumber);
+                    showCustomAlert('Calling...', 'Initiating protected call to ' + formatPhone(phoneNumber));
                     
                     const response = await fetch(`/multi/user/${USER_ID}/call_bridge`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'X-API-Key': 'demo-key-callbunker-2025',
+                            'X-CSRF-Token': 'demo-csrf-callbunker'
                         },
                         body: JSON.stringify({
-                            to_number: phoneNumber
+                            to_number: normalizedNumber
                         })
                     });
                     
@@ -911,10 +943,13 @@
                         // Clear the dialer
                         phoneNumber = '';
                         updateDisplay();
+                        // Refresh call history to show the new call
+                        loadCallHistory();
                     } else {
                         showCustomAlert('Call Failed', result.error || 'Failed to initiate call');
                     }
                 } catch (error) {
+                    console.error('Call error:', error);
                     showCustomAlert('Error', 'Network error occurred. Please try again.');
                 }
             }
@@ -923,7 +958,17 @@
         // Load call history from API
         async function loadCallHistory() {
             try {
-                const response = await fetch(`/multi/user/${USER_ID}/calls`);
+                const response = await fetch(`/multi/user/${USER_ID}/calls`, {
+                    headers: {
+                        'X-API-Key': 'demo-key-callbunker-2025',
+                        'X-CSRF-Token': 'demo-csrf-callbunker'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch call history');
+                }
+                
                 const calls = await response.json();
                 
                 const historyContainer = document.getElementById('call-history-list');
@@ -970,7 +1015,17 @@
         // Load contacts from API
         async function loadContacts() {
             try {
-                const response = await fetch(`/multi/user/${USER_ID}/contacts`);
+                const response = await fetch(`/multi/user/${USER_ID}/contacts`, {
+                    headers: {
+                        'X-API-Key': 'demo-key-callbunker-2025',
+                        'X-CSRF-Token': 'demo-csrf-callbunker'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch contacts');
+                }
+                
                 const contacts = await response.json();
                 
                 const contactsList = document.getElementById('contacts-list');
@@ -1019,7 +1074,17 @@
         // Load analytics from API
         async function loadAnalytics() {
             try {
-                const response = await fetch(`/multi/user/${USER_ID}/analytics`);
+                const response = await fetch(`/multi/user/${USER_ID}/analytics`, {
+                    headers: {
+                        'X-API-Key': 'demo-key-callbunker-2025',
+                        'X-CSRF-Token': 'demo-csrf-callbunker'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch analytics');
+                }
+                
                 const analytics = await response.json();
                 
                 document.getElementById('blocked-calls-stat').textContent = analytics.blocked_calls;
@@ -1040,7 +1105,11 @@
             if (confirmed) {
                 try {
                     const response = await fetch(`/multi/user/${USER_ID}/contacts/${contactId}`, {
-                        method: 'DELETE'
+                        method: 'DELETE',
+                        headers: {
+                            'X-API-Key': 'demo-key-callbunker-2025',
+                            'X-CSRF-Token': 'demo-csrf-callbunker'
+                        }
                     });
                     
                     if (response.ok) {
@@ -1065,14 +1134,18 @@
         }
         
         async function addContact(phoneNumber) {
+            const normalizedPhone = normalizePhoneNumber(phoneNumber);
+            
             try {
                 const response = await fetch(`/multi/user/${USER_ID}/contacts`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-API-Key': 'demo-key-callbunker-2025',
+                        'X-CSRF-Token': 'demo-csrf-callbunker'
                     },
                     body: JSON.stringify({
-                        phone_number: phoneNumber
+                        phone_number: normalizedPhone
                     })
                 });
                 
@@ -1133,6 +1206,8 @@
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
+                            'X-API-Key': 'demo-key-callbunker-2025',
+                            'X-CSRF-Token': 'demo-csrf-callbunker'
                         },
                         body: JSON.stringify({
                             pin: newPin
@@ -1178,6 +1253,8 @@
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
+                            'X-API-Key': 'demo-key-callbunker-2025',
+                            'X-CSRF-Token': 'demo-csrf-callbunker'
                         },
                         body: JSON.stringify({
                             verbal_code: newVerbal
