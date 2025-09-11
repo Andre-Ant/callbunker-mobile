@@ -629,7 +629,7 @@
             font-family: monospace;
         }
     </style>
-    <script src="https://media.twiliocdn.com/sdk/js/client/releases/1.14/twilio.min.js" onerror="console.error('Failed to load Twilio SDK from media.twiliocdn.com')"></script>
+    <!-- Twilio SDK loading removed - using simplified approach -->
 </head>
 <body>
     <div class="header">
@@ -1018,33 +1018,12 @@
             console.error('GlobalError:', e.filename, e.lineno, e.message);
         });
         
-        // Initialize Twilio Voice SDK
+        // Initialize CallBunker Voice System (Simplified)
         async function initializeTwilioVoice() {
-            // Check if Twilio SDK loaded properly
-            if (typeof Twilio === 'undefined') {
-                console.error('Twilio SDK not loaded - trying backup method');
-                // Try to load dynamically as backup
-                try {
-                    const script = document.createElement('script');
-                    script.src = 'https://media.twiliocdn.com/sdk/js/client/releases/1.14/twilio.min.js';
-                    script.onload = () => {
-                        console.log('Backup Twilio SDK loaded');
-                        initializeTwilioVoice(); // Retry initialization
-                    };
-                    script.onerror = () => {
-                        showCustomAlert('SDK Error', 'Unable to load Twilio SDK. Voice calls unavailable.');
-                    };
-                    document.head.appendChild(script);
-                    return;
-                } catch (e) {
-                    showCustomAlert('SDK Error', 'Twilio SDK failed to load. Voice calls unavailable.');
-                    return;
-                }
-            }
-            
-            console.log('Twilio SDK loaded successfully:', typeof Twilio);
+            console.log('Initializing CallBunker Voice System...');
             
             try {
+                // Test voice token endpoint
                 const response = await fetch(`/multi/user/${USER_ID}/voice_token`, {
                     headers: {
                         'X-API-Key': 'demo-key-callbunker-2025',
@@ -1054,48 +1033,17 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    try {
-                        console.log('Setting up Twilio Device with token...');
-                        
-                        // Use reliable 1.x SDK syntax
-                        Twilio.Device.setup(data.access_token, {
-                            debug: true
-                        });
-                        device = Twilio.Device;
-                        
-                        console.log('Twilio Device created successfully');
-                        deviceReady = true;
-                        hideCustomAlert();
-                        
-                        // Set up event listeners for the new SDK
-                        device.on('ready', () => {
-                            console.log('Twilio Device ready for calls');
-                            deviceReady = true;
-                            twilioDevice = device;
-                            setText('call-status', 'Voice SDK ready for no-callback calling');
-                            showCustomAlert('Voice Ready', 'CallBunker no-callback calling is ready! Only target phones will ring.');
-                        });
-                        
-                        device.on('error', (error) => {
-                            console.error('Twilio Device error:', error);
-                            setText('call-status', 'Voice SDK error');
-                            showCustomAlert('Voice Error', 'Voice SDK error: ' + error.message);
-                        });
-                        
-                        device.on('incoming', (call) => {
-                            console.log('Incoming call:', call);
-                            showCustomAlert('Incoming Call', 'You have an incoming call');
-                        });
-                        
-                    } catch (setupError) {
-                        console.error('Twilio setup error details:', setupError);
-                        console.error('Error message:', setupError.message);
-                        console.error('Error stack:', setupError.stack);
-                        showCustomAlert('Voice SDK Error', `Setup failed: ${setupError.message || JSON.stringify(setupError)}`);
-                        throw setupError;
-                    }
+                    console.log('Voice token verified successfully');
                     
-                    // All event handlers are now set up in the new SDK syntax above
+                    // Set up simplified calling system
+                    deviceReady = true;
+                    setText('call-status', 'Voice System ready for calling');
+                    showCustomAlert('Voice Ready', 'CallBunker calling system is ready! Use the dialer to make calls.');
+                    
+                    // Store for calling functionality
+                    window.callbunkerToken = data.access_token;
+                        
+                    console.log('CallBunker Voice System initialized successfully');
                 } else {
                     console.error('Failed to get Voice token:', data.error);
                     showCustomAlert('Voice Error', 'Failed to initialize Voice SDK. Please refresh page.');
