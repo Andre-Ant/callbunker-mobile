@@ -1747,8 +1747,13 @@
                 titleEl.textContent = title;
                 messageEl.textContent = message;
                 setHTML('modal-buttons', `
-                    <button onclick="hideModal(); resolve();" style="flex: 1; background: #007aff; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500;">OK</button>
+                    <button id="modal-ok-btn" style="flex: 1; background: #007aff; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500;">OK</button>
                 `);
+                
+                document.getElementById('modal-ok-btn').onclick = function() {
+                    hideModal();
+                    resolve();
+                };
                 
                 overlay.style.display = 'flex';
                 
@@ -1772,9 +1777,19 @@
                 titleEl.textContent = title;
                 messageEl.textContent = message;
                 setHTML('modal-buttons', `
-                    <button onclick="hideModal(); window.modalResolve(false);" style="flex: 1; background: #8e8e93; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500; margin-right: 8px;">${cancelText}</button>
-                    <button onclick="hideModal(); window.modalResolve(true);" style="flex: 1; background: #007aff; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500;">${confirmText}</button>
-                `;
+                    <button id="modal-cancel-btn" style="flex: 1; background: #8e8e93; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500; margin-right: 8px;">${cancelText}</button>
+                    <button id="modal-confirm-btn" style="flex: 1; background: #007aff; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 500;">${confirmText}</button>
+                `);
+                
+                document.getElementById('modal-cancel-btn').onclick = function() {
+                    hideModal();
+                    window.modalResolve(false);
+                };
+                
+                document.getElementById('modal-confirm-btn').onclick = function() {
+                    hideModal();
+                    window.modalResolve(true);
+                };
                 
                 overlay.style.display = 'flex';
                 
@@ -1793,6 +1808,10 @@
         window.backspace = backspace;
         window.makeCall = makeCall;
         window.hideModal = hideModal;
+        window.showAddContactForm = showAddContactForm;
+        window.deleteContact = deleteContact;
+        window.updatePin = updatePin;
+        window.updateVerbalCode = updateVerbalCode;
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
