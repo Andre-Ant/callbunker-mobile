@@ -1065,21 +1065,25 @@
                     logLevel: 'error'
                 });
                 
-                // Device ready event
-                twilioDevice.on('ready', () => {
-                    console.log('Twilio Device is ready for calls');
+                // Device registration events (these fire for v2.x)
+                twilioDevice.on('registered', () => {
+                    console.log('Twilio Device registered successfully');
+                    // In v2.x, device is ready when registered
                     deviceReady = true;
                     setText('call-status', 'Voice Ready');
                     showCustomAlert('Voice Ready', 'CallBunker no-callback calling is ready! Only target phones will ring.');
                 });
                 
-                // Device registration events
-                twilioDevice.on('registered', () => {
-                    console.log('Twilio Device registered successfully');
-                });
-                
                 twilioDevice.on('unregistered', () => {
                     console.log('Twilio Device unregistered');
+                    deviceReady = false;
+                });
+                
+                // Keep ready event for compatibility
+                twilioDevice.on('ready', () => {
+                    console.log('Twilio Device ready event fired');
+                    deviceReady = true;
+                    setText('call-status', 'Voice Ready');
                 });
                 
                 // Device error event
