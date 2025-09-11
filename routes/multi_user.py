@@ -4,7 +4,7 @@ CallBunker Business Routes - Each user gets their own Twilio number
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, make_response, Response, session, abort
 from models_multi_user import User, TwilioPhonePool, UserWhitelist, MultiUserCallLog, UserBlocklist, UserFailLog
 from app import db
-from utils.twilio_helpers import twilio_client
+from utils.twilio_helpers import twilio_client, generate_voice_access_token
 import re
 import uuid
 from datetime import datetime, timedelta
@@ -608,13 +608,21 @@ def handle_conference_call(conference_name):
             wait_url="http://twimlets.com/holdmusic?Bucket=com.twilio.music.ambient"
         )
     elif participant == 'user':
-        # User joining - brief message then join
+        # User joining via phone callback - brief message then join
         vr.say("CallBunker connecting your call.", voice="polly.Joanna")
         vr.dial().conference(
             conference_name,
             start_conference_on_enter=True,
             end_conference_on_exit=True,  # End when user hangs up
             wait_url="http://twimlets.com/holdmusic?Bucket=com.twilio.music.ambient"
+        )
+    elif participant == 'mobile_app':
+        # Mobile app joining via Twilio Voice SDK - no message, direct conference join
+        vr.dial().conference(
+            conference_name,
+            start_conference_on_enter=True,
+            end_conference_on_exit=True,  # End when mobile app disconnects
+            wait_url=""  # No hold music for mobile app
         )
     else:
         vr.say("Conference error. Please try again.", voice="polly.Joanna")
@@ -708,7 +716,102 @@ def api_call_bridge(user_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+@multi_user_bp.route('/user/<int:user_id>/call_mobile_app', methods=['POST'])
+def api_call_mobile_app(user_id):
+    """
+    MOBILE APP CALLING WITHOUT CALLBACK
+    Only calls target, mobile app connects via Twilio Voice SDK (no callback to user's phone!)
+    """
+    user = verify_user_access(user_id)
+    data = request.get_json()
+    
+    try:
+        to_number = data.get('to_number', '').strip()
+        if not to_number:
+            return jsonify({'error': 'to_number is required'}), 400
+        
+        # Normalize phone numbers
+        to_number_normalized = '+1' + normalize_phone(to_number) if not to_number.startswith('+') else to_number
+        google_voice_number = '+1' + normalize_phone(user.google_voice_number) if len(user.google_voice_number) == 10 else user.google_voice_number
+        
+        # Create conference name for this call
+        conference_name = f"callbunker_mobile_{user_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        
+        # Get Twilio client and public URL
+        client = twilio_client()
+        public_url = os.environ.get('PUBLIC_APP_URL', 'https://4ec224cf-933c-4ca6-b58f-2fce3ea2d59f-00-23vazcc99oamt.janeway.replit.dev')
+        
+        # Generate Voice Access Token for mobile app
+        access_token = generate_voice_access_token(user_id)
+        
+        # Call ONLY the target number (no callback to user's phone!)
+        target_call = client.calls.create(
+            to=to_number_normalized,
+            from_=google_voice_number,  # Target sees your Google Voice number
+            url=f"{public_url}/multi/voice/conference/{conference_name}?participant=target",
+            method='POST'
+        )
+        
+        # Create call log entry
+        call_log = MultiUserCallLog(
+            user_id=user_id,
+            from_number=google_voice_number,
+            to_number=to_number_normalized,
+            direction='outbound',
+            status='mobile_calling',
+            twilio_call_sid=target_call.sid,
+            conference_name=conference_name
+        )
+        
+        db.session.add(call_log)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'approach': 'mobile_app_calling',
+            'call_log_id': call_log.id,
+            'conference_name': conference_name,
+            'to_number': to_number_normalized,
+            'from_number': google_voice_number,
+            'target_call_sid': target_call.sid,
+            'access_token': access_token,
+            'mobile_config': {
+                'target_sees': google_voice_number,
+                'no_callback': True,
+                'conference': conference_name,
+                'cost': '$0.02 per minute (1 call leg only)',
+                'connection_method': 'Twilio Voice SDK via internet'
+            },
+            'message': f'Target {to_number_normalized} will ring. Use access token to connect via mobile app.',
+            'instructions': {
+                'mobile_app': 'Use the access_token to connect to Twilio Voice SDK',
+                'conference_endpoint': f'{public_url}/multi/voice/conference/{conference_name}?participant=mobile_app',
+                'connection_type': 'internet_based'
+            }
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
+@multi_user_bp.route('/user/<int:user_id>/voice_token', methods=['GET'])
+def get_voice_access_token(user_id):
+    """Get Twilio Voice Access Token for mobile app"""
+    user = verify_user_access(user_id)
+    
+    try:
+        access_token = generate_voice_access_token(user_id)
+        
+        return jsonify({
+            'success': True,
+            'access_token': access_token,
+            'identity': f'callbunker_user_{user_id}',
+            'expires_in': 3600,  # 1 hour
+            'usage': 'Use this token to initialize Twilio Voice SDK in mobile app'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @multi_user_bp.route('/contact-support')
 def contact_support():
