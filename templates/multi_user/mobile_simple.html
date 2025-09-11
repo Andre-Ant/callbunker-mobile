@@ -34,29 +34,45 @@
     <div class="container">
         <h1>📱 Mobile Signup</h1>
         
-        <form method="POST" action="/multi/signup">
-            <input type="text" name="name" placeholder="Your Name" value="Mobile User" required>
-            
-            <input type="email" name="email" placeholder="Email" value="mobile@example.com" required>
-            
-            <input type="tel" name="google_voice_number" placeholder="Google Voice: 5551234567" value="5551234567" required>
-            
-            <input type="tel" name="real_phone_number" placeholder="Real Phone: 5559876543" value="5559876543" required>
-            
-            <input type="text" name="pin" placeholder="PIN: 1122" value="1122" maxlength="4" required>
-            
-            <input type="text" name="verbal_code" placeholder="Verbal Code" value="open sesame" required>
-            
-            <button type="submit">🚀 Create Account</button>
-        </form>
+        <button onclick="createAccount()" style="padding: 20px; font-size: 18px; background: #007AFF; color: white; border: none; border-radius: 10px; width: 100%;">
+            🚀 Create My Account
+        </button>
+        
+        <div id="result" style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 5px; display: none;">
+            <h3>✅ Account Created!</h3>
+            <p><strong>Defense Number:</strong> <span id="defenseNumber"></span></p>
+            <p><strong>Email:</strong> <span id="userEmail"></span></p>
+            <p>Your CallBunker account is ready!</p>
+        </div>
         
         <p><strong>Status:</strong> <span id="status">Ready</span></p>
     </div>
     
     <script>
-        document.querySelector('form').addEventListener('submit', function(e) {
-            document.getElementById('status').textContent = 'Submitting...';
-        });
+        async function createAccount() {
+            document.getElementById('status').textContent = 'Creating account...';
+            
+            try {
+                const response = await fetch('/multi/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'name=Mobile User&email=mobile@example.com&google_voice_number=5551234567&real_phone_number=5559876543&pin=1122&verbal_code=open+sesame'
+                });
+                
+                if (response.ok) {
+                    document.getElementById('status').textContent = 'Success!';
+                    document.getElementById('result').style.display = 'block';
+                    document.getElementById('defenseNumber').textContent = 'Assigned';
+                    document.getElementById('userEmail').textContent = 'mobile@example.com';
+                } else {
+                    document.getElementById('status').textContent = 'Error: ' + response.status;
+                }
+            } catch (error) {
+                document.getElementById('status').textContent = 'Network error: ' + error.message;
+            }
+        }
     </script>
 </body>
 </html>
