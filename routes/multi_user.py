@@ -86,8 +86,8 @@ def mobile_signup():
         pin = request.form.get('pin', '1122').strip()
         verbal_code = request.form.get('verbal_code', 'open sesame').strip()
         
-        # Assign next available Twilio number from pool
-        available_number = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).first()
+        # Assign next available Twilio number from pool  
+        available_number = TwilioPhonePool.query.filter_by(is_assigned=False).with_for_update().first()
         if not available_number:
             flash('No phone numbers available. Please try again later.', 'error')
             return redirect(url_for('multi_user.mobile_signup'))

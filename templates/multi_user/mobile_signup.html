@@ -267,17 +267,30 @@
             <div class="subtitle">The last line of defense against spam calls</div>
         </div>
         
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div style="margin-bottom: 20px;">
+                    {% for category, message in messages %}
+                        <div style="padding: 12px; border-radius: 8px; margin-bottom: 10px; {% if category == 'error' %}background: #fee; color: #c33; border: 1px solid #fcc;{% else %}background: #efe; color: #363; border: 1px solid #cfc;{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
         <div class="form-card">
             <form method="POST" id="signupForm">
                 <div class="form-group">
                     <label for="name" class="label">Full Name</label>
-                    <input type="text" class="input" id="name" name="name" required>
+                    <input type="text" class="input" id="name" name="name" value="{{ request.form.get('name', '') }}" required>
                     <div class="help-text">Your name for account identification</div>
                 </div>
                 
                 <div class="form-group">
                     <label for="email" class="label">Email Address</label>
-                    <input type="email" class="input" id="email" name="email" required>
+                    <input type="email" class="input" id="email" name="email" value="{{ request.form.get('email', '') }}" required>
                     <div class="help-text">For account management and notifications</div>
                 </div>
                 
@@ -285,7 +298,7 @@
                     <label for="google_voice_number" class="label">Your Google Voice Number</label>
                     <div class="input-group">
                         <input type="tel" class="input" id="google_voice_number" name="google_voice_number" 
-                               placeholder="(555) 123-4567" required style="flex: 1;">
+                               placeholder="(555) 123-4567" value="{{ request.form.get('google_voice_number', '') }}" required style="flex: 1;">
                         <a href="https://voice.google.com" target="_blank" class="get-number-btn">
                             Get Number
                         </a>
@@ -296,7 +309,7 @@
                 <div class="form-group">
                     <label for="real_phone_number" class="label">Your Real Phone Number</label>
                     <input type="tel" class="input" id="real_phone_number" name="real_phone_number" 
-                           placeholder="(555) 987-6543" required>
+                           placeholder="(555) 987-6543" value="{{ request.form.get('real_phone_number', '') }}" required>
                     <div class="help-text">Where screened calls should be forwarded</div>
                 </div>
                 
