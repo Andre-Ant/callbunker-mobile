@@ -408,6 +408,22 @@
             transform: scale(0.95);
         }
         
+        .hangup-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 28px;
+            border: none;
+            background: #f44336;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        .hangup-btn:active {
+            transform: scale(0.95);
+        }
+        
         .back-btn {
             width: 45px;
             height: 45px;
@@ -721,6 +737,7 @@
                 <div class="call-actions">
                     <button class="back-btn" onclick="backspace()">⌫</button>
                     <button class="call-btn" onclick="makeCall()">📞</button>
+                    <button id="hangup-btn" class="hangup-btn" onclick="hangupCall()" style="display: none;">📵</button>
                 </div>
             </div>
         </div>
@@ -1121,12 +1138,20 @@
                     console.log('Call connected');
                     currentCall = call;
                     setText('call-status', 'Connected');
+                    
+                    // Show hangup button and hide call button during active call
+                    document.getElementById('hangup-btn').style.display = 'inline-block';
+                    document.querySelector('.call-btn').style.display = 'none';
                 });
                 
                 twilioDevice.on('disconnect', (call) => {
                     console.log('Call disconnected');
                     currentCall = null;
-                    setText('call-status', 'Call ended');
+                    setText('call-status', 'Voice Ready');
+                    
+                    // Hide hangup button and show call button again
+                    document.getElementById('hangup-btn').style.display = 'none';
+                    document.querySelector('.call-btn').style.display = 'inline-block';
                 });
                 
                 // Register the device
@@ -1426,6 +1451,17 @@
                     setText('call-status', 'Call Error');
                     showCustomAlert('Call Error', `Failed to place call: ${error.message}. Please check your connection and try again.`);
                 }
+            }
+        }
+        
+        function hangupCall() {
+            if (currentCall) {
+                console.log('Hanging up call');
+                currentCall.disconnect();
+                setText('call-status', 'Hanging up...');
+            } else {
+                console.log('No active call to hang up');
+                showCustomAlert('No Active Call', 'There is no active call to hang up.');
             }
         }
         
@@ -1926,6 +1962,7 @@
         window.addDigit = addDigit;
         window.backspace = backspace;
         window.makeCall = makeCall;
+        window.hangupCall = hangupCall;
         window.hideModal = hideModal;
         window.showAddContactForm = showAddContactForm;
         window.deleteContact = removeContact;  // Expose removeContact as deleteContact

@@ -716,7 +716,8 @@ def handle_device_outbound():
     if to_number:
         # Direct dial to target - no conference, no hold music
         vr.say("CallBunker connecting.", voice="polly.Joanna")
-        vr.dial(caller_id=caller_id).number(to_number)
+        dial = vr.dial(caller_id=caller_id)
+        dial.number(to_number)
     else:
         vr.say("Invalid number.", voice="polly.Joanna")
         vr.hangup()
@@ -735,7 +736,8 @@ def handle_conference_call(conference_name):
     
     if participant == 'target':
         # Target person joining - no message, just join conference
-        vr.dial().conference(
+        dial = vr.dial()
+        dial.conference(
             conference_name,
             start_conference_on_enter=True,
             end_conference_on_exit=False,
@@ -744,7 +746,8 @@ def handle_conference_call(conference_name):
     elif participant == 'user':
         # User joining via phone callback - brief message then join
         vr.say("CallBunker connecting your call.", voice="polly.Joanna")
-        vr.dial().conference(
+        dial = vr.dial()
+        dial.conference(
             conference_name,
             start_conference_on_enter=True,
             end_conference_on_exit=True,  # End when user hangs up
@@ -752,7 +755,8 @@ def handle_conference_call(conference_name):
         )
     elif participant == 'mobile_app':
         # Mobile app joining via Twilio Voice SDK - no message, direct conference join
-        vr.dial().conference(
+        dial = vr.dial()
+        dial.conference(
             conference_name,
             start_conference_on_enter=True,
             end_conference_on_exit=True,  # End when mobile app disconnects
@@ -766,7 +770,7 @@ def handle_conference_call(conference_name):
 
 def xml_response(voice_response):
     """Helper to return proper TwiML XML response"""
-    response = Response(str(voice_response), content_type='application/xml')
+    response = Response(str(voice_response), mimetype='application/xml')
     return response
 
 @multi_user_bp.route('/user/<int:user_id>/call_direct', methods=['POST'])
