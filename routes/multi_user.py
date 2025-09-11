@@ -14,6 +14,16 @@ import os
 
 multi_user_bp = Blueprint('multi_user', __name__, url_prefix='/multi')
 
+@multi_user_bp.route('/')
+def index():
+    """Main route - redirect to login or dashboard"""
+    if session.get('logged_in') and session.get('user_id'):
+        # User is logged in, redirect to dashboard
+        return redirect(url_for('multi_user.dashboard', user_id=session['user_id']))
+    else:
+        # User not logged in, redirect to login
+        return redirect(url_for('multi_user.login'))
+
 def require_authentication():
     """Helper to require user authentication for API endpoints"""
     # For now, use a simple session-based auth or require admin key
@@ -292,6 +302,11 @@ def signup():
         flash(f'Registration failed: {str(e)}', 'error')
         available_numbers = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).count()
         return render_template('multi_user/signup.html', available_numbers=available_numbers)
+
+@multi_user_bp.route('/user/<int:user_id>/dashboard')
+def dashboard(user_id):
+    """Alias for user_dashboard for cleaner URLs"""
+    return user_dashboard(user_id)
 
 @multi_user_bp.route('/user/<int:user_id>/dashboard')
 def user_dashboard(user_id):
