@@ -2,6 +2,7 @@
 CallBunker Business Routes - Each user gets their own Twilio number
 """
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, make_response, Response, session, abort
+from werkzeug.security import generate_password_hash, check_password_hash
 from models_multi_user import User, TwilioPhonePool, UserWhitelist, MultiUserCallLog, UserBlocklist, UserFailLog
 from app import db
 from utils.twilio_helpers import twilio_client, generate_voice_access_token
@@ -154,6 +155,57 @@ def mobile_simple():
     """Mobile-optimized simple signup"""
     return render_template('multi_user/mobile_simple.html')
 
+@multi_user_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    """User login with email and password"""
+    if request.method == 'GET':
+        return render_template('multi_user/login.html')
+    
+    try:
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '').strip()
+        remember = request.form.get('remember') == '1'
+        
+        if not email or not password:
+            flash('Please enter both email and password', 'error')
+            return render_template('multi_user/login.html')
+        
+        # Find user by email
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            flash('Invalid email or password', 'error')
+            return render_template('multi_user/login.html')
+        
+        # Check password (assuming we have a password_hash field)
+        if not user.password_hash or not check_password_hash(user.password_hash, password):
+            flash('Invalid email or password', 'error')
+            return render_template('multi_user/login.html')
+        
+        # Set up session
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session['logged_in'] = True
+        
+        if remember:
+            session.permanent = True
+            # Set session to last 30 days
+            session.permanent_session_lifetime = timedelta(days=30)
+        
+        flash(f'Welcome back, {user.name}!', 'success')
+        return redirect(url_for('multi_user.dashboard', user_id=user.id))
+        
+    except Exception as e:
+        flash('Login failed. Please try again.', 'error')
+        return render_template('multi_user/login.html')
+
+@multi_user_bp.route('/logout')
+def logout():
+    """User logout"""
+    session.clear()
+    flash('You have been logged out successfully', 'success')
+    return redirect(url_for('multi_user.login'))
+
 @multi_user_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     """New user signup with Google Voice integration"""
@@ -174,13 +226,18 @@ def signup():
         name = request.form.get('name', '').strip()
         google_voice_number = normalize_phone(request.form.get('google_voice_number', '').strip())
         real_phone_number = normalize_phone(request.form.get('real_phone_number', '').strip())
+        password = request.form.get('password', '').strip()
         
         # Check available numbers for template
         available_numbers = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).count()
         
         # Validation
-        if not all([email, name, google_voice_number, real_phone_number]):
+        if not all([email, name, google_voice_number, real_phone_number, password]):
             flash('All fields are required', 'error')
+            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
+        
+        if len(password) < 6:
+            flash('Password must be at least 6 characters long', 'error')
             return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
         
         # Check if email already exists

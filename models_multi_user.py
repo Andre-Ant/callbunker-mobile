@@ -20,6 +20,7 @@ class User(db.Model):
     # Authentication settings
     pin = db.Column(db.String(4), default="1122", nullable=False)
     verbal_code = db.Column(db.String(50), default="open sesame", nullable=False)
+    password_hash = db.Column(db.String(256))  # For web login
     
     # Call screening settings
     retry_limit = db.Column(db.Integer, default=3, nullable=False)
