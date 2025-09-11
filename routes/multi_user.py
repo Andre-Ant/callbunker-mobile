@@ -163,7 +163,7 @@ def user_dashboard(user_id):
     # Get user statistics
     whitelist_count = UserWhitelist.query.filter_by(user_id=user_id).count()
     
-    return render_template('multi_user/dashboard.html', 
+    return render_template('multi_user/mobile_dashboard.html', 
                          user=user, 
                          whitelist_count=whitelist_count,
                          format_phone=format_phone_display)

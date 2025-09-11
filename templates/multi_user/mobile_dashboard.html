@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{ user.name }} - CallBunker Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+            padding: 20px;
+            color: #212529;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #198754;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .status-card {
+            background: #d1e7dd;
+            border: 2px solid #a3cfbb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .status-card h2 {
+            color: #0f5132;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .status-card p {
+            color: #0f5132;
+            font-size: 14px;
+        }
+        
+        .info-grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .info-card h3 {
+            color: #495057;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            color: #212529;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .phone-number {
+            font-family: monospace;
+            font-size: 16px;
+            color: #198754;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        
+        .actions-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .actions-card h3 {
+            color: #212529;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .action-btn {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            background: #0b5ed7;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+        
+        .action-btn.secondary {
+            background: #6c757d;
+        }
+        
+        .action-btn.secondary:hover {
+            background: #565e64;
+        }
+        
+        .action-btn.warning {
+            background: #fd7e14;
+        }
+        
+        .action-btn.warning:hover {
+            background: #e8681a;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #198754;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🛡️ {{ user.name }}'s CallBunker</h1>
+            <p>Your privacy protection is active</p>
+        </div>
+
+        <!-- Status -->
+        <div class="status-card">
+            <h2>✅ CallBunker Active</h2>
+            <p>Your calls are protected and monitored</p>
+        </div>
+
+        <!-- User Info -->
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>Defense Number</h3>
+                <div class="phone-number">{{ format_phone(user.assigned_twilio_number) }}</div>
+            </div>
+            
+            <div class="info-card">
+                <h3>Google Voice</h3>
+                <div class="phone-number">{{ format_phone(user.google_voice_number) }}</div>
+            </div>
+            
+            <div class="info-card">
+                <h3>Real Phone</h3>
+                <div class="phone-number">{{ format_phone(user.real_phone_number) }}</div>
+            </div>
+            
+            <div class="info-card">
+                <h3>PIN Code</h3>
+                <div class="info-value">{{ user.pin }}</div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ whitelist_count }}</div>
+                <div class="stat-label">Trusted Contacts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Calls Today</div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions-card">
+            <h3>Quick Actions</h3>
+            <a href="/multi/user/{{ user.id }}/whitelist" class="action-btn">
+                📞 Manage Trusted Contacts
+            </a>
+            <a href="/multi/user/{{ user.id }}/call-history" class="action-btn">
+                📋 View Call History
+            </a>
+            <a href="/multi/user/{{ user.id }}/settings" class="action-btn secondary">
+                ⚙️ Account Settings
+            </a>
+            <a href="/multi/user/{{ user.id }}/tutorial" class="action-btn warning">
+                📚 Setup Tutorial
+            </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            CallBunker - Protecting your privacy, one call at a time
+        </div>
+    </div>
+</body>
+</html>
