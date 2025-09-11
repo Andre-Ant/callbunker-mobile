@@ -985,8 +985,8 @@
         </div>
     </div>
 
-    <!-- Add Latest Twilio Voice SDK -->
-    <script src="https://sdk.twilio.com/js/voice/releases/2.12.2/twilio.min.js"></script>
+    <!-- Add Latest Twilio Voice SDK from CDN -->
+    <script src="https://media.twiliocdn.com/sdk/js/voice/releases/2.12.2/twilio.min.js"></script>
 
     <script>
         // Global variables
@@ -1027,6 +1027,16 @@
             console.log('Initializing CallBunker Voice System...');
             
             try {
+                // Check if Twilio SDK is loaded
+                if (typeof Twilio === 'undefined') {
+                    throw new Error('Twilio is not defined. Please refresh page.');
+                }
+                
+                // Check if Twilio.Device is available
+                if (typeof Twilio.Device === 'undefined') {
+                    throw new Error('Twilio.Device is not available. Please refresh page.');
+                }
+                
                 // Get voice token from backend
                 const response = await fetch(`/multi/user/${USER_ID}/voice_token`, {
                     headers: {
@@ -1931,14 +1941,46 @@
             }
         });
         
+        // Wait for Twilio SDK to load
+        function waitForTwilio() {
+            return new Promise((resolve, reject) => {
+                let attempts = 0;
+                const maxAttempts = 50; // 5 seconds max
+                
+                function checkTwilio() {
+                    if (typeof Twilio !== 'undefined' && typeof Twilio.Device !== 'undefined') {
+                        console.log('Twilio SDK loaded successfully');
+                        resolve();
+                    } else if (attempts < maxAttempts) {
+                        attempts++;
+                        setTimeout(checkTwilio, 100);
+                    } else {
+                        reject(new Error('Twilio SDK failed to load'));
+                    }
+                }
+                
+                checkTwilio();
+            });
+        }
+        
         // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             loadAnalytics();
-            // Initialize Voice SDK after first user interaction (required for microphone permissions)
-            document.addEventListener('click', function initVoiceOnFirstClick() {
-                initializeTwilioVoice();
-                document.removeEventListener('click', initVoiceOnFirstClick);
-            }, { once: true });
+            
+            try {
+                // Wait for Twilio SDK to load first
+                await waitForTwilio();
+                
+                // Initialize Voice SDK after first user interaction (required for microphone permissions)
+                document.addEventListener('click', function initVoiceOnFirstClick() {
+                    initializeTwilioVoice();
+                    document.removeEventListener('click', initVoiceOnFirstClick);
+                }, { once: true });
+                
+            } catch (error) {
+                console.error('Failed to load Twilio SDK:', error);
+                showCustomAlert('SDK Error', 'Failed to load Voice SDK. Please refresh page and try again.');
+            }
         });
     </script>
 </body>
