@@ -1301,8 +1301,16 @@
         }
         
         function showAnalytics() {
-            // Load and display analytics data
-            loadAnalytics();
+            // Load and display analytics data in a modal popup
+            showCustomAlert('📊 CallBunker Analytics', 
+                `🛡️ Privacy Status: ACTIVE\n\n` +
+                `📞 Blocked Calls: ${document.getElementById('blocked-calls-stat').textContent}\n` +
+                `👥 Trusted Contacts: ${document.getElementById('trusted-contacts-stat').textContent}\n\n` +
+                `🔢 Defense Number: {{ format_phone(user.assigned_twilio_number) }}\n` +
+                `📱 Google Voice: {{ format_phone(user.google_voice_number) }}\n` +
+                `📞 Real Phone: {{ format_phone(user.real_phone_number) }}\n\n` +
+                `🔒 Your real number is completely hidden from all outgoing calls.`
+            );
         }
         
         // Utility functions
