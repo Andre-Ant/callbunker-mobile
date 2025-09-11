@@ -126,6 +126,28 @@ def debug_signup():
     """Simple debug signup page"""
     return render_template('multi_user/debug_signup.html')
 
+@multi_user_bp.route('/test')
+def test_page():
+    """Ultra simple test page"""
+    return """
+    <html>
+    <head><title>Test Page</title></head>
+    <body>
+        <h1>Server is Working!</h1>
+        <p>This is a simple test page.</p>
+        <form method="POST" action="/multi/signup">
+            <input type="text" name="name" value="Test User" placeholder="Name">
+            <input type="email" name="email" value="test@example.com" placeholder="Email">
+            <input type="text" name="google_voice_number" value="5551234567" placeholder="Google Voice">
+            <input type="text" name="real_phone_number" value="5559876543" placeholder="Real Phone">
+            <input type="text" name="pin" value="1122" placeholder="PIN">
+            <input type="text" name="verbal_code" value="open sesame" placeholder="Verbal Code">
+            <button type="submit">Test Submit</button>
+        </form>
+    </body>
+    </html>
+    """
+
 @multi_user_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     """New user signup with Google Voice integration"""
