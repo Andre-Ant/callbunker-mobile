@@ -629,8 +629,7 @@
             font-family: monospace;
         }
     </style>
-    <script src="https://sdk.twilio.com/js/voice/releases/2.11/twilio.min.js" onerror="console.error('Failed to load Twilio SDK 2.11')"></script>
-    <script src="https://sdk.twilio.com/js/client/releases/1.14/twilio.min.js" onerror="console.error('Failed to load Twilio SDK 1.14 fallback')"></script>
+    <script src="https://media.twiliocdn.com/sdk/js/client/releases/1.14/twilio.min.js" onerror="console.error('Failed to load Twilio SDK from media.twiliocdn.com')"></script>
 </head>
 <body>
     <div class="header">
@@ -1023,9 +1022,24 @@
         async function initializeTwilioVoice() {
             // Check if Twilio SDK loaded properly
             if (typeof Twilio === 'undefined') {
-                console.error('Twilio SDK not loaded');
-                showCustomAlert('SDK Error', 'Twilio SDK failed to load. Please refresh page.');
-                return;
+                console.error('Twilio SDK not loaded - trying backup method');
+                // Try to load dynamically as backup
+                try {
+                    const script = document.createElement('script');
+                    script.src = 'https://media.twiliocdn.com/sdk/js/client/releases/1.14/twilio.min.js';
+                    script.onload = () => {
+                        console.log('Backup Twilio SDK loaded');
+                        initializeTwilioVoice(); // Retry initialization
+                    };
+                    script.onerror = () => {
+                        showCustomAlert('SDK Error', 'Unable to load Twilio SDK. Voice calls unavailable.');
+                    };
+                    document.head.appendChild(script);
+                    return;
+                } catch (e) {
+                    showCustomAlert('SDK Error', 'Twilio SDK failed to load. Voice calls unavailable.');
+                    return;
+                }
             }
             
             console.log('Twilio SDK loaded successfully:', typeof Twilio);
