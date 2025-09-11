@@ -199,8 +199,7 @@ def login():
         
         if remember:
             session.permanent = True
-            # Set session to last 30 days
-            session.permanent_session_lifetime = timedelta(days=30)
+            # Session duration handled by Flask app config
         
         flash(f'Welcome back, {user.name}!', 'success')
         return redirect(url_for('multi_user.dashboard', user_id=user.id))
