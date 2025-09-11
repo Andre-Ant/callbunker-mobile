@@ -985,8 +985,8 @@
         </div>
     </div>
 
-    <!-- Add Twilio Voice SDK -->
-    <script src="https://sdk.twilio.com/js/client/v1.13/twilio.js"></script>
+    <!-- Add Latest Twilio Voice SDK -->
+    <script src="https://sdk.twilio.com/js/voice/releases/2.12.2/twilio.min.js"></script>
 
     <script>
         // Global variables
@@ -1022,7 +1022,7 @@
             console.error('GlobalError:', e.filename, e.lineno, e.message);
         });
         
-        // Initialize CallBunker Voice System with Real Twilio Device
+        // Initialize CallBunker Voice System with Latest Twilio Voice SDK
         async function initializeTwilioVoice() {
             console.log('Initializing CallBunker Voice System...');
             
@@ -1045,47 +1045,78 @@
                 // Clear any existing device
                 if (twilioDevice) {
                     twilioDevice.destroy();
+                    twilioDevice = null;
                 }
                 
-                // Set up Twilio Device with proper event handlers
-                Twilio.Device.setup(data.access_token, {
-                    codecPreferences: ['opus', 'pcmu'],
+                // Create new Twilio Device with latest SDK v2.x (proper string codec preferences)
+                twilioDevice = new Twilio.Device(data.access_token, {
+                    codecPreferences: ["opus", "pcmu"],
                     enableRingingState: true,
-                    fakeLocalDTMF: true,
-                    enableImprovedSignalingErrorPrecision: true
+                    logLevel: 'error'
                 });
                 
                 // Device ready event
-                Twilio.Device.ready(function() {
+                twilioDevice.on('ready', () => {
                     console.log('Twilio Device is ready for calls');
                     deviceReady = true;
-                    twilioDevice = Twilio.Device;
                     setText('call-status', 'Voice Ready');
                     showCustomAlert('Voice Ready', 'CallBunker no-callback calling is ready! Only target phones will ring.');
                 });
                 
+                // Device registration events
+                twilioDevice.on('registered', () => {
+                    console.log('Twilio Device registered successfully');
+                });
+                
+                twilioDevice.on('unregistered', () => {
+                    console.log('Twilio Device unregistered');
+                });
+                
                 // Device error event
-                Twilio.Device.error(function(error) {
+                twilioDevice.on('error', (error) => {
                     console.error('Twilio Device error:', error);
                     deviceReady = false;
-                    twilioDevice = null;
                     setText('call-status', 'Voice Error');
                     showCustomAlert('Voice Error', `Voice system error: ${error.message}. Please refresh page.`);
                 });
                 
-                // Call connect event
-                Twilio.Device.connect(function(call) {
+                // Token expiry events for robust token management
+                twilioDevice.on('tokenWillExpire', async () => {
+                    console.log('Token will expire, refreshing...');
+                    await refreshVoiceToken();
+                });
+                
+                twilioDevice.on('tokenExpired', async () => {
+                    console.log('Token expired, refreshing...');
+                    await refreshVoiceToken();
+                });
+                
+                // Network resilience events
+                twilioDevice.on('reconnecting', () => {
+                    console.log('Device reconnecting...');
+                    setText('call-status', 'Reconnecting...');
+                });
+                
+                twilioDevice.on('reconnected', () => {
+                    console.log('Device reconnected');
+                    setText('call-status', 'Voice Ready');
+                });
+                
+                // Call events
+                twilioDevice.on('connect', (call) => {
                     console.log('Call connected');
                     currentCall = call;
                     setText('call-status', 'Connected');
                 });
                 
-                // Call disconnect event  
-                Twilio.Device.disconnect(function(call) {
+                twilioDevice.on('disconnect', (call) => {
                     console.log('Call disconnected');
                     currentCall = null;
                     setText('call-status', 'Call ended');
                 });
+                
+                // Register the device
+                await twilioDevice.register();
                 
                 // Set up token refresh (tokens expire in ~1 hour)
                 if (tokenRefreshTimer) {
@@ -1093,7 +1124,7 @@
                 }
                 tokenRefreshTimer = setTimeout(refreshVoiceToken, 50 * 60 * 1000); // Refresh after 50 minutes
                 
-                console.log('Twilio Device setup complete, waiting for ready event...');
+                console.log('Twilio Device registration complete, waiting for ready event...');
                 
             } catch (error) {
                 console.error('Voice SDK initialization error:', error);
@@ -1103,7 +1134,7 @@
             }
         }
         
-        // Refresh voice token to prevent expiry
+        // Refresh voice token (event-driven + fallback timer)
         async function refreshVoiceToken() {
             try {
                 console.log('Refreshing voice token...');
@@ -1116,11 +1147,8 @@
                 const data = await response.json();
                 
                 if (data.success && twilioDevice) {
-                    Twilio.Device.updateToken(data.access_token);
+                    await twilioDevice.updateToken(data.access_token);
                     console.log('Voice token refreshed successfully');
-                    
-                    // Schedule next refresh
-                    tokenRefreshTimer = setTimeout(refreshVoiceToken, 50 * 60 * 1000);
                 } else {
                     console.error('Failed to refresh token, re-initializing...');
                     await initializeTwilioVoice();
@@ -1338,7 +1366,7 @@
             if (confirmed) {
                 try {
                     // Check if Twilio Device is ready
-                    if (!deviceReady || !twilioDevice || Twilio.Device.status() !== 'ready') {
+                    if (!deviceReady || !twilioDevice) {
                         console.log('Device not ready, initializing...');
                         setText('call-status', 'Initializing Voice...');
                         showCustomAlert('Initializing', 'Setting up no-callback calling system...');
@@ -1348,12 +1376,12 @@
                         
                         // Wait up to 10 seconds for device to be ready
                         let attempts = 0;
-                        while ((!deviceReady || Twilio.Device.status() !== 'ready') && attempts < 20) {
+                        while (!deviceReady && attempts < 20) {
                             await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
                             attempts++;
                         }
                         
-                        if (!deviceReady || Twilio.Device.status() !== 'ready') {
+                        if (!deviceReady || !twilioDevice) {
                             setText('call-status', 'Voice SDK Error');
                             showCustomAlert('Voice SDK Error', 'Voice system not ready. Please refresh page and wait for "Voice Ready" message.');
                             return;
@@ -1364,8 +1392,10 @@
                     console.log('Making Voice SDK call to:', normalizedNumber);
                     setText('call-status', 'Calling...');
                     
-                    const call = Twilio.Device.connect({
-                        To: normalizedNumber
+                    const call = await twilioDevice.connect({
+                        params: {
+                            To: normalizedNumber
+                        }
                     });
                     
                     currentCall = call;
@@ -1889,11 +1919,26 @@
         window.updatePin = updatePin;
         window.updateVerbalCode = updateVerbalCode;
 
+        // Clean up device on page unload
+        window.addEventListener('beforeunload', () => {
+            if (twilioDevice) {
+                try {
+                    twilioDevice.unregister();
+                    twilioDevice.destroy();
+                } catch (error) {
+                    console.log('Device cleanup error:', error);
+                }
+            }
+        });
+        
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Twilio Voice SDK for true no-callback calling
-            initializeTwilioVoice();
             loadAnalytics();
+            // Initialize Voice SDK after first user interaction (required for microphone permissions)
+            document.addEventListener('click', function initVoiceOnFirstClick() {
+                initializeTwilioVoice();
+                document.removeEventListener('click', initVoiceOnFirstClick);
+            }, { once: true });
         });
     </script>
 </body>
