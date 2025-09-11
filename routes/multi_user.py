@@ -696,13 +696,10 @@ def api_call_bridge(user_id):
         # Use public URL that Twilio can reach
         public_url = os.environ.get('PUBLIC_APP_URL', 'https://4ec224cf-933c-4ca6-b58f-2fce3ea2d59f-00-23vazcc99oamt.janeway.replit.dev')
         
-        # Use verified CallBunker Defense Number as caller ID (works reliably)
-        defense_number = user.assigned_twilio_number
-        
-        # Call 1: Call the target number (they see your Defense Number as caller ID)
+        # Call 1: Call the target number (they see Google Voice number as caller ID)
         target_call = client.calls.create(
             to=to_number_normalized,
-            from_=defense_number,  # Target sees your verified Defense Number
+            from_=google_voice_number,  # Target sees your Google Voice number!
             url=f"{public_url}/multi/voice/conference/{conference_name}?participant=target",
             method='POST'
         )
@@ -710,7 +707,7 @@ def api_call_bridge(user_id):
         # Call 2: Call the user
         user_call = client.calls.create(
             to=user_phone,
-            from_=defense_number,  # You see your Defense Number calling you
+            from_=google_voice_number,  # You see your own Google Voice number
             url=f"{public_url}/multi/voice/conference/{conference_name}?participant=user",
             method='POST'
         )
@@ -718,7 +715,7 @@ def api_call_bridge(user_id):
         # Create call log entry
         call_log = MultiUserCallLog(
             user_id=user_id,
-            from_number=defense_number,
+            from_number=google_voice_number,
             to_number=to_number_normalized,
             direction='outbound',
             status='calling',
@@ -729,10 +726,18 @@ def api_call_bridge(user_id):
         db.session.add(call_log)
         db.session.commit()
         
+        print(f"BRIDGE CALL DEBUG: Created calls - Target: {target_call.sid}, User: {user_call.sid}")
+        print(f"BRIDGE CALL DEBUG: Conference: {conference_name}")
+        print(f"BRIDGE CALL DEBUG: Target number: {to_number_normalized}, User number: {user_phone}")
+        print(f"BRIDGE CALL DEBUG: Google Voice number: {google_voice_number}")
+        
         return jsonify({
             'success': True,
             'approach': 'bridge_calling',
             'call_log_id': call_log.id,
+            'target_call_sid': target_call.sid,
+            'user_call_sid': user_call.sid,
+            'conference_name': conference_name,
             'conference_name': conference_name,
             'to_number': to_number_normalized,
             'from_number': google_voice_number,

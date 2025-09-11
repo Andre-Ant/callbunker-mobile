@@ -1,4 +1,7 @@
 from app import app
+# Ensure all blueprints are properly registered when using main:app
+import routes.multi_user
+import routes.voice
 from flask import send_from_directory, render_template_string, render_template, request, jsonify, make_response
 import os
 from sms_testing import send_protected_sms, get_sms_status
