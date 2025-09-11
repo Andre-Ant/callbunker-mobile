@@ -1233,7 +1233,7 @@
             
             if (confirmed) {
                 try {
-                    showCustomAlert('CallBunker Direct', 'Target phone ringing... You speak through this interface (no callback needed!).');
+                    showCustomAlert('CallBunker Direct', 'Connecting... Only target phone will ring. You speak through this interface.');
                     
                     // Use direct calling - only target phone rings, you speak through Voice SDK
                     if (twilioDevice && Twilio.Device.status() === 'ready') {
@@ -1244,8 +1244,23 @@
                         currentCall = call;
                         showCustomAlert('Connecting...', 'Target phone ringing. You speak through this interface.');
                     } else {
-                        // Fallback to API call if Voice SDK not ready
-                        const response = await fetch(`/multi/user/${USER_ID}/call_direct`, {
+                        // Initialize Voice SDK if not ready, then make call
+                        if (!twilioDevice) {
+                            await initializeTwilioVoice();
+                            setTimeout(() => {
+                                if (twilioDevice && Twilio.Device.status() === 'ready') {
+                                    const call = Twilio.Device.connect({ To: phoneNumber });
+                                    currentCall = call;
+                                    showCustomAlert('Connected', 'You are now connected. Target phone is ringing.');
+                                } else {
+                                    showCustomAlert('Error', 'Voice SDK not ready. Please refresh page.');
+                                }
+                            }, 2000);
+                            return;
+                        }
+                        
+                        // Fallback to old bridge calling (will be removed)
+                        const response = await fetch(`/multi/user/${USER_ID}/call_bridge`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
