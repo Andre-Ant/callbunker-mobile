@@ -629,7 +629,7 @@
             font-family: monospace;
         }
     </style>
-    <script src="https://sdk.twilio.com/js/client/releases/1.14/twilio.min.js"></script>
+    <script src="https://sdk.twilio.com/js/voice/releases/2.11/twilio.min.js"></script>
 </head>
 <body>
     <div class="header">
@@ -1032,46 +1032,47 @@
                 if (data.success) {
                     // Use correct Twilio Voice SDK syntax
                     try {
-                        console.log('Setting up Twilio Device with token...');
-                        Twilio.Device.setup(data.access_token, {
+                        console.log('Setting up Twilio Device 2.11 with token...');
+                        
+                        // Use Twilio Voice SDK 2.11+ syntax
+                        device = new Twilio.Device(data.access_token, {
                             debug: true,
-                            rtc: true
+                            logLevel: 'debug'
                         });
-                        console.log('Twilio Device setup completed');
+                        
+                        console.log('Twilio Device created successfully');
+                        deviceReady = true;
+                        hideCustomAlert();
+                        
+                        // Set up event listeners for the new SDK
+                        device.on('ready', () => {
+                            console.log('Twilio Device ready for calls');
+                            deviceReady = true;
+                            twilioDevice = device;
+                            setText('call-status', 'Voice SDK ready for no-callback calling');
+                            showCustomAlert('Voice Ready', 'CallBunker no-callback calling is ready! Only target phones will ring.');
+                        });
+                        
+                        device.on('error', (error) => {
+                            console.error('Twilio Device error:', error);
+                            setText('call-status', 'Voice SDK error');
+                            showCustomAlert('Voice Error', 'Voice SDK error: ' + error.message);
+                        });
+                        
+                        device.on('incoming', (call) => {
+                            console.log('Incoming call:', call);
+                            showCustomAlert('Incoming Call', 'You have an incoming call');
+                        });
+                        
                     } catch (setupError) {
                         console.error('Twilio setup error details:', setupError);
-                        showCustomAlert('Voice SDK Error', `Setup failed: ${setupError.message || 'Unknown error'}`);
+                        console.error('Error message:', setupError.message);
+                        console.error('Error stack:', setupError.stack);
+                        showCustomAlert('Voice SDK Error', `Setup failed: ${setupError.message || JSON.stringify(setupError)}`);
                         throw setupError;
                     }
                     
-                    Twilio.Device.ready(() => {
-                        console.log('Twilio Device ready for calls');
-                        deviceReady = true;
-                        twilioDevice = Twilio.Device;
-                        setText('call-status', 'Voice SDK ready for no-callback calling');
-                        showCustomAlert('Voice Ready', 'CallBunker no-callback calling is ready! Only target phones will ring.');
-                    });
-                    
-                    Twilio.Device.error((error) => {
-                        console.error('Twilio Device error:', error);
-                        setText('call-status', 'Voice SDK error');
-                        showCustomAlert('Voice Error', 'Voice SDK error: ' + error.message);
-                    });
-                    
-                    Twilio.Device.connect((connection) => {
-                        console.log('Call connected:', connection);
-                        currentCall = connection;
-                        setText('call-status', 'Call connected - speaking through Voice SDK');
-                        showCustomAlert('Connected', 'Call connected! Speaking through Voice SDK - only target phone rang.');
-                    });
-                    
-                    Twilio.Device.disconnect((connection) => {
-                        console.log('Call disconnected:', connection);
-                        currentCall = null;
-                        setText('call-status', '');
-                        showCustomAlert('Call Ended', 'Call has been disconnected.');
-                        loadCallHistory(); // Refresh call history
-                    });
+                    // All event handlers are now set up in the new SDK syntax above
                 } else {
                     console.error('Failed to get Voice token:', data.error);
                     showCustomAlert('Voice Error', 'Failed to initialize Voice SDK. Please refresh page.');
