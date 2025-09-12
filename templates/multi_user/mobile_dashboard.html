@@ -1729,7 +1729,6 @@
 
                     // Ensure speaker mode is OFF for new calls (earpiece default)
                     speakerMode = false;
-                    const speakerBtn = document.getElementById('speaker-btn');
                     if (speakerBtn) {
                         speakerBtn.classList.remove('active');
                         speakerBtn.textContent = '🔊';
@@ -1848,15 +1847,15 @@
             console.log(`🔊 Toggling to ${speakerMode ? 'speaker' : 'earpiece'} mode`);
             
             // Update button appearance
-            const speakerBtn = document.getElementById('speaker-btn');
+            const toggleSpeakerBtn = document.getElementById('speaker-btn');
             if (speakerMode) {
-                speakerBtn.classList.add('active');
-                speakerBtn.textContent = '🔇'; // Mute icon when speaker is on
-                speakerBtn.title = 'Switch to Earpiece';
+                toggleSpeakerBtn.classList.add('active');
+                toggleSpeakerBtn.textContent = '🔇'; // Mute icon when speaker is on
+                toggleSpeakerBtn.title = 'Switch to Earpiece';
             } else {
-                speakerBtn.classList.remove('active');
-                speakerBtn.textContent = '🔊'; // Speaker icon when earpiece is on
-                speakerBtn.title = 'Switch to Speaker';
+                toggleSpeakerBtn.classList.remove('active');
+                toggleSpeakerBtn.textContent = '🔊'; // Speaker icon when earpiece is on
+                toggleSpeakerBtn.title = 'Switch to Speaker';
             }
             
             // Update audio output
