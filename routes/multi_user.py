@@ -86,32 +86,55 @@ def mobile_signup():
     """Clean mobile-style signup interface"""
     if request.method == 'GET':
         session.clear()  # Clear any old session data
-        available_numbers = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).count()
+        available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
         return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
     
     # Handle POST - create user with same logic as regular signup
     try:
         email = request.form.get('email', '').strip().lower()
         name = request.form.get('name', '').strip()
-        # Google Voice no longer required - CallBunker uses direct Voice SDK calling
         real_phone_number = normalize_phone(request.form.get('real_phone_number', '').strip())
+        password = request.form.get('password', '').strip()
         pin = request.form.get('pin', '1122').strip()
         verbal_code = request.form.get('verbal_code', 'open sesame').strip()
         
-        # Assign next available Twilio number from pool  
+        # Check available numbers for template
+        available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
+        
+        # Validation
+        if not all([email, name, real_phone_number, password]):
+            flash('All fields are required', 'error')
+            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
+        
+        if len(password) < 6:
+            flash('Password must be at least 6 characters long', 'error')
+            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
+        
+        # Check if email already exists
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered', 'error')
+            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
+        
+        # Check if real phone number already registered
+        if User.query.filter_by(real_phone_number=real_phone_number).first():
+            flash('Phone number already registered', 'error')
+            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
+        
+        # Assign next available Twilio number from pool with database lock
         available_number = TwilioPhonePool.query.filter_by(is_assigned=False).with_for_update().first()
         if not available_number:
-            flash('No phone numbers available. Please try again later.', 'error')
-            return redirect(url_for('multi_user.mobile_signup'))
+            flash('No CallBunker numbers available. Please contact support.', 'error')
+            return render_template('multi_user/mobile_signup.html', available_numbers=0)
         
-        # Create new user
+        # Create new user with password hash
         user = User(
             email=email,
             name=name,
             real_phone_number=real_phone_number,
             pin=pin,
             verbal_code=verbal_code,
-            assigned_twilio_number=available_number.phone_number
+            assigned_twilio_number=available_number.phone_number,
+            password_hash=generate_password_hash(password)
         )
         
         # Add user first and get ID
@@ -123,6 +146,11 @@ def mobile_signup():
         available_number.is_assigned = True
         
         db.session.commit()
+        
+        # Set up login session for the new user
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session['logged_in'] = True
         
         # Redirect directly to dashboard - no Google Voice setup needed
         flash(f'Account created! Your Defense Number is {format_phone_display(user.assigned_twilio_number)}', 'success')
@@ -222,7 +250,7 @@ def signup():
     if request.method == 'GET':
         session.clear()
         # Check available Twilio numbers
-        available_numbers = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).count()
+        available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
         response = make_response(render_template('multi_user/mobile_signup.html', available_numbers=available_numbers))
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
@@ -238,7 +266,7 @@ def signup():
         password = request.form.get('password', '').strip()
         
         # Check available numbers for template
-        available_numbers = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).count()
+        available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
         
         # Validation
         if not all([email, name, real_phone_number, password]):
@@ -260,7 +288,7 @@ def signup():
             return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
         
         # Get next available Twilio number with database lock to prevent race conditions
-        available_twilio = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).with_for_update().first()
+        available_twilio = TwilioPhonePool.query.filter_by(is_assigned=False).with_for_update().first()
         if not available_twilio:
             flash('No CallBunker numbers available. Please contact support.', 'error')
             return render_template('multi_user/mobile_signup.html', available_numbers=0)
@@ -298,8 +326,8 @@ def signup():
     except Exception as e:
         db.session.rollback()
         flash(f'Registration failed: {str(e)}', 'error')
-        available_numbers = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).count()
-        return render_template('multi_user/signup.html', available_numbers=available_numbers)
+        available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
+        return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
 
 @multi_user_bp.route('/user/<int:user_id>/dashboard')
 def dashboard(user_id):
