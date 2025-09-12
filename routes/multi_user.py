@@ -1078,8 +1078,12 @@ def voice_sdk_outbound():
             return Response('<Response><Say>Invalid destination number</Say></Response>', mimetype='application/xml')
         
         # Extract user ID from caller identity (format: callbunker_user_123)
+        print(f"WEBHOOK DEBUG: Received caller identity: '{caller_identity}'")
+        print(f"WEBHOOK DEBUG: To number: '{to_number}'")
+        
         if not caller_identity or not caller_identity.startswith('callbunker_user_'):
-            return Response('<Response><Say>Invalid caller identity</Say></Response>', mimetype='application/xml')
+            print(f"WEBHOOK ERROR: Invalid caller identity format: '{caller_identity}'")
+            return Response('<Response><Say>Invalid caller identity format</Say></Response>', mimetype='application/xml')
         
         user_id = int(caller_identity.replace('callbunker_user_', ''))
         user = User.query.get(user_id)

@@ -1478,12 +1478,23 @@
         
         function hangupCall() {
             if (currentCall) {
-                console.log('Hanging up call');
+                console.log('🔴 Hanging up call');
                 currentCall.disconnect();
                 setText('call-status', 'Hanging up...');
+                
+                // Reset UI immediately in case disconnect event doesn't fire
+                setTimeout(() => {
+                    document.getElementById('hangup-btn').style.display = 'none';
+                    document.querySelector('.call-btn').style.display = 'inline-block';
+                    setText('call-status', 'Voice Ready');
+                    currentCall = null;
+                }, 1000);
             } else {
                 console.log('No active call to hang up');
-                showCustomAlert('No Active Call', 'There is no active call to hang up.');
+                // Reset UI state anyway
+                document.getElementById('hangup-btn').style.display = 'none';
+                document.querySelector('.call-btn').style.display = 'inline-block';
+                setText('call-status', 'Voice Ready');
             }
         }
         
