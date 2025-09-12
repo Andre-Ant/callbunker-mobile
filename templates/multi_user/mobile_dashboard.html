@@ -1011,6 +1011,7 @@
         let audioContext;
         let twilioDevice = null;
         let currentCall = null;
+        let currentPhoneNumber = ''; // Properly declare the variable
         let deviceReady = false;
         let tokenRefreshTimer = null;
         const USER_ID = {{ user.id }};
@@ -1538,6 +1539,56 @@
             }
         }
         
+        // Call specific number from history or contacts
+        function callNumber(phoneNumber) {
+            console.log(`📞 Calling ${phoneNumber} from history/contacts`);
+            
+            // Sanitize phone number (remove any potentially dangerous characters)
+            const sanitizedNumber = phoneNumber.replace(/[^+\d\-\(\)\s]/g, '');
+            
+            // Switch to dialer tab
+            switchTab('dialer');
+            
+            // Set the phone number in the dialer
+            document.getElementById('phone-display').textContent = sanitizedNumber;
+            currentPhoneNumber = sanitizedNumber;
+            
+            // Make the call immediately
+            makeCall();
+        }
+        
+        // Event delegation for call and remove buttons
+        function setupEventListeners() {
+            // Call history buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('call-history-btn')) {
+                    e.stopPropagation();
+                    const phoneNumber = e.target.getAttribute('data-number');
+                    if (phoneNumber) {
+                        callNumber(phoneNumber);
+                    }
+                }
+                
+                // Contact call buttons
+                if (e.target.classList.contains('call-contact-btn')) {
+                    e.stopPropagation();
+                    const phoneNumber = e.target.getAttribute('data-number');
+                    if (phoneNumber) {
+                        callNumber(phoneNumber);
+                    }
+                }
+                
+                // Contact remove buttons
+                if (e.target.classList.contains('remove-contact-btn')) {
+                    e.stopPropagation();
+                    const contactId = e.target.getAttribute('data-contact-id');
+                    if (contactId) {
+                        removeContact(parseInt(contactId));
+                    }
+                }
+            });
+        }
+        
         // Load call history from API
         async function loadCallHistory() {
             try {
@@ -1571,25 +1622,62 @@
                     return;
                 }
                 
-                let historyHTML = '';
+                // Clear and build history securely
+                const historyContainer = document.getElementById('call-history-list');
+                historyContainer.innerHTML = '';
+                
                 calls.forEach(call => {
                     const date = new Date(call.created_at);
                     const timeAgo = getTimeAgo(date);
                     const duration = call.duration_seconds ? formatDuration(call.duration_seconds) : '0:00';
+                    const phoneNumber = call.direction === 'outbound' ? call.to_number : call.from_number;
                     
-                    historyHTML += `
-                        <div class="list-item">
-                            <div class="list-avatar">${call.direction === 'outbound' ? '📞' : '📱'}</div>
-                            <div class="list-content">
-                                <div class="list-title">${call.direction === 'outbound' ? call.to_number : call.from_number}</div>
-                                <div class="list-subtitle">${timeAgo} • ${call.status}</div>
-                            </div>
-                            <div class="list-meta">${duration}</div>
-                        </div>
-                    `;
+                    // Sanitize phone number for safe use
+                    const sanitizedNumber = phoneNumber.replace(/[^+\d\-\(\)\s]/g, '');
+                    
+                    // Create elements safely
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item';
+                    
+                    const avatar = document.createElement('div');
+                    avatar.className = 'list-avatar';
+                    avatar.textContent = call.direction === 'outbound' ? '📞' : '📱';
+                    
+                    const content = document.createElement('div');
+                    content.className = 'list-content';
+                    
+                    const title = document.createElement('div');
+                    title.className = 'list-title';
+                    title.textContent = sanitizedNumber; // Safe text assignment
+                    
+                    const subtitle = document.createElement('div');
+                    subtitle.className = 'list-subtitle';
+                    subtitle.textContent = `${timeAgo} • ${call.status}`;
+                    
+                    const meta = document.createElement('div');
+                    meta.className = 'list-meta';
+                    meta.style.cssText = 'display: flex; align-items: center; gap: 8px;';
+                    
+                    const durationSpan = document.createElement('span');
+                    durationSpan.style.cssText = 'color: #8e8e93; font-size: 12px;';
+                    durationSpan.textContent = duration;
+                    
+                    const callBtn = document.createElement('button');
+                    callBtn.className = 'call-history-btn';
+                    callBtn.setAttribute('data-number', sanitizedNumber); // Safe attribute setting
+                    callBtn.style.cssText = 'background: #4caf50; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;';
+                    callBtn.textContent = '📞 Call';
+                    
+                    // Assemble elements
+                    content.appendChild(title);
+                    content.appendChild(subtitle);
+                    meta.appendChild(durationSpan);
+                    meta.appendChild(callBtn);
+                    listItem.appendChild(avatar);
+                    listItem.appendChild(content);
+                    listItem.appendChild(meta);
+                    historyContainer.appendChild(listItem);
                 });
-                
-                setHTML('call-history-list', historyHTML);
             } catch (error) {
                 setHTML('call-history-list', `
                     <div style="text-align: center; padding: 40px; color: #ff3b30;">
@@ -1636,24 +1724,63 @@
                     return;
                 }
                 
-                let contactsHTML = '';
+                // Clear and build contacts securely
+                const contactsContainer = document.getElementById('contacts-list');
+                contactsContainer.innerHTML = '';
+                
                 contacts.forEach(contact => {
                     const initials = getInitialsFromPhone(contact.display_name);
-                    contactsHTML += `
-                        <div class="list-item contact-item" data-contact-id="${contact.id}">
-                            <div class="list-avatar" style="background: #007aff; color: white; font-weight: 600;">${initials}</div>
-                            <div class="list-content">
-                                <div class="list-title">${contact.display_name}</div>
-                                <div class="list-subtitle">${contact.custom_pin ? 'Custom PIN set' : 'Default settings'}</div>
-                            </div>
-                            <div class="contact-actions" style="display: flex; gap: 4px;">
-                                <button onclick="event.stopPropagation(); removeContact(${contact.id})" style="background: #ff3b30; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;">Remove</button>
-                            </div>
-                        </div>
-                    `;
+                    
+                    // Sanitize phone number for safe use
+                    const sanitizedNumber = contact.caller_number.replace(/[^+\d\-\(\)\s]/g, '');
+                    
+                    // Create elements safely
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item contact-item';
+                    listItem.setAttribute('data-contact-id', contact.id.toString());
+                    
+                    const avatar = document.createElement('div');
+                    avatar.className = 'list-avatar';
+                    avatar.style.cssText = 'background: #007aff; color: white; font-weight: 600;';
+                    avatar.textContent = initials; // Safe text assignment
+                    
+                    const content = document.createElement('div');
+                    content.className = 'list-content';
+                    
+                    const title = document.createElement('div');
+                    title.className = 'list-title';
+                    title.textContent = contact.display_name; // Safe text assignment
+                    
+                    const subtitle = document.createElement('div');
+                    subtitle.className = 'list-subtitle';
+                    subtitle.textContent = contact.custom_pin ? 'Custom PIN set' : 'Default settings';
+                    
+                    const actions = document.createElement('div');
+                    actions.className = 'contact-actions';
+                    actions.style.cssText = 'display: flex; gap: 4px;';
+                    
+                    const callBtn = document.createElement('button');
+                    callBtn.className = 'call-contact-btn';
+                    callBtn.setAttribute('data-number', sanitizedNumber); // Safe attribute setting
+                    callBtn.style.cssText = 'background: #4caf50; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;';
+                    callBtn.textContent = '📞 Call';
+                    
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-contact-btn';
+                    removeBtn.setAttribute('data-contact-id', contact.id.toString());
+                    removeBtn.style.cssText = 'background: #ff3b30; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px;';
+                    removeBtn.textContent = 'Remove';
+                    
+                    // Assemble elements
+                    content.appendChild(title);
+                    content.appendChild(subtitle);
+                    actions.appendChild(callBtn);
+                    actions.appendChild(removeBtn);
+                    listItem.appendChild(avatar);
+                    listItem.appendChild(content);
+                    listItem.appendChild(actions);
+                    contactsContainer.appendChild(listItem);
                 });
-                
-                setHTML('contacts-list', contactsHTML);
             } catch (error) {
                 setHTML('contacts-list', `
                     <div style="text-align: center; padding: 40px; color: #ff3b30;">
@@ -2092,6 +2219,7 @@
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', async function() {
             loadAnalytics();
+            setupEventListeners(); // Initialize event delegation for call buttons
             
             try {
                 // Wait for Twilio SDK to load first
