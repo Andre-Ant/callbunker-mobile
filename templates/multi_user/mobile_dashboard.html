@@ -1671,6 +1671,22 @@
                     console.log('📞 Call object created:', call);
                     currentCall = call;
                     
+                    // IMMEDIATELY force earpiece mode when call is created (not waiting for connect)
+                    speakerMode = false;
+                    const speakerBtn = document.getElementById('speaker-btn');
+                    if (speakerBtn) {
+                        speakerBtn.classList.remove('active');
+                        speakerBtn.textContent = '🔊';
+                        speakerBtn.title = 'Switch to Speaker';
+                        console.log('🔊 IMMEDIATE: Speaker button forced to earpiece mode (gray)');
+                    }
+                    
+                    // Show hangup and speaker buttons immediately  
+                    document.getElementById('hangup-btn').style.display = 'inline-block';
+                    document.getElementById('speaker-btn').style.display = 'inline-block';
+                    document.querySelector('.call-btn').style.display = 'none';
+                    console.log('🔊 IMMEDIATE: Call UI updated for earpiece mode');
+                    
                     // Centralized call cleanup function
                     function cleanupCall(reason = 'unknown') {
                         console.log('📞 Cleaning up call due to:', reason);
