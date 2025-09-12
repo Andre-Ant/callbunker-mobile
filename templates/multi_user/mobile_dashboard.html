@@ -1367,17 +1367,24 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             
             // Show selected screen
-            document.getElementById(tab).classList.add('active');
-            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+            const screenElement = document.getElementById(tab);
+            if (screenElement) {
+                screenElement.classList.add('active');
+            }
+            
+            // Update tab appearance - find by onclick attribute
+            const tabElement = document.querySelector(`[onclick*="switchTab('${tab}')"]`);
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
             
             // Update title
-            setText('screen-title', titles[tab]);
+            const tabTitle = titles[tab] || 'CallBunker';
+            setText('screen-title', tabTitle);
             
             // Load data when switching to certain tabs
             if (tab === 'history') {
                 loadCallHistory();
-            } else if (tab === 'contacts') {
-                loadContacts();
             } else if (tab === 'home') {
                 loadAnalytics();
             }
@@ -2038,8 +2045,17 @@
             // Show main settings screen
             document.getElementById('settings').classList.add('active');
             
+            // Ensure settings tab is active
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const settingsTab = document.querySelector(`[onclick*="switchTab('settings')"]`);
+            if (settingsTab) {
+                settingsTab.classList.add('active');
+            }
+            
             // Update header title
             setText('screen-title', 'Settings');
+            
+            return false;
         }
         
         function editPin() {
