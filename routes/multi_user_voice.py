@@ -192,7 +192,7 @@ def voice_incoming(phone_number):
         speech_timeout="auto",
         finish_on_key=""
     )
-    gather.say(f"Hello, you've reached {user.name}'s call screening service. Please enter your four digit pin, or say your verbal code.", voice="alice", rate="slow")
+    gather.say("Please enter your four digit pin, or say your verbal code.", voice="alice", rate="slow")
     vr.append(gather)
     
     vr.say("No input received. This call will now end.", voice="polly.Joanna")
@@ -278,17 +278,16 @@ def connect_call(user, original_caller_number):
     # Brief connection message before dialing
     vr.say("Connecting now.", voice="polly.Joanna")
     
-    # Direct dial without additional complexity
-    dial = vr.dial(
+    # Direct dial - TwiML will handle success/failure automatically
+    vr.dial(
         forward_to,
         timeout=25,
         hangup_on_star=True,
         caller_id=original_caller_number
     )
     
-    # Fallback if dial fails
+    # This fallback only executes if dial fails
     vr.say("The call could not be completed. Please try again later.", voice="polly.Joanna")
-    vr.hangup()
     
     return xml_response(vr)
 
