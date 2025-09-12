@@ -1244,11 +1244,11 @@
                     
                     // Force earpiece mode immediately (UI state)
                     speakerMode = false;
-                    const speakerBtn = document.getElementById('speaker-btn');
-                    if (speakerBtn) {
-                        speakerBtn.classList.remove('active');
-                        speakerBtn.textContent = '🔊';
-                        speakerBtn.title = 'Switch to Speaker';
+                    const connectSpeakerBtn = document.getElementById('speaker-btn');
+                    if (connectSpeakerBtn) {
+                        connectSpeakerBtn.classList.remove('active');
+                        connectSpeakerBtn.textContent = '🔊';
+                        connectSpeakerBtn.title = 'Switch to Speaker';
                         console.log('🔊 Speaker button forced to earpiece mode (gray)');
                     }
                     
@@ -1673,7 +1673,7 @@
                     
                     // IMMEDIATELY force earpiece mode when call is created (not waiting for connect)
                     speakerMode = false;
-                    const speakerBtn = document.getElementById('speaker-btn');
+                    let speakerBtn = document.getElementById('speaker-btn');
                     if (speakerBtn) {
                         speakerBtn.classList.remove('active');
                         speakerBtn.textContent = '🔊';
@@ -1699,7 +1699,6 @@
                         
                         // Reset UI elements
                         const hangupBtn = document.getElementById('hangup-btn');
-                        const speakerBtn = document.getElementById('speaker-btn');
                         const callBtn = document.querySelector('.call-btn');
                         
                         if (hangupBtn) hangupBtn.style.display = 'none';
@@ -1720,10 +1719,11 @@
                         
                         // Reset speaker mode
                         speakerMode = false;
-                        if (speakerBtn) {
-                            speakerBtn.classList.remove('active');
-                            speakerBtn.textContent = '🔊';
-                            speakerBtn.title = 'Switch to Speaker';
+                        const cleanupSpeakerBtn = document.getElementById('speaker-btn');
+                        if (cleanupSpeakerBtn) {
+                            cleanupSpeakerBtn.classList.remove('active');
+                            cleanupSpeakerBtn.textContent = '🔊';
+                            cleanupSpeakerBtn.title = 'Switch to Speaker';
                         }
                     }
 
