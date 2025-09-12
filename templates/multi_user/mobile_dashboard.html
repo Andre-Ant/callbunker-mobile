@@ -702,7 +702,7 @@
                     <div class="action-title">Protected Call</div>
                     <div class="action-subtitle">Hide your number</div>
                 </button>
-                <button class="action-btn" onclick="switchTab('settings')">
+                <button class="action-btn" onclick="showDetail('privacy')">
                     <div class="action-icon" style="color: #ff9500;">👥</div>
                     <div class="action-title">Whitelist</div>
                     <div class="action-subtitle">Manage contacts</div>
@@ -952,6 +952,24 @@
                         <span class="feature-text">Trusted contact bypass</span>
                     </li>
                 </ul>
+            </div>
+            
+            <!-- Whitelist Management -->
+            <div class="detail-card">
+                <div class="detail-label">Whitelist Management</div>
+                <div id="contacts-list">
+                    <!-- Whitelisted contacts will be loaded here -->
+                    <div style="text-align: center; padding: 40px; color: #8e8e93;">
+                        Loading whitelist...
+                    </div>
+                </div>
+                
+                <!-- Add Contact Button -->
+                <div style="margin-top: 16px;">
+                    <button onclick="showAddContactForm()" style="width: 100%; background: #007aff; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 600;">
+                        Add to Whitelist
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -2004,6 +2022,11 @@
                 about: 'About CallBunker'
             };
             setText('screen-title', titles[detailType]);
+            
+            // Load contacts if showing privacy detail
+            if (detailType === 'privacy') {
+                loadContacts();
+            }
             
             return false;
         }

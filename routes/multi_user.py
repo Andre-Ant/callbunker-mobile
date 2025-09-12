@@ -393,7 +393,6 @@ def api_get_user_settings(user_id):
         'rl_window_sec': user.rl_window_sec,
         'rl_max_attempts': user.rl_max_attempts,
         'rl_block_minutes': user.rl_block_minutes,
-        'google_voice_verified': user.google_voice_verified,
         'twilio_number_configured': user.twilio_number_configured
     })
 
@@ -533,10 +532,9 @@ def api_get_user_analytics(user_id):
         'recent_calls': recent_calls,
         'failed_attempts': failed_attempts,
         'defense_number': format_phone_display(user.assigned_twilio_number),
-        'google_voice_number': format_phone_display(user.google_voice_number),
         'real_phone_number': format_phone_display(user.real_phone_number),
         'account_status': 'Active' if user.is_active else 'Inactive',
-        'google_voice_verified': user.google_voice_verified
+        'twilio_configured': user.twilio_number_configured
     })
 
 # API Endpoints for Mobile App  
