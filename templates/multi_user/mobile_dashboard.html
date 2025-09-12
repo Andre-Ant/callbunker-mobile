@@ -1550,8 +1550,11 @@
             switchTab('dialer');
             
             // Set BOTH phone number variables so addDigit works correctly
-            window.phoneNumber = sanitizedNumber.replace(/\D/g, ''); // Remove formatting for addDigit
+            phoneNumber = sanitizedNumber.replace(/\D/g, ''); // Remove formatting for addDigit
             currentPhoneNumber = sanitizedNumber;
+            
+            console.log(`📞 Set phoneNumber to: "${phoneNumber}"`);
+            console.log(`📞 Set currentPhoneNumber to: "${currentPhoneNumber}"`);
             
             // Update display properly
             updateDisplay();
