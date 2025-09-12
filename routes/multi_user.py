@@ -1077,9 +1077,14 @@ def voice_sdk_outbound():
         if not to_number:
             return Response('<Response><Say>Invalid destination number</Say></Response>', mimetype='application/xml')
         
-        # Extract user ID from caller identity (format: callbunker_user_123)
+        # Extract user ID from caller identity (format: client:callbunker_user_123)
         print(f"WEBHOOK DEBUG: Received caller identity: '{caller_identity}'")
         print(f"WEBHOOK DEBUG: To number: '{to_number}'")
+        
+        # Strip 'client:' prefix if present (Twilio Voice SDK adds this)
+        if caller_identity and caller_identity.startswith('client:'):
+            caller_identity = caller_identity.replace('client:', '')
+            print(f"WEBHOOK DEBUG: Stripped client prefix, now: '{caller_identity}'")
         
         if not caller_identity or not caller_identity.startswith('callbunker_user_'):
             print(f"WEBHOOK ERROR: Invalid caller identity format: '{caller_identity}'")
