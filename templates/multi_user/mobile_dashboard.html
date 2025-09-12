@@ -1133,9 +1133,9 @@
                     setText('call-status', 'Voice Ready');
                 });
                 
-                // Call events
+                // Call events with better debugging
                 twilioDevice.on('connect', (call) => {
-                    console.log('Call connected');
+                    console.log('✅ Call connected successfully!');
                     currentCall = call;
                     setText('call-status', 'Connected');
                     
@@ -1145,11 +1145,28 @@
                 });
                 
                 twilioDevice.on('disconnect', (call) => {
-                    console.log('Call disconnected');
+                    console.log('📞 Call disconnected');
                     currentCall = null;
                     setText('call-status', 'Voice Ready');
                     
                     // Hide hangup button and show call button again
+                    document.getElementById('hangup-btn').style.display = 'none';
+                    document.querySelector('.call-btn').style.display = 'inline-block';
+                });
+                
+                // Add more event handlers for debugging
+                twilioDevice.on('cancel', (call) => {
+                    console.log('❌ Call was cancelled');
+                    currentCall = null;
+                    setText('call-status', 'Call cancelled');
+                    document.getElementById('hangup-btn').style.display = 'none';
+                    document.querySelector('.call-btn').style.display = 'inline-block';
+                });
+                
+                twilioDevice.on('reject', (call) => {
+                    console.log('🚫 Call was rejected');
+                    currentCall = null;
+                    setText('call-status', 'Call rejected');
                     document.getElementById('hangup-btn').style.display = 'none';
                     document.querySelector('.call-btn').style.display = 'inline-block';
                 });
@@ -1428,7 +1445,7 @@
                     }
                     
                     // Make the call using Twilio Device
-                    console.log('Making Voice SDK call to:', normalizedNumber);
+                    console.log('🔄 Making Voice SDK call to:', normalizedNumber);
                     setText('call-status', 'Calling...');
                     
                     const call = await twilioDevice.connect({
@@ -1437,7 +1454,12 @@
                         }
                     });
                     
+                    console.log('📞 Call object created:', call);
                     currentCall = call;
+                    
+                    // Manually show hangup button while calling
+                    document.getElementById('hangup-btn').style.display = 'inline-block';
+                    document.querySelector('.call-btn').style.display = 'none';
                     
                     // Show calling status
                     showCustomAlert('Calling...', 'Target phone ringing. You will speak through this interface - no hold music!');
