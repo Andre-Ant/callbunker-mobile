@@ -76,8 +76,8 @@
         }
         
         .actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            justify-content: center;
             gap: 12px;
             margin-top: 20px;
         }
@@ -696,7 +696,7 @@
                 </div>
             </div>
             
-            <div class="actions" style="justify-content: center;">
+            <div class="actions">
                 <button class="action-btn" onclick="showDetail('privacy')">
                     <div class="action-icon" style="color: #ff9500;">👥</div>
                     <div class="action-title">Whitelist</div>
