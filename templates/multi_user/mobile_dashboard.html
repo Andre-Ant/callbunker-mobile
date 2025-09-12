@@ -1731,7 +1731,7 @@
                     const initials = getInitialsFromPhone(contact.display_name);
                     
                     // Sanitize phone number for safe use
-                    const sanitizedNumber = contact.caller_number.replace(/[^+\d\-\(\)\s]/g, '');
+                    const sanitizedNumber = contact.phone_number.replace(/[^+\d\-\(\)\s]/g, '');
                     
                     // Create elements safely
                     const listItem = document.createElement('div');
