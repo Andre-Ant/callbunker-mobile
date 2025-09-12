@@ -1079,7 +1079,20 @@
                 twilioDevice = new Twilio.Device(data.access_token, {
                     codecPreferences: ["opus", "pcmu"],
                     enableRingingState: true,
-                    logLevel: 'error'
+                    logLevel: 'error',
+                    // Audio constraints for echo cancellation
+                    audioConstraints: {
+                        optional: [
+                            { echoCancellation: true },
+                            { noiseSuppression: true },
+                            { autoGainControl: true },
+                            { googEchoCancellation: true },
+                            { googAutoGainControl: true },
+                            { googNoiseSuppression: true },
+                            { googHighpassFilter: true },
+                            { googAudioMirroring: false }
+                        ]
+                    }
                 });
                 
                 // Device registration events (these fire for v2.x)
