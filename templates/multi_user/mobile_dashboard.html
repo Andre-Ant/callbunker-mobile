@@ -1043,6 +1043,7 @@
         let tokenRefreshTimer = null;
         let speakerMode = false; // Track speaker mode state
         let currentAudioElement = null; // Track audio element for speaker toggle
+        let previousScreen = 'home'; // Track where we came from for proper back navigation
         const USER_ID = {{ user.id }};
         
         // Safe DOM helpers
@@ -2016,8 +2017,14 @@
         
         // Settings functions
         function showDetail(detailType) {
-            // Hide main settings screen
-            document.getElementById('settings').classList.remove('active');
+            // Track which screen we're coming from
+            const currentActiveScreen = document.querySelector('.screen.active');
+            if (currentActiveScreen) {
+                previousScreen = currentActiveScreen.id;
+            }
+            
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             
             // Show detail screen
             document.getElementById(detailType + '-detail').classList.add('active');
@@ -2042,18 +2049,25 @@
             // Hide all detail screens
             document.querySelectorAll('.detail-screen').forEach(s => s.classList.remove('active'));
             
-            // Show main settings screen
-            document.getElementById('settings').classList.add('active');
+            // Return to the screen we came from
+            const targetScreen = previousScreen || 'settings';
+            document.getElementById(targetScreen).classList.add('active');
             
-            // Ensure settings tab is active
+            // Update tab appearance
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            const settingsTab = document.querySelector(`[onclick*="switchTab('settings')"]`);
-            if (settingsTab) {
-                settingsTab.classList.add('active');
+            const targetTab = document.querySelector(`[onclick*="switchTab('${targetScreen}')"]`);
+            if (targetTab) {
+                targetTab.classList.add('active');
             }
             
-            // Update header title
-            setText('screen-title', 'Settings');
+            // Update header title based on target screen
+            const targetTitle = titles[targetScreen] || 'CallBunker';
+            setText('screen-title', targetTitle);
+            
+            // Load analytics if returning to home
+            if (targetScreen === 'home') {
+                loadAnalytics();
+            }
             
             return false;
         }
