@@ -1243,7 +1243,7 @@
                     document.getElementById('speaker-btn').style.display = 'inline-block';
                     document.querySelector('.call-btn').style.display = 'none';
                     
-                    // Setup audio routing (earpiece by default)
+                    // Setup audio with capability detection and user feedback
                     try {
                         if (call.getRemoteStream) {
                             const remoteStream = call.getRemoteStream();
@@ -1254,21 +1254,67 @@
                                 audioElement.volume = 1.0;
                                 audioElement.id = 'call-audio';
                                 
+                                // Essential mobile attributes
+                                audioElement.setAttribute('playsinline', true);
+                                audioElement.setAttribute('webkit-playsinline', true);
+                                
                                 // Store reference for speaker toggle
                                 currentAudioElement = audioElement;
                                 
-                                // Set initial audio output based on speaker mode
-                                if (audioElement.setSinkId) {
-                                    const deviceId = speakerMode ? 'default' : 'communications';
-                                    audioElement.setSinkId(deviceId).catch(console.log);
+                                // Default to earpiece mode (UI state)
+                                speakerMode = false;
+                                
+                                // Check if device audio switching is supported
+                                const supportsAudioSwitching = !!(audioElement.setSinkId && navigator.mediaDevices);
+                                
+                                if (supportsAudioSwitching) {
+                                    // Desktop/supported browsers - try to route to earpiece
+                                    navigator.mediaDevices.enumerateDevices().then(devices => {
+                                        const audioOutputs = devices.filter(device => device.kind === 'audiooutput');
+                                        console.log('🔊 Audio switching supported -', audioOutputs.length, 'devices available');
+                                        
+                                        if (audioOutputs.length > 1) {
+                                            // Multiple devices available - try to find earpiece
+                                            const earpiece = audioOutputs.find(device => 
+                                                device.label && 
+                                                (device.label.toLowerCase().includes('earpiece') || 
+                                                 device.label.toLowerCase().includes('phone') ||
+                                                 device.label.toLowerCase().includes('receiver'))
+                                            );
+                                            
+                                            if (earpiece) {
+                                                audioElement.setSinkId(earpiece.deviceId).then(() => {
+                                                    console.log('🔊 Audio routed to earpiece device');
+                                                }).catch(err => {
+                                                    console.log('🔊 Earpiece routing failed:', err.message);
+                                                });
+                                            } else {
+                                                console.log('🔊 No earpiece device found, using default audio output');
+                                            }
+                                        } else {
+                                            console.log('🔊 Only one audio device available, using default output');
+                                        }
+                                    }).catch(err => {
+                                        console.log('🔊 Device enumeration failed:', err.message);
+                                    });
+                                } else {
+                                    // Mobile browsers - limited audio control
+                                    console.log('🔊 Mobile browser detected - limited audio routing (will use device default)');
+                                    
+                                    // Update speaker button to indicate limited functionality
+                                    const speakerBtn = document.getElementById('speaker-btn');
+                                    if (speakerBtn && /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                                        speakerBtn.title = 'Audio routing (limited on mobile web)';
+                                        console.log('🔊 Speaker button updated for mobile limitations');
+                                    }
                                 }
                                 
                                 document.body.appendChild(audioElement);
-                                console.log(`🔊 Audio routing configured for ${speakerMode ? 'speaker' : 'earpiece'} mode`);
+                                console.log('🔊 Audio element created - will use device default audio routing');
                             }
                         }
                     } catch (err) {
-                        console.log('Audio routing setup:', err.message);
+                        console.log('🔊 Audio setup error:', err.message);
                     }
                 });
                 
@@ -1602,6 +1648,63 @@
                     
                     console.log('📞 Call object created:', call);
                     currentCall = call;
+                    
+                    // Centralized call cleanup function
+                    function cleanupCall(reason = 'unknown') {
+                        console.log('📞 Cleaning up call due to:', reason);
+                        
+                        // Clear call reference
+                        currentCall = null;
+                        
+                        // Reset status
+                        setText('call-status', 'Voice Ready');
+                        
+                        // Reset UI elements
+                        const hangupBtn = document.getElementById('hangup-btn');
+                        const speakerBtn = document.getElementById('speaker-btn');
+                        const callBtn = document.querySelector('.call-btn');
+                        
+                        if (hangupBtn) hangupBtn.style.display = 'none';
+                        if (speakerBtn) speakerBtn.style.display = 'none';
+                        if (callBtn) callBtn.style.display = 'inline-block';
+                        
+                        // Clean up audio element
+                        if (currentAudioElement) {
+                            try {
+                                currentAudioElement.pause();
+                                currentAudioElement.srcObject = null;
+                                currentAudioElement.remove();
+                            } catch (err) {
+                                console.log('Audio cleanup error:', err.message);
+                            }
+                            currentAudioElement = null;
+                        }
+                        
+                        // Reset speaker mode
+                        speakerMode = false;
+                        if (speakerBtn) {
+                            speakerBtn.classList.remove('active');
+                            speakerBtn.textContent = '🔊';
+                            speakerBtn.title = 'Switch to Speaker';
+                        }
+                    }
+
+                    // Ensure speaker mode is OFF for new calls (earpiece default)
+                    speakerMode = false;
+                    const speakerBtn = document.getElementById('speaker-btn');
+                    if (speakerBtn) {
+                        speakerBtn.classList.remove('active');
+                        speakerBtn.textContent = '🔊';
+                        speakerBtn.title = 'Switch to Speaker';
+                    }
+                    
+                    // Add comprehensive disconnect listeners to handle all scenarios
+                    call.on('disconnect', () => cleanupCall('remote disconnect'));
+                    call.on('cancel', () => cleanupCall('call cancelled'));
+                    call.on('error', (error) => {
+                        console.log('📞 Call error:', error);
+                        cleanupCall('call error');
+                    });
                     
                     // Manually show hangup and speaker buttons while calling
                     document.getElementById('hangup-btn').style.display = 'inline-block';
