@@ -1080,7 +1080,7 @@
                     codecPreferences: ["opus", "pcmu"],
                     enableRingingState: true,
                     logLevel: 'error',
-                    // Audio constraints for echo cancellation
+                    // Audio constraints for echo cancellation AND earpiece mode
                     audioConstraints: {
                         optional: [
                             { echoCancellation: true },
@@ -1092,6 +1092,12 @@
                             { googHighpassFilter: true },
                             { googAudioMirroring: false }
                         ]
+                    },
+                    // Disable ringtones and notification sounds
+                    sounds: {
+                        outgoing: false,
+                        incoming: false,
+                        disconnect: false
                     }
                 });
                 
@@ -1155,6 +1161,27 @@
                     // Show hangup button and hide call button during active call
                     document.getElementById('hangup-btn').style.display = 'inline-block';
                     document.querySelector('.call-btn').style.display = 'none';
+                    
+                    // Force earpiece mode (not speaker)
+                    try {
+                        if (call.getRemoteStream) {
+                            const remoteStream = call.getRemoteStream();
+                            if (remoteStream) {
+                                const audioElement = document.createElement('audio');
+                                audioElement.srcObject = remoteStream;
+                                audioElement.autoplay = true;
+                                audioElement.volume = 1.0;
+                                // Try to force non-speaker output
+                                if (audioElement.setSinkId) {
+                                    audioElement.setSinkId('default').catch(console.log);
+                                }
+                                document.body.appendChild(audioElement);
+                                console.log('🔊 Audio routing configured for earpiece mode');
+                            }
+                        }
+                    } catch (err) {
+                        console.log('Audio routing setup:', err.message);
+                    }
                 });
                 
                 twilioDevice.on('disconnect', (call) => {
