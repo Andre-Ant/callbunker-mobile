@@ -599,7 +599,7 @@
             border-top: 1px solid #eee;
             padding: 10px 0;
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             position: fixed;
             bottom: 0;
             left: 0;
@@ -691,7 +691,7 @@
                     </div>
                     <div>
                         <div class="stat-number" id="trusted-contacts-stat" style="color: #4caf50;">{{ whitelist_count }}</div>
-                        <div class="stat-label">Trusted Contacts</div>
+                        <div class="stat-label">Whitelist</div>
                     </div>
                 </div>
             </div>
@@ -702,29 +702,13 @@
                     <div class="action-title">Protected Call</div>
                     <div class="action-subtitle">Hide your number</div>
                 </button>
-                <button class="action-btn" onclick="switchTab('contacts')">
+                <button class="action-btn" onclick="switchTab('settings')">
                     <div class="action-icon" style="color: #ff9500;">👥</div>
-                    <div class="action-title">Trusted Contacts</div>
-                    <div class="action-subtitle">Manage whitelist</div>
+                    <div class="action-title">Whitelist</div>
+                    <div class="action-subtitle">Manage contacts</div>
                 </button>
             </div>
 
-            <!-- Account Information -->
-            <div class="info-section">
-                <div style="font-size: 16px; font-weight: 600; color: #1c1c1e; margin-bottom: 12px;">Account Details</div>
-                <div class="info-row">
-                    <div class="info-label">Defense Number</div>
-                    <div class="info-value">{{ format_phone(user.assigned_twilio_number) }}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Real Phone</div>
-                    <div class="info-value">{{ format_phone(user.real_phone_number) }}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">PIN Code</div>
-                    <div class="info-value">{{ user.pin }}</div>
-                </div>
-            </div>
         </div>
         
         <!-- Dialer Screen -->
@@ -779,8 +763,8 @@
             </div>
         </div>
         
-        <!-- Contacts Screen -->
-        <div class="screen" id="contacts">
+        <!-- Contacts Screen (now in settings) -->
+        <div class="screen" id="contacts" style="display: none;">
             <div style="background: #e8f5e8; padding: 16px; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center;">
                 <span style="color: #4caf50; font-size: 20px; margin-right: 8px;">🛡️</span>
                 <span style="color: #4caf50; font-size: 14px;">Trusted contacts bypass screening</span>
@@ -793,16 +777,27 @@
                 </div>
             </div>
             
-            <div id="contacts-list">
-                <!-- Trusted contacts will be loaded here -->
-                <div style="text-align: center; padding: 40px; color: #8e8e93;">
-                    Loading contacts...
-                </div>
-            </div>
         </div>
         
         <!-- Settings Screen -->
         <div class="screen" id="settings">
+            <!-- Account Information -->
+            <div class="info-section">
+                <div style="font-size: 16px; font-weight: 600; color: #1c1c1e; margin-bottom: 12px;">Account Details</div>
+                <div class="info-row">
+                    <div class="info-label">Defense Number</div>
+                    <div class="info-value">{{ format_phone(user.assigned_twilio_number) }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Real Phone</div>
+                    <div class="info-value">{{ format_phone(user.real_phone_number) }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">PIN Code</div>
+                    <div class="info-value">{{ user.pin }}</div>
+                </div>
+            </div>
+
             <div class="list-item" onclick="showDetail('security')">
                 <div class="list-avatar">🛡️</div>
                 <div class="list-content">
@@ -998,10 +993,6 @@
         <div class="tab" onclick="switchTab('history')">
             <div class="tab-icon">📋</div>
             <div class="tab-label">History</div>
-        </div>
-        <div class="tab" onclick="switchTab('contacts')">
-            <div class="tab-icon">👥</div>
-            <div class="tab-label">Contacts</div>
         </div>
         <div class="tab" onclick="switchTab('settings')">
             <div class="tab-icon">⚙️</div>
@@ -1307,7 +1298,6 @@
             dialer: 'Protected Dialer',
             messages: 'Messages',
             history: 'Call History',
-            contacts: 'Trusted Contacts',
             settings: 'Settings'
         };
         
@@ -1950,7 +1940,7 @@
                     });
                     
                     if (response.ok) {
-                        showCustomAlert('Removed', 'Contact has been removed from trusted contacts.');
+                        showCustomAlert('Removed', 'Contact has been removed from whitelist.');
                         loadContacts(); // Reload the contacts list
                         loadAnalytics(); // Update stats
                     } else {
@@ -1987,7 +1977,7 @@
                 });
                 
                 if (response.ok) {
-                    showCustomAlert('Added', 'Contact has been added to trusted contacts.');
+                    showCustomAlert('Added', 'Contact has been added to whitelist.');
                     loadContacts(); // Reload the contacts list
                     loadAnalytics(); // Update stats
                 } else {
