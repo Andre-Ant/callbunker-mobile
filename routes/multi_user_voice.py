@@ -161,12 +161,8 @@ def voice_incoming(phone_number):
         print(f"Google Voice forwarded call detected for user {user.id}")
         # This is a Google Voice forwarded call - proceed with authentication
     elif not forwarded_from:
-        # Direct call to CallBunker number - not expected in Google Voice setup
-        print(f"Direct call to CallBunker number for user {user.id}")
-        vr = VoiceResponse()
-        vr.say(f"Hello {user.name}. This is your CallBunker screening number. Please have callers dial your Google Voice number instead.", voice="polly.Joanna")
-        vr.hangup()
-        return xml_response(vr)
+        # Direct call to CallBunker number - proceed with authentication
+        print(f"Direct call to CallBunker number for user {user.id} - performing CallBunker authentication")
     
     # Check if caller is blocked
     block_remaining = is_user_blocked(user, caller_digits)
