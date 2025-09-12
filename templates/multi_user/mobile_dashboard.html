@@ -1540,18 +1540,21 @@
         }
         
         // Call specific number from history or contacts
-        function callNumber(phoneNumber) {
-            console.log(`📞 Calling ${phoneNumber} from history/contacts`);
+        function callNumber(number) {
+            console.log(`📞 Calling ${number} from history/contacts`);
             
             // Sanitize phone number (remove any potentially dangerous characters)
-            const sanitizedNumber = phoneNumber.replace(/[^+\d\-\(\)\s]/g, '');
+            const sanitizedNumber = number.replace(/[^+\d\-\(\)\s]/g, '');
             
             // Switch to dialer tab
             switchTab('dialer');
             
-            // Set the phone number in the dialer
-            document.getElementById('phone-display').textContent = sanitizedNumber;
+            // Set BOTH phone number variables so addDigit works correctly
+            window.phoneNumber = sanitizedNumber.replace(/\D/g, ''); // Remove formatting for addDigit
             currentPhoneNumber = sanitizedNumber;
+            
+            // Update display properly
+            updateDisplay();
             
             // Make the call immediately
             makeCall();
