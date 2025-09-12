@@ -93,7 +93,7 @@ def mobile_signup():
     try:
         email = request.form.get('email', '').strip().lower()
         name = request.form.get('name', '').strip()
-        google_voice_number = normalize_phone(request.form.get('google_voice_number', '').strip())
+        # Google Voice no longer required - CallBunker uses direct Voice SDK calling
         real_phone_number = normalize_phone(request.form.get('real_phone_number', '').strip())
         pin = request.form.get('pin', '1122').strip()
         verbal_code = request.form.get('verbal_code', 'open sesame').strip()
@@ -108,7 +108,6 @@ def mobile_signup():
         user = User(
             email=email,
             name=name,
-            google_voice_number=google_voice_number,
             real_phone_number=real_phone_number,
             pin=pin,
             verbal_code=verbal_code,
@@ -125,8 +124,9 @@ def mobile_signup():
         
         db.session.commit()
         
-        # Redirect to Google Voice auth
-        return redirect(url_for('multi_user.google_voice_auth', user_id=user.id))
+        # Redirect directly to dashboard - no Google Voice setup needed
+        flash(f'Account created! Your Defense Number is {format_phone_display(user.assigned_twilio_number)}', 'success')
+        return redirect(url_for('multi_user.dashboard', user_id=user.id))
         
     except Exception as e:
         db.session.rollback()
@@ -150,8 +150,8 @@ def test_page():
         <form method="POST" action="/multi/signup">
             <input type="text" name="name" value="Test User" placeholder="Name">
             <input type="email" name="email" value="test@example.com" placeholder="Email">
-            <input type="text" name="google_voice_number" value="5551234567" placeholder="Google Voice">
             <input type="text" name="real_phone_number" value="5559876543" placeholder="Real Phone">
+            <input type="text" name="password" value="testpass" placeholder="Password">
             <input type="text" name="pin" value="1122" placeholder="PIN">
             <input type="text" name="verbal_code" value="open sesame" placeholder="Verbal Code">
             <button type="submit">Test Submit</button>
@@ -233,7 +233,7 @@ def signup():
         # Get form data
         email = request.form.get('email', '').strip().lower()
         name = request.form.get('name', '').strip()
-        google_voice_number = normalize_phone(request.form.get('google_voice_number', '').strip())
+        # Google Voice no longer required - CallBunker uses direct Voice SDK calling
         real_phone_number = normalize_phone(request.form.get('real_phone_number', '').strip())
         password = request.form.get('password', '').strip()
         
@@ -241,7 +241,7 @@ def signup():
         available_numbers = TwilioPhonePool.query.filter_by(assigned_to_user_id=None).count()
         
         # Validation
-        if not all([email, name, google_voice_number, real_phone_number, password]):
+        if not all([email, name, real_phone_number, password]):
             flash('All fields are required', 'error')
             return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
         
@@ -254,9 +254,9 @@ def signup():
             flash('Email already registered', 'error')
             return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
         
-        # Check if Google Voice number already registered
-        if User.query.filter_by(google_voice_number=google_voice_number).first():
-            flash('Google Voice number already registered', 'error')
+        # Check if real phone number already registered
+        if User.query.filter_by(real_phone_number=real_phone_number).first():
+            flash('Phone number already registered', 'error')
             return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
         
         # Get next available Twilio number with database lock to prevent race conditions
@@ -269,7 +269,6 @@ def signup():
         user = User(
             email=email,
             name=name,
-            google_voice_number=google_voice_number,
             real_phone_number=real_phone_number,
             assigned_twilio_number=available_twilio.phone_number,
             pin=request.form.get('pin', '1122').strip(),
@@ -293,8 +292,8 @@ def signup():
         session['user_email'] = user.email
         session['logged_in'] = True
         
-        # Redirect to Google Voice authentication step (critical!)
-        return redirect(url_for('multi_user.google_voice_auth', user_id=user.id))
+        # Redirect directly to dashboard - no Google Voice setup needed
+        return redirect(url_for('multi_user.dashboard', user_id=user.id))
         
     except Exception as e:
         db.session.rollback()
@@ -1005,7 +1004,7 @@ def api_call_mobile_app(user_id):
         # Create call log entry
         call_log = MultiUserCallLog(
             user_id=user_id,
-            from_number=google_voice_number,
+            from_number=user.assigned_twilio_number,
             to_number=to_number_normalized,
             direction='outbound',
             status='mobile_calling',
@@ -1022,11 +1021,11 @@ def api_call_mobile_app(user_id):
             'call_log_id': call_log.id,
             'conference_name': conference_name,
             'to_number': to_number_normalized,
-            'from_number': google_voice_number,
+            'from_number': user.assigned_twilio_number,
             'target_call_sid': target_call.sid,
             'access_token': access_token,
             'mobile_config': {
-                'target_sees': google_voice_number,
+                'target_sees': user.assigned_twilio_number,
                 'no_callback': True,
                 'conference': conference_name,
                 'cost': '$0.02 per minute (1 call leg only)',
@@ -1143,33 +1142,8 @@ def contact_support():
 
 
 # ============================================================================
-# GOOGLE VOICE AUTHENTICATION - Critical Missing Step!
+# DIRECT VOICE SDK CALLING - No Google Voice Setup Required!
 # ============================================================================
-
-@multi_user_bp.route('/user/<int:user_id>/google-voice-auth')
-@multi_user_bp.route('/google-voice-auth/<user_id>')
-def google_voice_auth(user_id):
-    """Critical step: Guide user through Google Voice authentication of their CallBunker number"""
-    user = User.query.get_or_404(user_id)
     
-    # Create direct Google Voice setup URL with the user's assigned Twilio number
-    twilio_number = user.assigned_twilio_number
-    google_voice_url = f"https://voice.google.com/u/0/settings/phones?authuser=0"
-    
-    return render_template('multi_user/mobile_google_voice_auth.html',
-                         user=user,
-                         twilio_number=twilio_number,
-                         google_voice_url=google_voice_url,
-                         format_phone=format_phone_display)
-
-@multi_user_bp.route('/user/<int:user_id>/complete-auth', methods=['POST'])
-def complete_google_voice_auth(user_id):
-    """Mark Google Voice authentication as complete and proceed to dashboard"""
-    user = User.query.get_or_404(user_id)
-    
-    # Here you could add verification logic if needed
-    # For now, trust the user completed the process
-    
-    flash('Google Voice authentication completed! Your CallBunker system is now active.', 'success')
-    return redirect(url_for('multi_user.user_dashboard', user_id=user.id))
+# Legacy Google Voice routes removed - CallBunker now uses direct Voice SDK calling
 

@@ -13,7 +13,6 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     name = db.Column(db.String(100), nullable=False)
-    google_voice_number = db.Column(db.String(20), nullable=False, index=True)  # User's Google Voice number
     real_phone_number = db.Column(db.String(20), nullable=False)  # Where calls should be forwarded
     assigned_twilio_number = db.Column(db.String(20), nullable=False, unique=True, index=True)  # Their CallBunker number
     
@@ -33,7 +32,6 @@ class User(db.Model):
     
     # Account status
     is_active = db.Column(db.Boolean, default=True, nullable=False)
-    google_voice_verified = db.Column(db.Boolean, default=False, nullable=False)
     twilio_number_configured = db.Column(db.Boolean, default=False, nullable=False)
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
