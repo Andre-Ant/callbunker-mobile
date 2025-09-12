@@ -1622,8 +1622,7 @@
                     return;
                 }
                 
-                // Clear and build history securely
-                const historyContainer = document.getElementById('call-history-list');
+                // Clear and build history securely (reuse existing historyContainer variable)
                 historyContainer.innerHTML = '';
                 
                 calls.forEach(call => {
