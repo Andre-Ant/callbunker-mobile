@@ -698,7 +698,6 @@
                     <div style="font-size: 32px; color: #4caf50; margin-right: 12px;">🛡️</div>
                     <div>
                         <div style="font-size: 18px; font-weight: 600; color: #1c1c1e;">Privacy Protected</div>
-                        <div style="font-size: 14px; color: #8e8e93;">Your real number is hidden • Tap for details</div>
                     </div>
                 </div>
                 <div class="stats">
@@ -1243,79 +1242,102 @@
                     document.getElementById('speaker-btn').style.display = 'inline-block';
                     document.querySelector('.call-btn').style.display = 'none';
                     
-                    // Setup audio with capability detection and user feedback
-                    try {
-                        if (call.getRemoteStream) {
-                            const remoteStream = call.getRemoteStream();
-                            if (remoteStream) {
-                                const audioElement = document.createElement('audio');
-                                audioElement.srcObject = remoteStream;
-                                audioElement.autoplay = true;
-                                audioElement.volume = 1.0;
-                                audioElement.id = 'call-audio';
-                                
-                                // Essential mobile attributes
-                                audioElement.setAttribute('playsinline', true);
-                                audioElement.setAttribute('webkit-playsinline', true);
-                                
-                                // Store reference for speaker toggle
-                                currentAudioElement = audioElement;
-                                
-                                // Default to earpiece mode (UI state)
-                                speakerMode = false;
-                                
-                                // Check if device audio switching is supported
-                                const supportsAudioSwitching = !!(audioElement.setSinkId && navigator.mediaDevices);
-                                
-                                if (supportsAudioSwitching) {
-                                    // Desktop/supported browsers - try to route to earpiece
-                                    navigator.mediaDevices.enumerateDevices().then(devices => {
-                                        const audioOutputs = devices.filter(device => device.kind === 'audiooutput');
-                                        console.log('🔊 Audio switching supported -', audioOutputs.length, 'devices available');
-                                        
-                                        if (audioOutputs.length > 1) {
-                                            // Multiple devices available - try to find earpiece
-                                            const earpiece = audioOutputs.find(device => 
-                                                device.label && 
-                                                (device.label.toLowerCase().includes('earpiece') || 
-                                                 device.label.toLowerCase().includes('phone') ||
-                                                 device.label.toLowerCase().includes('receiver'))
-                                            );
-                                            
-                                            if (earpiece) {
-                                                audioElement.setSinkId(earpiece.deviceId).then(() => {
-                                                    console.log('🔊 Audio routed to earpiece device');
-                                                }).catch(err => {
-                                                    console.log('🔊 Earpiece routing failed:', err.message);
-                                                });
-                                            } else {
-                                                console.log('🔊 No earpiece device found, using default audio output');
-                                            }
-                                        } else {
-                                            console.log('🔊 Only one audio device available, using default output');
-                                        }
-                                    }).catch(err => {
-                                        console.log('🔊 Device enumeration failed:', err.message);
-                                    });
-                                } else {
-                                    // Mobile browsers - limited audio control
-                                    console.log('🔊 Mobile browser detected - limited audio routing (will use device default)');
-                                    
-                                    // Update speaker button to indicate limited functionality
-                                    const speakerBtn = document.getElementById('speaker-btn');
-                                    if (speakerBtn && /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                                        speakerBtn.title = 'Audio routing (limited on mobile web)';
-                                        console.log('🔊 Speaker button updated for mobile limitations');
-                                    }
-                                }
-                                
-                                document.body.appendChild(audioElement);
-                                console.log('🔊 Audio element created - will use device default audio routing');
-                            }
-                        }
-                    } catch (err) {
-                        console.log('🔊 Audio setup error:', err.message);
+                    // Force earpiece mode immediately (UI state)
+                    speakerMode = false;
+                    const speakerBtn = document.getElementById('speaker-btn');
+                    if (speakerBtn) {
+                        speakerBtn.classList.remove('active');
+                        speakerBtn.textContent = '🔊';
+                        speakerBtn.title = 'Switch to Speaker';
+                        console.log('🔊 Speaker button forced to earpiece mode (gray)');
                     }
+                    
+                    // Setup audio with retry mechanism for better timing
+                    async function setupAudio(attempt = 1) {
+                        console.log(`🔊 Audio setup attempt ${attempt}`);
+                        
+                        try {
+                            if (call.getRemoteStream) {
+                                const remoteStream = call.getRemoteStream();
+                                console.log('🔊 Remote stream available:', !!remoteStream);
+                                
+                                if (remoteStream) {
+                                    const audioElement = document.createElement('audio');
+                                    audioElement.srcObject = remoteStream;
+                                    audioElement.autoplay = true;
+                                    audioElement.volume = 1.0;
+                                    audioElement.id = 'call-audio';
+                                    
+                                    // Essential mobile attributes
+                                    audioElement.setAttribute('playsinline', true);
+                                    audioElement.setAttribute('webkit-playsinline', true);
+                                    
+                                    // Store reference for speaker toggle
+                                    currentAudioElement = audioElement;
+                                    
+                                    // Check if device audio switching is supported
+                                    const supportsAudioSwitching = !!(audioElement.setSinkId && navigator.mediaDevices);
+                                    console.log('🔊 setSinkId supported:', !!audioElement.setSinkId);
+                                    console.log('🔊 mediaDevices supported:', !!navigator.mediaDevices);
+                                    
+                                    if (supportsAudioSwitching) {
+                                        // Desktop/supported browsers - try to route to earpiece
+                                        navigator.mediaDevices.enumerateDevices().then(devices => {
+                                            const audioOutputs = devices.filter(device => device.kind === 'audiooutput');
+                                            console.log('🔊 Audio switching supported -', audioOutputs.length, 'devices available');
+                                            
+                                            if (audioOutputs.length > 1) {
+                                                // Multiple devices available - try to find earpiece
+                                                const earpiece = audioOutputs.find(device => 
+                                                    device.label && 
+                                                    (device.label.toLowerCase().includes('earpiece') || 
+                                                     device.label.toLowerCase().includes('phone') ||
+                                                     device.label.toLowerCase().includes('receiver'))
+                                                );
+                                                
+                                                if (earpiece) {
+                                                    audioElement.setSinkId(earpiece.deviceId).then(() => {
+                                                        console.log('🔊 Audio routed to earpiece device');
+                                                    }).catch(err => {
+                                                        console.log('🔊 Earpiece routing failed:', err.message);
+                                                    });
+                                                } else {
+                                                    console.log('🔊 No earpiece device found, using default audio output');
+                                                }
+                                            } else {
+                                                console.log('🔊 Only one audio device available, using default output');
+                                            }
+                                        }).catch(err => {
+                                            console.log('🔊 Device enumeration failed:', err.message);
+                                        });
+                                    } else {
+                                        // Mobile browsers - limited audio control but force UI state
+                                        console.log('🔊 Mobile browser detected - limited audio routing (will use device default)');
+                                        console.log('🔊 Speaker mode forced OFF for mobile compatibility');
+                                    }
+                                    
+                                    document.body.appendChild(audioElement);
+                                    console.log('🔊 Audio element created and attached to DOM');
+                                    return true; // Success
+                                } else if (attempt < 3) {
+                                    // Retry if stream not available yet
+                                    console.log(`🔊 Remote stream not ready, retrying in 200ms (attempt ${attempt}/3)`);
+                                    setTimeout(() => setupAudio(attempt + 1), 200);
+                                } else {
+                                    console.log('🔊 Failed to get remote stream after 3 attempts');
+                                }
+                            } else {
+                                console.log('🔊 getRemoteStream method not available');
+                            }
+                        } catch (err) {
+                            console.log('🔊 Audio setup error:', err.message);
+                        }
+                        
+                        return false; // Failed
+                    }
+                    
+                    // Start audio setup
+                    setupAudio();
                 });
                 
                 twilioDevice.on('disconnect', (call) => {
