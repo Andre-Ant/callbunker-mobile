@@ -1540,7 +1540,7 @@
         }
         
         // Call specific number from history or contacts
-        function callNumber(number) {
+        async function callNumber(number) {
             console.log(`📞 Calling ${number} from history/contacts`);
             
             // Sanitize phone number (remove any potentially dangerous characters)
@@ -1559,7 +1559,33 @@
             // Update display properly
             updateDisplay();
             
-            // Make the call immediately
+            // Ensure Voice SDK is ready before calling
+            if (!deviceReady || !twilioDevice) {
+                console.log('🔄 Voice SDK not ready, initializing...');
+                setText('call-status', 'Preparing Voice...');
+                
+                try {
+                    await initializeTwilioVoice();
+                    
+                    // Wait for device ready
+                    let attempts = 0;
+                    while (!deviceReady && attempts < 10) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        attempts++;
+                    }
+                    
+                    if (!deviceReady) {
+                        showCustomAlert('Voice Setup', 'Please tap the screen to activate voice calling, then try the Call button again.');
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Failed to initialize Voice SDK:', error);
+                    showCustomAlert('Voice Error', 'Please refresh the page and try again.');
+                    return;
+                }
+            }
+            
+            // Now make the call
             makeCall();
         }
         
