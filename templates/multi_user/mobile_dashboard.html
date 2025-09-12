@@ -748,6 +748,43 @@
             </div>
         </div>
         
+        <!-- Whitelist Screen -->
+        <div class="screen" id="whitelist">
+            <div style="background: #e8f5e8; padding: 16px; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center;">
+                <span style="color: #4caf50; font-size: 20px; margin-right: 8px;">🛡️</span>
+                <span style="color: #4caf50; font-size: 14px;">Whitelisted contacts bypass screening</span>
+            </div>
+            
+            <div style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="font-size: 16px; font-weight: 600; color: #1c1c1e;" id="whitelist-contacts-header">Whitelist Contacts ({{ whitelist_count }})</div>
+                    <button onclick="showAddContactForm()" style="background: #007aff; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Add Contact</button>
+                </div>
+            </div>
+            
+            <div id="whitelist-contacts-list">
+                <!-- Whitelist contacts will be loaded here -->
+                {% if whitelist and whitelist|length > 0 %}
+                    {% for contact in whitelist %}
+                    <div class="list-item">
+                        <div class="list-avatar">{{ contact.name[0].upper() if contact.name else '?' }}</div>
+                        <div class="list-content">
+                            <div class="list-title">{{ contact.name or 'Unknown' }}</div>
+                            <div class="list-subtitle">{{ format_phone(contact.phone_number) }}</div>
+                        </div>
+                        <button onclick="removeContact('{{ contact.phone_number }}')" style="background: none; border: none; color: #ff3b30; font-size: 18px; cursor: pointer; padding: 8px;">🗑️</button>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align: center; padding: 40px; color: #8e8e93;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+                        <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Whitelist Contacts</div>
+                        <div style="font-size: 14px;">Add contacts to bypass call screening</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
         <!-- History Screen -->
         <div class="screen" id="history">
             <div id="call-history-list">
@@ -998,6 +1035,10 @@
         <div class="tab" onclick="switchTab('messages')">
             <div class="tab-icon">💬</div>
             <div class="tab-label">Messages</div>
+        </div>
+        <div class="tab" onclick="switchTab('whitelist')">
+            <div class="tab-icon">👥</div>
+            <div class="tab-label">Whitelist</div>
         </div>
         <div class="tab" onclick="switchTab('history')">
             <div class="tab-icon">📋</div>
@@ -1307,6 +1348,7 @@
             home: "{{ user.name }}'s CallBunker",
             dialer: 'Protected Dialer',
             messages: 'Messages',
+            whitelist: 'Whitelist',
             history: 'Call History',
             settings: 'Settings'
         };
@@ -1379,6 +1421,8 @@
                 loadCallHistory();
             } else if (tab === 'home') {
                 loadAnalytics();
+            } else if (tab === 'whitelist') {
+                loadContacts();
             }
             
             return false;
