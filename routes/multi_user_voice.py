@@ -275,10 +275,10 @@ def connect_call(user, original_caller_number):
     # Brief connection message before dialing
     vr.say("Connecting now.", voice="polly.Joanna")
     
-    # Direct dial with call completion handler
+    # Direct dial with call completion handler - shorter timeout for faster decline detection
     vr.dial(
         forward_to,
-        timeout=25,
+        timeout=8,
         hangup_on_star=True,
         caller_id=original_caller_number,
         action=url_for('multi_user_voice.call_complete')
