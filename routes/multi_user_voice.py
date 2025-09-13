@@ -291,8 +291,37 @@ def connect_call(user, original_caller_number):
 
 @multi_user_voice_bp.route('/call_complete', methods=['POST'])
 def call_complete():
-    """Handle call completion"""
+    """Handle call completion - covers hangup, decline, busy, no-answer, etc."""
+    call_status = request.form.get('DialCallStatus', 'unknown')
+    
+    print(f"CALL COMPLETE: Status = {call_status}")
+    
     vr = VoiceResponse()
+    
+    # Handle all possible call termination statuses
+    if call_status == 'completed':
+        # Call was answered and completed normally
+        print("Call completed successfully")
+    elif call_status == 'busy':
+        # User declined the call or line was busy
+        print("Call was declined or busy")
+        vr.say("The person you're calling is currently unavailable.", voice="polly.Joanna")
+    elif call_status == 'no-answer':
+        # Call timed out without being answered
+        print("Call timed out - no answer")
+        vr.say("The person you're calling did not answer.", voice="polly.Joanna")
+    elif call_status == 'failed':
+        # Call failed for technical reasons
+        print("Call failed")
+        vr.say("The call could not be completed. Please try again later.", voice="polly.Joanna")
+    elif call_status == 'canceled':
+        # Call was canceled
+        print("Call was canceled")
+    else:
+        # Unknown status
+        print(f"Unexpected call status: {call_status}")
+    
+    # Always hang up to ensure caller disconnects
     vr.hangup()
     return xml_response(vr)
 
