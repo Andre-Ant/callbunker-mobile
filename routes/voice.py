@@ -195,6 +195,26 @@ def voice_incoming():
     
     print(f"To: {to_number}, ForwardedFrom: {forwarded_from}, From: {from_digits}")
     
+    # CHECK FOR MULTI-USER SYSTEM CALLS
+    # If this is a call to a number assigned to a user in the multi-user system, redirect there
+    try:
+        from models_multi_user import User
+        user = User.query.filter_by(assigned_twilio_number=to_number).first()
+        if user:
+            print(f"MULTI-USER CALL DETECTED: {to_number} belongs to user {user.id} ({user.name})")
+            print(f"Redirecting to multi-user voice system...")
+            # Strip +1 from phone number for the URL
+            phone_for_url = to_number.replace('+1', '').replace('+', '')
+            redirect_url = f"/multi/voice/incoming/{phone_for_url}"
+            
+            # Forward the request to the multi-user system using TwiML redirect
+            vr = VoiceResponse()
+            vr.redirect(redirect_url, method="POST")
+            return xml_response(vr)
+    except Exception as e:
+        print(f"Error checking for multi-user calls: {e}")
+        # Continue with old system as fallback
+    
     # CHECK FOR GOOGLE VOICE OTP VERIFICATION CALLS
     # These are for your personal Google Voice setup - forward to your phone
     google_voice_verification_numbers = [
