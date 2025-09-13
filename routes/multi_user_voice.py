@@ -156,13 +156,10 @@ def voice_incoming(phone_number):
         vr.dial(f"+1{user.real_phone_number}" if len(user.real_phone_number) == 10 else user.real_phone_number, timeout=30)
         return xml_response(vr)
     
-    # Check for Google Voice forwarded call
-    if forwarded_from == f"+1{user.google_voice_number}" or forwarded_from == user.google_voice_number:
-        print(f"Google Voice forwarded call detected for user {user.id}")
-        # This is a Google Voice forwarded call - proceed with authentication
-    elif not forwarded_from:
-        # Direct call to CallBunker number - proceed with authentication
-        print(f"Direct call to CallBunker number for user {user.id} - performing CallBunker authentication")
+    # Multi-user system uses direct Twilio numbers, not Google Voice forwarding
+    if not forwarded_from:
+        # Direct call to user's assigned Twilio number - proceed with authentication
+        print(f"Direct call to user {user.id}'s Twilio number {user.assigned_twilio_number} - performing authentication")
     
     # Check if caller is blocked
     block_remaining = is_user_blocked(user, caller_digits)
