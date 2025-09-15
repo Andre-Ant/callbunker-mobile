@@ -1646,7 +1646,7 @@
             } else if (tab === 'home') {
                 loadAnalytics();
             } else if (tab === 'whitelist') {
-                loadContacts();
+                refreshWhitelistScreen();
             }
             
             return false;
@@ -2247,6 +2247,60 @@
             }
         }
         
+        // Update main whitelist screen display
+        async function refreshWhitelistScreen() {
+            try {
+                const response = await fetch(`/multi/user/${USER_ID}/contacts`, {
+                    headers: {
+                        'X-API-Key': 'demo-key-callbunker-2025',
+                        'X-CSRF-Token': 'demo-csrf-callbunker'
+                    }
+                });
+                
+                if (!response.ok) return;
+                
+                const contacts = await response.json();
+                
+                // Update main whitelist screen
+                const whitelistContainer = document.getElementById('whitelist-contacts-list');
+                const whitelistHeader = document.getElementById('whitelist-contacts-header');
+                
+                if (!whitelistContainer) return;
+                
+                if (whitelistHeader) {
+                    whitelistHeader.textContent = `Whitelist Contacts (${contacts.length})`;
+                }
+                
+                if (contacts.length === 0) {
+                    whitelistContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #8e8e93;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+                            <div style="font-size: 18px; margin-bottom: 8px; color: #8e8e93;">No Whitelist Contacts</div>
+                            <div style="font-size: 14px; color: #8e8e93;">Add contacts to bypass call screening</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                whitelistContainer.innerHTML = '';
+                contacts.forEach(contact => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item';
+                    listItem.innerHTML = `
+                        <div class="list-avatar">${getInitialsFromPhone(contact.display_name)}</div>
+                        <div class="list-content">
+                            <div class="list-title">${contact.display_name || 'Unknown Contact'}</div>
+                            <div class="list-subtitle">${contact.phone_number}</div>
+                        </div>
+                        <button onclick="removeContact('${contact.id}')" style="background: none; border: none; color: #ff3b30; font-size: 18px; cursor: pointer; padding: 8px;">🗑️</button>
+                    `;
+                    whitelistContainer.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Failed to refresh whitelist screen:', error);
+            }
+        }
+        
         // Load analytics from API
         async function loadAnalytics() {
             try {
@@ -2723,8 +2777,9 @@
                     blockedStat.textContent = currentCount;
                 }
                 
-                // Refresh whitelist display and analytics
+                // Refresh both whitelist displays and analytics
                 loadContacts();
+                refreshWhitelistScreen();
                 loadAnalytics();
                 
                 toggleSelectionMode();
