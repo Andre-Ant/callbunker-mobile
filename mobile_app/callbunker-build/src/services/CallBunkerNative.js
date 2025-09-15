@@ -10,12 +10,12 @@ import { NativeModules, Platform } from 'react-native';
 const { CallManager } = NativeModules;
 
 export class CallBunkerNative {
-    constructor(baseUrl, userId) {
+    constructor(baseUrl, userId, userDefenseNumber = null) {
         this.baseUrl = baseUrl;
         this.userId = userId;
+        this.userDefenseNumber = userDefenseNumber;
         this.activeCalls = new Map();
         this.simulationMode = Platform.OS === 'web' || !CallManager;
-        this.googleVoiceNumber = '+16179421250'; // Your Google Voice number
     }
 
     /**
@@ -35,11 +35,11 @@ export class CallBunkerNative {
                 const callInfo = {
                     callLogId,
                     targetNumber: targetNumber,
-                    callerIdShown: this.googleVoiceNumber,
+                    callerIdShown: this.userDefenseNumber || 'Private',
                     status: 'simulated',
                     config: {
                         target_number: targetNumber,
-                        spoofed_caller_id: this.googleVoiceNumber
+                        spoofed_caller_id: this.userDefenseNumber || 'Private'
                     }
                 };
                 
@@ -192,7 +192,7 @@ export class CallBunkerNative {
             {
                 id: 1,
                 phoneNumber: '+15551234567',
-                callerIdShown: '+16179421250',
+                callerIdShown: this.userDefenseNumber || 'Private',
                 direction: 'outbound',
                 status: 'completed',
                 timestamp: new Date(Date.now() - 3600000).toISOString(),
@@ -201,7 +201,7 @@ export class CallBunkerNative {
             {
                 id: 2,
                 phoneNumber: '+15559876543',
-                callerIdShown: '+16179421250',
+                callerIdShown: this.userDefenseNumber || 'Private',
                 direction: 'outbound',
                 status: 'completed',
                 timestamp: new Date(Date.now() - 7200000).toISOString(),
@@ -210,7 +210,7 @@ export class CallBunkerNative {
             {
                 id: 3,
                 phoneNumber: '+15555551234',
-                callerIdShown: '+16179421250',
+                callerIdShown: this.userDefenseNumber || 'Private',
                 direction: 'outbound',
                 status: 'failed',
                 timestamp: new Date(Date.now() - 10800000).toISOString(),

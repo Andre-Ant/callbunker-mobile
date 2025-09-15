@@ -24,7 +24,6 @@ export default function SignupScreen({ navigation }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    googleVoiceNumber: '',
     realPhoneNumber: '',
     pin: '1122',
     verbalCode: 'open sesame',
@@ -56,7 +55,7 @@ export default function SignupScreen({ navigation }) {
   };
 
   const validateForm = () => {
-    const { name, email, googleVoiceNumber, realPhoneNumber } = formData;
+    const { name, email, realPhoneNumber } = formData;
     
     if (!name.trim()) {
       Alert.alert('Error', 'Please enter your name');
@@ -65,11 +64,6 @@ export default function SignupScreen({ navigation }) {
     
     if (!email.trim() || !email.includes('@')) {
       Alert.alert('Error', 'Please enter a valid email address');
-      return false;
-    }
-    
-    if (!googleVoiceNumber.trim()) {
-      Alert.alert('Error', 'Please enter your Google Voice number');
       return false;
     }
     
@@ -135,25 +129,6 @@ export default function SignupScreen({ navigation }) {
             />
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Google Voice Number</Text>
-            <View style={styles.phoneInputContainer}>
-              <TextInput
-                style={[styles.input, styles.phoneInput]}
-                value={formData.googleVoiceNumber}
-                onChangeText={(text) => handlePhoneChange('googleVoiceNumber', text)}
-                placeholder="(555) 123-4567"
-                keyboardType="phone-pad"
-              />
-              <TouchableOpacity 
-                style={styles.googleVoiceButton}
-                onPress={() => Linking.openURL('https://voice.google.com')}
-              >
-                <Text style={styles.googleVoiceButtonText}>Get Google Voice</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.helpText}>Don't have Google Voice? Tap the button above to get a free number</Text>
-          </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Real Phone Number</Text>
@@ -205,7 +180,7 @@ export default function SignupScreen({ navigation }) {
               🛡️ You'll receive your own unique CallBunker Defense Number
             </Text>
             <Text style={styles.infoText}>
-              📱 Use it with Google Voice for complete privacy protection
+              📱 Direct calling with complete privacy protection
             </Text>
             <Text style={styles.infoText}>
               🔒 Your real number stays completely hidden
@@ -228,7 +203,7 @@ export default function SignupScreen({ navigation }) {
             <Text style={styles.successMessage}>
               Your CallBunker Defense Number is:{'\n'}
               <Text style={styles.defenseNumber}>{assignedDefenseNumber}</Text>{'\n\n'}
-              You can now make calls with complete privacy protection using your Google Voice number.
+              You can now make calls with complete privacy protection using your Defense Number.
             </Text>
             <TouchableOpacity 
               style={styles.successButton}
@@ -319,31 +294,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1976d2',
     marginBottom: 5,
-  },
-  phoneInputContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  phoneInput: {
-    flex: 1,
-    margin: 0,
-  },
-  googleVoiceButton: {
-    backgroundColor: '#34a853',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  googleVoiceButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  helpText: {
-    fontSize: 12,
-    color: '#666',
   },
   modalOverlay: {
     flex: 1,

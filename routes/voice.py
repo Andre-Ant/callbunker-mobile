@@ -158,29 +158,12 @@ def voicemail_prompt(to_number):
     )
     return xml_response(vr)
 
-@voice_bp.route('/otp-verification', methods=['POST'])
-def voice_otp_verification():
-    """
-    Special endpoint for Google Voice OTP verification calls.
-    When Google Voice calls +16316417727 to verify it, forward directly to user's phone.
-    """
-    from_number = request.form.get('From', '')
-    to_number = request.form.get('To', '')
-    
-    print(f"OTP VERIFICATION CALL - From: {from_number}, To: {to_number}")
-    print(f"Google Voice verification call - Forwarding directly to +15086388084")
-    
-    vr = VoiceResponse()
-    vr.say("This is your Google Voice verification call. Connecting now.", voice="polly.Joanna")
-    vr.dial("+15086388084", timeout=30)  # Your real phone number
-    
-    return xml_response(vr)
 
 @voice_bp.route('/incoming', methods=['POST'])
 def voice_incoming():
     """
     Twilio posts here when a call hits the shared screening number.
-    Handles both regular calls and Google Voice OTP verification.
+    Routes calls to the appropriate system (multi-user or legacy).
     """
     # Debug logging to see what Twilio sends
     print(f"WEBHOOK CALLED - Form data: {dict(request.form)}")
@@ -215,22 +198,6 @@ def voice_incoming():
         print(f"Error checking for multi-user calls: {e}")
         # Continue with old system as fallback
     
-    # CHECK FOR GOOGLE VOICE OTP VERIFICATION CALLS
-    # These are for your personal Google Voice setup - forward to your phone
-    google_voice_verification_numbers = [
-        '12024558888',  # Google Voice verification service
-        '18005551234',  # Another Google verification number
-        # Add more as needed
-    ]
-    
-    caller_digits_only = norm_digits(from_number)
-    if caller_digits_only in google_voice_verification_numbers:
-        print(f"GOOGLE VOICE OTP VERIFICATION DETECTED from {from_number}")
-        print(f"Forwarding to your phone: +15086388084")
-        vr = VoiceResponse()
-        vr.say("This is your Google Voice verification call. Connecting now.", voice="polly.Joanna")
-        vr.dial("+15086388084", timeout=30)  # Your real phone number
-        return xml_response(vr)
     
     # LOOP DETECTION: If the call is coming FROM CallBunker number, it's a loop
     if from_number == "+16316417727":
@@ -240,38 +207,21 @@ def voice_incoming():
         vr.hangup()
         return xml_response(vr)
     
-    # If no ForwardedFrom, check if this is a Google Voice forwarded call
+    # For the legacy single-user system, handle forwarded calls
     if not forwarded_from:
-        # Check if the To number is CallBunker AND it's not a direct call to CallBunker
-        # Google Voice forwards calls TO CallBunker but doesn't always set ForwardedFrom
-        if to_number == "+16316417727":
-            print(f"Call forwarded to CallBunker from {from_number} - assuming Google Voice forwarding")
-            # Use the CallBunker tenant configuration for Google Voice calls  
-            tenant = get_tenant_or_404("+16316417727")
-            # Set forwarded_from to empty since Google Voice doesn't provide it
-            forwarded_from = ""
-        else:
-            # Check if the caller is a registered tenant for other carriers
-            caller_number = request.form.get("From", "").strip()
-            try:
-                tenant = get_tenant_by_real_number(caller_number)
-                forwarded_from = caller_number
-                print(f"Treating call from registered tenant {caller_number} as forwarded call")
-            except:
-                # Not a registered tenant, this is a direct call
-                vr = VoiceResponse()
-                vr.say("This is a call screening service. To use this service, please set up call forwarding from your phone to this number.", voice="polly.Joanna")
-                vr.hangup()
-                return xml_response(vr)
+        # When ForwardedFrom is missing, resolve tenant by screening number (To)
+        try:
+            tenant = get_tenant_or_404(to_number)
+            print(f"Call to screening number {to_number} without ForwardedFrom - using tenant configuration")
+        except:
+            # No tenant configured for this screening number
+            vr = VoiceResponse()
+            vr.say("This is a call screening service. To use this service, please set up call forwarding from your phone to this number.", voice="polly.Joanna")
+            vr.hangup()
+            return xml_response(vr)
     else:
-        # For Google Voice calls, ForwardedFrom is the Google Voice number, not the real number
-        # We need to use the CallBunker tenant configuration
-        if forwarded_from == "+16179421250":  # Your Google Voice number
-            print(f"Google Voice forwarded call detected via ForwardedFrom: {forwarded_from}")
-            tenant = get_tenant_or_404("+16316417727")  # Use CallBunker tenant
-        else:
-            # Look up tenant by the ForwardedFrom number (user's real number for other services)
-            tenant = get_tenant_or_404(forwarded_from)
+        # Look up tenant by the ForwardedFrom number (user's real number)
+        tenant = get_tenant_by_real_number(forwarded_from)
     
 
     
@@ -366,26 +316,25 @@ def voice_verify():
     pressed = request.form.get("Digits")
     speech = request.form.get("SpeechResult")
     
-    # Handle Google Voice calls (no ForwardedFrom) vs regular forwarded calls
-    from_number = norm_digits(request.form.get("From", ""))
+    # Handle forwarded calls for legacy single-user system
     if not forwarded_from:
-        # Check if this is a Google Voice call
-        if from_number in ["16179421250", "+16179421250"]:
-            print(f"Google Voice verification call from {from_number}")
-            tenant = get_tenant_or_404("+16316417727")  # Use CallBunker tenant for Google Voice
-        else:
+        # When ForwardedFrom is missing, resolve tenant by screening number (To)
+        if not to_number:
+            vr = VoiceResponse()
+            vr.say("Invalid request. Goodbye.", voice="polly.Joanna")
+            vr.hangup()
+            return xml_response(vr)
+        try:
+            tenant = get_tenant_or_404(to_number)
+            print(f"Verify call to screening number {to_number} without ForwardedFrom - using tenant configuration")
+        except:
             vr = VoiceResponse()
             vr.say("Invalid request. Goodbye.", voice="polly.Joanna")
             vr.hangup()
             return xml_response(vr)
     else:
-        # For Google Voice calls, ForwardedFrom is the Google Voice number, not the real number
-        if forwarded_from == "+16179421250":  # Your Google Voice number
-            print(f"Google Voice verify call detected via ForwardedFrom: {forwarded_from}")
-            tenant = get_tenant_or_404("+16316417727")  # Use CallBunker tenant
-        else:
-            # For other services, use the ForwardedFrom as the tenant lookup
-            tenant = get_tenant_by_real_number(forwarded_from)
+        # Use the ForwardedFrom as the tenant lookup
+        tenant = get_tenant_by_real_number(forwarded_from)
     
     # Check if caller is blocked
     remaining = is_blocked(tenant, from_digits)

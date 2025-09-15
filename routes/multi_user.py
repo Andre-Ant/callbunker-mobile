@@ -820,7 +820,8 @@ def api_call_direct(user_id):
         
         # Normalize phone numbers
         to_number_normalized = '+1' + normalize_phone(to_number) if not to_number.startswith('+') else to_number
-        google_voice_number = '+1' + normalize_phone(user.google_voice_number) if len(user.google_voice_number) == 10 else user.google_voice_number
+        # Use assigned Twilio number for CallBunker Voice SDK calling
+        caller_id_number = user.assigned_twilio_number
         
         # Get Twilio client and public URL
         from utils.twilio_helpers import twilio_client
@@ -837,7 +838,7 @@ def api_call_direct(user_id):
         # Create call log entry
         call_log = MultiUserCallLog(
             user_id=user_id,
-            from_number=google_voice_number,
+            from_number=caller_id_number,
             to_number=to_number_normalized,
             direction='outbound',
             status='calling',
@@ -850,7 +851,7 @@ def api_call_direct(user_id):
         
         print(f"DIRECT CALL DEBUG: Created call - Target: {target_call.sid}")
         print(f"DIRECT CALL DEBUG: Target number: {to_number_normalized}")
-        print(f"DIRECT CALL DEBUG: Google Voice number: {google_voice_number}")
+        print(f"DIRECT CALL DEBUG: Google Voice number: {caller_id_number}")
         
         return jsonify({
             'success': True,
@@ -858,7 +859,7 @@ def api_call_direct(user_id):
             'call_log_id': call_log.id,
             'target_call_sid': target_call.sid,
             'to_number': to_number_normalized,
-            'from_number': google_voice_number,
+            'from_number': caller_id_number,
             'message': f'Direct call initiated - {to_number_normalized} will ring, you speak through app'
         })
         
@@ -925,7 +926,8 @@ def api_call_bridge(user_id):
         # Normalize phone numbers
         to_number_normalized = '+1' + normalize_phone(to_number) if not to_number.startswith('+') else to_number
         user_phone = '+1' + normalize_phone(user.real_phone_number) if len(user.real_phone_number) == 10 else user.real_phone_number
-        google_voice_number = '+1' + normalize_phone(user.google_voice_number) if len(user.google_voice_number) == 10 else user.google_voice_number
+        # Use assigned Twilio number for CallBunker Voice SDK calling
+        caller_id_number = user.assigned_twilio_number
         
         # Create conference name
         conference_name = f"callbunker_{user_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
@@ -937,10 +939,10 @@ def api_call_bridge(user_id):
         # Use public URL that Twilio can reach
         public_url = os.environ.get('PUBLIC_APP_URL', 'https://4ec224cf-933c-4ca6-b58f-2fce3ea2d59f-00-23vazcc99oamt.janeway.replit.dev')
         
-        # Call 1: Call the target number (they see Google Voice number as caller ID)
+        # Call 1: Call the target number (they see assigned Twilio number as caller ID)
         target_call = client.calls.create(
             to=to_number_normalized,
-            from_=google_voice_number,  # Target sees your Google Voice number!
+            from_=caller_id_number,  # Target sees your assigned CallBunker number!
             url=f"{public_url}/multi/voice/conference/{conference_name}?participant=target",
             method='POST'
         )
@@ -948,7 +950,7 @@ def api_call_bridge(user_id):
         # Call 2: Call the user
         user_call = client.calls.create(
             to=user_phone,
-            from_=google_voice_number,  # You see your own Google Voice number
+            from_=caller_id_number,  # You see your own CallBunker number
             url=f"{public_url}/multi/voice/conference/{conference_name}?participant=user",
             method='POST'
         )
@@ -956,7 +958,7 @@ def api_call_bridge(user_id):
         # Create call log entry
         call_log = MultiUserCallLog(
             user_id=user_id,
-            from_number=google_voice_number,
+            from_number=caller_id_number,
             to_number=to_number_normalized,
             direction='outbound',
             status='calling',
@@ -970,7 +972,7 @@ def api_call_bridge(user_id):
         print(f"BRIDGE CALL DEBUG: Created calls - Target: {target_call.sid}, User: {user_call.sid}")
         print(f"BRIDGE CALL DEBUG: Conference: {conference_name}")
         print(f"BRIDGE CALL DEBUG: Target number: {to_number_normalized}, User number: {user_phone}")
-        print(f"BRIDGE CALL DEBUG: Google Voice number: {google_voice_number}")
+        print(f"BRIDGE CALL DEBUG: Caller ID number: {caller_id_number}")
         
         return jsonify({
             'success': True,
@@ -981,11 +983,11 @@ def api_call_bridge(user_id):
             'conference_name': conference_name,
             'conference_name': conference_name,
             'to_number': to_number_normalized,
-            'from_number': google_voice_number,
+            'from_number': caller_id_number,
             'target_call_sid': target_call.sid,
             'user_call_sid': user_call.sid,
             'bridge_config': {
-                'target_sees': google_voice_number,
+                'target_sees': caller_id_number,
                 'user_phone': user_phone,
                 'conference': conference_name,
                 'cost': '$0.02 per minute per leg (2 legs total)'
@@ -1013,7 +1015,8 @@ def api_call_mobile_app(user_id):
         
         # Normalize phone numbers
         to_number_normalized = '+1' + normalize_phone(to_number) if not to_number.startswith('+') else to_number
-        google_voice_number = '+1' + normalize_phone(user.google_voice_number) if len(user.google_voice_number) == 10 else user.google_voice_number
+        # Use assigned Twilio number for CallBunker Voice SDK calling
+        caller_id_number = user.assigned_twilio_number
         
         # Create conference name for this call
         conference_name = f"callbunker_mobile_{user_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
