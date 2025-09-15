@@ -2638,16 +2638,10 @@
         }
         
         async function bulkAddToWhitelist() {
-            console.log('bulkAddToWhitelist called, selectedItems:', selectedItems);
-            if (selectedItems.size === 0) {
-                console.log('No items selected, returning');
-                return;
-            }
+            if (selectedItems.size === 0) return;
             
             const count = selectedItems.size;
             const numbers = Array.from(selectedItems);
-            console.log('Numbers to add:', numbers);
-            console.log('USER_ID:', USER_ID);
             
             const result = await showCustomConfirm(
                 'Add to Whitelist',
@@ -2656,7 +2650,6 @@
                 'Cancel'
             );
             
-            console.log('User confirmed?', result);
             if (result) {
                 // Get elements before processing
                 const selectedElements = [];
@@ -2672,13 +2665,6 @@
                 let successCount = 0;
                 for (const phoneNumber of selectedItems) {
                     try {
-                        console.log('Adding contact:', phoneNumber);
-                        const requestBody = {
-                            phone_number: phoneNumber,
-                            custom_pin: ''
-                        };
-                        console.log('Request body:', requestBody);
-                        
                         const response = await fetch(`/multi/user/${USER_ID}/contacts`, {
                             method: 'POST',
                             headers: {
@@ -2686,34 +2672,39 @@
                                 'X-API-Key': 'demo-key-callbunker-2025',
                                 'X-CSRF-Token': 'demo-csrf-callbunker'
                             },
-                            body: JSON.stringify(requestBody)
+                            body: JSON.stringify({
+                                phone_number: phoneNumber,
+                                custom_pin: ''
+                            })
                         });
                         
-                        console.log('Response status:', response.status);
                         if (response.ok) {
                             successCount++;
-                            console.log('Successfully added:', phoneNumber);
-                        } else {
-                            const errorText = await response.text();
-                            console.error('Failed to add contact:', phoneNumber, 'Error:', errorText);
+                        } else if (response.status === 400) {
+                            // Check if it's "Contact already exists" - treat as success
+                            const errorData = await response.json();
+                            if (errorData.error && errorData.error.includes('already exists')) {
+                                successCount++;
+                            }
                         }
                     } catch (error) {
-                        console.error('Exception adding contact:', phoneNumber, error);
+                        console.error('Error adding contact:', error);
                     }
                 }
                 
-                // Animate removal of successfully added items
-                const successfulElements = selectedElements.slice(0, successCount);
-                successfulElements.forEach((element, index) => {
-                    setTimeout(() => {
-                        element.style.transform = 'translateX(100%)';
-                        element.style.transition = 'all 0.4s ease-out';
+                // Animate removal of all successfully processed items (including already existing ones)
+                selectedElements.forEach((element, index) => {
+                    if (element && element.parentNode) {
                         setTimeout(() => {
-                            if (element.parentNode) {
-                                element.remove();
-                            }
-                        }, 400);
-                    }, index * 150);
+                            element.style.transform = 'translateX(100%)';
+                            element.style.transition = 'all 0.4s ease-out';
+                            setTimeout(() => {
+                                if (element.parentNode) {
+                                    element.remove();
+                                }
+                            }, 400);
+                        }, index * 150);
+                    }
                 });
                 
                 showCustomAlert('Added to Whitelist', `${successCount} of ${count} contacts added to whitelist successfully.`);
@@ -2731,6 +2722,10 @@
                     const currentCount = Math.max(0, parseInt(blockedStat.textContent) - successCount);
                     blockedStat.textContent = currentCount;
                 }
+                
+                // Refresh whitelist display and analytics
+                loadContacts();
+                loadAnalytics();
                 
                 toggleSelectionMode();
             }
