@@ -317,6 +317,36 @@
             align-items: flex-end;
         }
         
+        .activity-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #c7c7cc;
+            border-radius: 4px;
+            margin-right: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: white;
+        }
+        
+        .activity-checkbox.checked {
+            background: #007aff;
+            border-color: #007aff;
+            color: white;
+        }
+        
+        .activity-checkbox span {
+            display: none;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .activity-checkbox.checked span {
+            display: block;
+        }
+        
         .action-btn {
             padding: 4px 12px;
             border: none;
@@ -883,8 +913,14 @@
             
             <div style="margin-bottom: 12px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <div style="font-size: 16px; font-weight: 600; color: #1c1c1e;" id="whitelist-contacts-header">Whitelist Contacts ({{ whitelist_count }})</div>
-                    <button onclick="showAddContactForm()" style="background: #007aff; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px;">Add Contact</button>
+                    <div>
+                        <div style="font-size: 16px; font-weight: 600; color: #1c1c1e;" id="whitelist-contacts-header">Whitelist Contacts ({{ whitelist_count }})</div>
+                        <button onclick="showAddContactForm()" style="background: #007aff; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; margin-top: 4px;">Add Contact</button>
+                    </div>
+                    <div class="whitelist-controls">
+                        <button class="select-btn" onclick="selectAllWhitelist()">Select All</button>
+                        <button class="select-btn" onclick="toggleWhitelistSelectionMode()">Select Multiple</button>
+                    </div>
                 </div>
             </div>
             
@@ -2636,6 +2672,178 @@
             `);
         }
         
+        // Whitelist Bulk Selection Functions
+        let whitelistSelectionMode = false;
+        let selectedWhitelistItems = new Set();
+        
+        function toggleWhitelistSelectionMode() {
+            whitelistSelectionMode = !whitelistSelectionMode;
+            const whitelistItems = document.querySelectorAll('#whitelist-contacts-list .list-item');
+            
+            if (whitelistSelectionMode) {
+                // Enter selection mode - add checkboxes to items
+                whitelistItems.forEach(item => {
+                    if (!item.querySelector('.whitelist-checkbox')) {
+                        const checkbox = document.createElement('div');
+                        checkbox.className = 'whitelist-checkbox activity-checkbox';
+                        checkbox.innerHTML = '<span>✓</span>';
+                        checkbox.onclick = () => toggleWhitelistSelection(checkbox);
+                        item.insertBefore(checkbox, item.firstChild);
+                    }
+                });
+                showCustomAlert('Selection Mode', 'Select contacts for bulk removal.');
+            } else {
+                // Exit selection mode - remove checkboxes
+                whitelistItems.forEach(item => {
+                    const checkbox = item.querySelector('.whitelist-checkbox');
+                    if (checkbox) {
+                        checkbox.remove();
+                    }
+                });
+                const bulkActions = document.getElementById('whitelist-bulk-actions');
+                if (bulkActions) bulkActions.classList.remove('active');
+                selectedWhitelistItems.clear();
+            }
+        }
+        
+        function selectAllWhitelist() {
+            if (!whitelistSelectionMode) {
+                toggleWhitelistSelectionMode(); // Enter selection mode first
+                setTimeout(() => selectAllWhitelist(), 100); // Then select all
+                return;
+            }
+            
+            const checkboxes = document.querySelectorAll('#whitelist-contacts-list .whitelist-checkbox');
+            const allSelected = checkboxes.length === selectedWhitelistItems.size;
+            
+            if (allSelected) {
+                // Deselect all
+                checkboxes.forEach(checkbox => {
+                    checkbox.classList.remove('checked');
+                    const item = checkbox.closest('.list-item');
+                    const phoneAttr = item.querySelector('button[onclick*="removeContact"]')?.getAttribute('onclick');
+                    const phoneMatch = phoneAttr?.match(/removeContact\('([^']+)'\)/);
+                    if (phoneMatch) selectedWhitelistItems.delete(phoneMatch[1]);
+                });
+            } else {
+                // Select all
+                checkboxes.forEach(checkbox => {
+                    checkbox.classList.add('checked');
+                    const item = checkbox.closest('.list-item');
+                    const phoneAttr = item.querySelector('button[onclick*="removeContact"]')?.getAttribute('onclick');
+                    const phoneMatch = phoneAttr?.match(/removeContact\('([^']+)'\)/);
+                    if (phoneMatch) selectedWhitelistItems.add(phoneMatch[1]);
+                });
+            }
+            
+            updateWhitelistBulkActions();
+        }
+        
+        function toggleWhitelistSelection(checkbox) {
+            const item = checkbox.closest('.list-item');
+            const phoneAttr = item.querySelector('button[onclick*="removeContact"]')?.getAttribute('onclick');
+            const phoneMatch = phoneAttr?.match(/removeContact\('([^']+)'\)/);
+            
+            if (!phoneMatch) return;
+            const contactId = phoneMatch[1];
+            
+            if (checkbox.classList.contains('checked')) {
+                checkbox.classList.remove('checked');
+                selectedWhitelistItems.delete(contactId);
+            } else {
+                checkbox.classList.add('checked');
+                selectedWhitelistItems.add(contactId);
+            }
+            
+            updateWhitelistBulkActions();
+        }
+        
+        function updateWhitelistBulkActions() {
+            let bulkActions = document.getElementById('whitelist-bulk-actions');
+            if (!bulkActions) {
+                // Create bulk actions bar if it doesn't exist
+                bulkActions = document.createElement('div');
+                bulkActions.id = 'whitelist-bulk-actions';
+                bulkActions.className = 'bulk-actions';
+                bulkActions.innerHTML = `
+                    <button class="bulk-btn danger" onclick="bulkRemoveFromWhitelist()">
+                        Remove Selected
+                    </button>
+                `;
+                document.getElementById('whitelist').appendChild(bulkActions);
+            }
+            
+            if (selectedWhitelistItems.size > 0) {
+                bulkActions.classList.add('active');
+            } else {
+                bulkActions.classList.remove('active');
+            }
+        }
+        
+        async function bulkRemoveFromWhitelist() {
+            if (selectedWhitelistItems.size === 0) return;
+            
+            const count = selectedWhitelistItems.size;
+            const result = await showCustomConfirm(
+                'Remove from Whitelist',
+                `Remove ${count} selected contact${count > 1 ? 's' : ''} from your whitelist?`,
+                'Remove All',
+                'Cancel'
+            );
+            
+            if (result) {
+                let successCount = 0;
+                for (const contactId of selectedWhitelistItems) {
+                    try {
+                        const response = await fetch(`/multi/user/${USER_ID}/contacts/${contactId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-API-Key': 'demo-key-callbunker-2025',
+                                'X-CSRF-Token': 'demo-csrf-callbunker'
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            successCount++;
+                            // Remove from display with animation
+                            const items = document.querySelectorAll('#whitelist-contacts-list .list-item');
+                            items.forEach(item => {
+                                const phoneAttr = item.querySelector('button[onclick*="removeContact"]')?.getAttribute('onclick');
+                                const phoneMatch = phoneAttr?.match(/removeContact\('([^']+)'\)/);
+                                if (phoneMatch && phoneMatch[1] === contactId) {
+                                    item.style.transform = 'translateX(-100%)';
+                                    item.style.transition = 'all 0.3s ease-out';
+                                    setTimeout(() => {
+                                        if (item.parentNode) item.remove();
+                                    }, 300);
+                                }
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error removing contact:', error);
+                    }
+                }
+                
+                showCustomAlert('Removed from Whitelist', `${successCount} of ${count} contacts removed successfully.`);
+                
+                // Update statistics
+                const whitelistStat = document.getElementById('trusted-contacts-stat');
+                if (whitelistStat) {
+                    const currentCount = Math.max(0, parseInt(whitelistStat.textContent) - successCount);
+                    whitelistStat.textContent = currentCount;
+                }
+                
+                // Refresh displays
+                setTimeout(() => {
+                    refreshWhitelistScreen();
+                    loadContacts();
+                    loadAnalytics();
+                }, 500);
+                
+                toggleWhitelistSelectionMode();
+            }
+        }
+        
         // Individual Action Functions
         async function addToWhitelist(phoneNumber) {
             try {
@@ -2728,29 +2936,42 @@
         
         function toggleSelectionMode() {
             selectionMode = !selectionMode;
-            const checkboxes = document.querySelectorAll('.activity-checkbox');
-            const modeControls = document.querySelector('.selection-mode-controls');
-            const multipleBtn = document.getElementById('select-multiple-btn');
+            const activityItems = document.querySelectorAll('#recent-activity .activity-item');
             
             if (selectionMode) {
-                // Enter selection mode
-                checkboxes.forEach(checkbox => checkbox.classList.add('active'));
-                modeControls.classList.add('active');
-                multipleBtn.style.display = 'none';
-            } else {
-                // Exit selection mode
-                checkboxes.forEach(checkbox => {
-                    checkbox.classList.remove('active', 'checked');
+                // Enter selection mode - add checkboxes to items
+                activityItems.forEach(item => {
+                    if (!item.querySelector('.activity-checkbox')) {
+                        const checkbox = document.createElement('div');
+                        checkbox.className = 'activity-checkbox';
+                        checkbox.innerHTML = '<span>✓</span>';
+                        checkbox.onclick = () => toggleActivitySelection(checkbox);
+                        item.insertBefore(checkbox, item.firstChild);
+                    }
                 });
-                modeControls.classList.remove('active');
-                multipleBtn.style.display = 'block';
-                document.getElementById('bulk-actions').classList.remove('active');
+                showCustomAlert('Selection Mode', 'Select items for bulk actions.');
+            } else {
+                // Exit selection mode - remove checkboxes
+                activityItems.forEach(item => {
+                    const checkbox = item.querySelector('.activity-checkbox');
+                    if (checkbox) {
+                        checkbox.remove();
+                    }
+                });
+                const bulkActions = document.getElementById('bulk-actions');
+                if (bulkActions) bulkActions.classList.remove('active');
                 selectedItems.clear();
             }
         }
         
         function selectAllActivity() {
-            const checkboxes = document.querySelectorAll('.activity-checkbox');
+            if (!selectionMode) {
+                toggleSelectionMode(); // Enter selection mode first
+                setTimeout(() => selectAllActivity(), 100); // Then select all
+                return;
+            }
+            
+            const checkboxes = document.querySelectorAll('#recent-activity .activity-checkbox');
             const allSelected = checkboxes.length === selectedItems.size;
             
             if (allSelected) {
