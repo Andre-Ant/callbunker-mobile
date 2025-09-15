@@ -2379,8 +2379,18 @@
                     
                     if (response.ok) {
                         showCustomAlert('Removed', 'Contact has been removed from whitelist.');
-                        loadContacts(); // Reload the contacts list
-                        loadAnalytics(); // Update stats
+                        
+                        // Update statistics immediately
+                        const whitelistStat = document.getElementById('trusted-contacts-stat');
+                        if (whitelistStat) {
+                            const currentCount = Math.max(0, parseInt(whitelistStat.textContent) - 1);
+                            whitelistStat.textContent = currentCount;
+                        }
+                        
+                        // Refresh both whitelist displays
+                        refreshWhitelistScreen();
+                        loadContacts(); 
+                        loadAnalytics();
                     } else {
                         showCustomAlert('Error', 'Failed to remove contact.');
                     }
