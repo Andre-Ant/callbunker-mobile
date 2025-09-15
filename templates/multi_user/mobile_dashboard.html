@@ -286,20 +286,10 @@
             margin-bottom: 16px;
         }
         
-        .selection-controls {
+        .activity-controls {
             display: flex;
             gap: 8px;
             align-items: center;
-        }
-        
-        .selection-mode-controls {
-            display: none;
-            gap: 8px;
-            align-items: center;
-        }
-        
-        .selection-mode-controls.active {
-            display: flex;
         }
         
         .select-btn {
@@ -320,38 +310,41 @@
             background: #8e8e93;
         }
         
-        .activity-checkbox {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #c7c7cc;
-            border-radius: 4px;
-            margin-right: 12px;
-            cursor: pointer;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            background: white;
-        }
-        
-        .activity-checkbox.active {
+        .activity-actions {
             display: flex;
+            gap: 8px;
+            flex-direction: column;
+            align-items: flex-end;
         }
         
-        .activity-checkbox.checked {
-            background: #007aff;
-            border-color: #007aff;
+        .action-btn {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            min-width: 70px;
+            transition: all 0.2s ease;
+        }
+        
+        .whitelist-btn {
+            background: #4caf50;
             color: white;
         }
         
-        .activity-checkbox span {
-            display: none;
-            font-size: 12px;
-            font-weight: bold;
+        .whitelist-btn:hover {
+            background: #45a049;
         }
         
-        .activity-checkbox.checked span {
-            display: block;
+        .remove-btn {
+            background: #8e8e93;
+            color: white;
+            margin-top: 4px;
+        }
+        
+        .remove-btn:hover {
+            background: #7a7a7a;
         }
         
         .bulk-actions {
@@ -1039,25 +1032,23 @@
             <!-- Recent Activity Section -->
             <div class="activity-section">
                 <div class="activity-header">
-                    <div class="stats-title">Recent Activity</div>
-                    <div class="selection-controls">
-                        <button class="select-btn" id="select-multiple-btn" onclick="toggleSelectionMode()">Select Multiple</button>
-                        <div class="selection-mode-controls">
-                            <button class="select-btn secondary" onclick="selectAllActivity()">Select All</button>
-                            <button class="select-btn secondary" onclick="cancelSelection()">Done</button>
-                        </div>
+                    <div class="stats-title">BLOCKED CALLS (6)</div>
+                    <div class="activity-controls">
+                        <button class="select-btn" onclick="selectAllActivity()">Select All</button>
+                        <button class="select-btn" onclick="toggleSelectionMode()">Select Multiple</button>
                     </div>
                 </div>
                 <div id="recent-activity">
                     <!-- Recent activity will be loaded here -->
-                    <div class="activity-item">
-                        <div class="activity-checkbox" onclick="toggleActivitySelection(this)">
-                            <span>✓</span>
-                        </div>
+                    <div class="activity-item" data-phone="(555) 999-8888">
                         <div class="activity-icon">🚫</div>
                         <div class="activity-content">
-                            <div class="activity-title">Blocked call from (555) 999-8888</div>
-                            <div class="activity-time">2 hours ago</div>
+                            <div class="activity-title">(555) 999-8888</div>
+                            <div class="activity-time">Blocked 2 hours ago • Failed authentication</div>
+                        </div>
+                        <div class="activity-actions">
+                            <button class="action-btn whitelist-btn" onclick="addToWhitelist('(555) 999-8888')">Whitelist</button>
+                            <button class="action-btn remove-btn" onclick="removeActivity('(555) 999-8888')">Remove</button>
                         </div>
                     </div>
                 </div>
@@ -2574,44 +2565,164 @@
         }
         
         function loadRecentActivity() {
-            // This would load recent blocked calls for the activity section
-            // For now, we'll show the sample data with checkbox selection interface
-            const activityDiv = document.getElementById('recent-activity');
+            // Load recent blocked calls with individual action buttons
             setHTML('recent-activity', `
                 <div class="activity-item" data-phone="(555) 999-8888">
-                    <div class="activity-checkbox" onclick="toggleActivitySelection(this)">
-                        <span>✓</span>
-                    </div>
                     <div class="activity-icon">🚫</div>
                     <div class="activity-content">
-                        <div class="activity-title">Blocked call from (555) 999-8888</div>
-                        <div class="activity-time">2 hours ago</div>
+                        <div class="activity-title">(555) 999-8888</div>
+                        <div class="activity-time">Blocked 2 hours ago • Failed authentication</div>
+                    </div>
+                    <div class="activity-actions">
+                        <button class="action-btn whitelist-btn" onclick="addToWhitelist('(555) 999-8888')">Whitelist</button>
+                        <button class="action-btn remove-btn" onclick="removeActivity('(555) 999-8888')">Remove</button>
                     </div>
                 </div>
-                <div class="activity-item" data-phone="(555) 123-4567">
-                    <div class="activity-checkbox" onclick="toggleActivitySelection(this)">
-                        <span>✓</span>
-                    </div>
+                <div class="activity-item" data-phone="(555) 123-0000">
                     <div class="activity-icon">🚫</div>
                     <div class="activity-content">
-                        <div class="activity-title">Blocked call from (555) 123-4567</div>
-                        <div class="activity-time">5 hours ago</div>
+                        <div class="activity-title">(555) 123-0000</div>
+                        <div class="activity-time">Blocked 1 day ago • Unknown caller</div>
+                    </div>
+                    <div class="activity-actions">
+                        <button class="action-btn whitelist-btn" onclick="addToWhitelist('(555) 123-0000')">Whitelist</button>
+                        <button class="action-btn remove-btn" onclick="removeActivity('(555) 123-0000')">Remove</button>
                     </div>
                 </div>
-                <div class="activity-item" data-phone="(555) 777-9999">
-                    <div class="activity-checkbox" onclick="toggleActivitySelection(this)">
-                        <span>✓</span>
-                    </div>
+                <div class="activity-item" data-phone="(555) 777-4444">
                     <div class="activity-icon">🚫</div>
                     <div class="activity-content">
-                        <div class="activity-title">Blocked call from (555) 777-9999</div>
-                        <div class="activity-time">1 day ago</div>
+                        <div class="activity-title">(555) 777-4444</div>
+                        <div class="activity-time">Blocked 3 days ago • Spam detected</div>
+                    </div>
+                    <div class="activity-actions">
+                        <button class="action-btn whitelist-btn" onclick="addToWhitelist('(555) 777-4444')">Whitelist</button>
+                        <button class="action-btn remove-btn" onclick="removeActivity('(555) 777-4444')">Remove</button>
+                    </div>
+                </div>
+                <div class="activity-item" data-phone="(555) 234-5678">
+                    <div class="activity-icon">🚫</div>
+                    <div class="activity-content">
+                        <div class="activity-title">(555) 234-5678</div>
+                        <div class="activity-time">Blocked 5 hours ago • Invalid PIN</div>
+                    </div>
+                    <div class="activity-actions">
+                        <button class="action-btn whitelist-btn" onclick="addToWhitelist('(555) 234-5678')">Whitelist</button>
+                        <button class="action-btn remove-btn" onclick="removeActivity('(555) 234-5678')">Remove</button>
+                    </div>
+                </div>
+                <div class="activity-item" data-phone="(555) 876-5432">
+                    <div class="activity-icon">🚫</div>
+                    <div class="activity-content">
+                        <div class="activity-title">(555) 876-5432</div>
+                        <div class="activity-time">Blocked 30 minutes ago • Suspicious activity</div>
+                    </div>
+                    <div class="activity-actions">
+                        <button class="action-btn whitelist-btn" onclick="addToWhitelist('(555) 876-5432')">Whitelist</button>
+                        <button class="action-btn remove-btn" onclick="removeActivity('(555) 876-5432')">Remove</button>
+                    </div>
+                </div>
+                <div class="activity-item" data-phone="(555) 321-9876">
+                    <div class="activity-icon">🚫</div>
+                    <div class="activity-content">
+                        <div class="activity-title">(555) 321-9876</div>
+                        <div class="activity-time">Blocked 15 minutes ago • Too many attempts</div>
+                    </div>
+                    <div class="activity-actions">
+                        <button class="action-btn whitelist-btn" onclick="addToWhitelist('(555) 321-9876')">Whitelist</button>
+                        <button class="action-btn remove-btn" onclick="removeActivity('(555) 321-9876')">Remove</button>
                     </div>
                 </div>
             `);
         }
         
-        // Bulk Selection Functions
+        // Individual Action Functions
+        async function addToWhitelist(phoneNumber) {
+            try {
+                const response = await fetch(`/multi/user/${USER_ID}/contacts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'demo-key-callbunker-2025',
+                        'X-CSRF-Token': 'demo-csrf-callbunker'
+                    },
+                    body: JSON.stringify({
+                        phone_number: phoneNumber,
+                        custom_pin: ''
+                    })
+                });
+                
+                if (response.ok || response.status === 400) {
+                    // Success or already exists - remove from activity list
+                    const activityItem = document.querySelector(`[data-phone="${phoneNumber}"]`);
+                    if (activityItem) {
+                        activityItem.style.transform = 'translateX(100%)';
+                        activityItem.style.transition = 'all 0.3s ease-out';
+                        setTimeout(() => {
+                            if (activityItem.parentNode) {
+                                activityItem.remove();
+                            }
+                        }, 300);
+                    }
+                    
+                    showCustomAlert('Added to Whitelist', `${phoneNumber} has been added to your whitelist successfully.`);
+                    
+                    // Update statistics
+                    const whitelistStat = document.getElementById('trusted-contacts-stat');
+                    if (whitelistStat) {
+                        const currentCount = parseInt(whitelistStat.textContent) || 0;
+                        whitelistStat.textContent = currentCount + 1;
+                    }
+                    
+                    const blockedStat = document.getElementById('blocked-calls-stat');
+                    if (blockedStat) {
+                        const currentCount = Math.max(0, parseInt(blockedStat.textContent) - 1);
+                        blockedStat.textContent = currentCount;
+                    }
+                    
+                    // Refresh whitelist displays
+                    refreshWhitelistScreen();
+                    loadContacts();
+                    loadAnalytics();
+                }
+            } catch (error) {
+                console.error('Error adding to whitelist:', error);
+                showCustomAlert('Error', 'Failed to add contact to whitelist.');
+            }
+        }
+        
+        async function removeActivity(phoneNumber) {
+            const confirmed = await showCustomConfirm(
+                'Remove Activity',
+                `Remove ${phoneNumber} from recent activity list?`,
+                'Remove',
+                'Cancel'
+            );
+            
+            if (confirmed) {
+                const activityItem = document.querySelector(`[data-phone="${phoneNumber}"]`);
+                if (activityItem) {
+                    activityItem.style.transform = 'translateX(-100%)';
+                    activityItem.style.transition = 'all 0.3s ease-out';
+                    setTimeout(() => {
+                        if (activityItem.parentNode) {
+                            activityItem.remove();
+                        }
+                    }, 300);
+                }
+                
+                // Update blocked calls count
+                const blockedStat = document.getElementById('blocked-calls-stat');
+                if (blockedStat) {
+                    const currentCount = Math.max(0, parseInt(blockedStat.textContent) - 1);
+                    blockedStat.textContent = currentCount;
+                }
+                
+                showCustomAlert('Removed', `${phoneNumber} has been removed from recent activity.`);
+            }
+        }
+        
+        // Simplified Selection Functions
         let selectionMode = false;
         let selectedItems = new Set();
         
