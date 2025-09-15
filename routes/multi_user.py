@@ -220,6 +220,30 @@ def test_page():
     </html>
     """
 
+@multi_user_bp.route('/debug-users')
+def debug_users():
+    """Debug endpoint to check what users exist in production"""
+    try:
+        from models_multi_user import User
+        users = User.query.all()
+        user_list = []
+        for user in users:
+            user_list.append({
+                'id': user.id,
+                'email': user.email,
+                'name': user.name,
+                'has_password': bool(user.password_hash),
+                'assigned_number': user.assigned_twilio_number
+            })
+        
+        return {
+            'total_users': len(users),
+            'users': user_list,
+            'database_url': "*** HIDDEN ***"
+        }
+    except Exception as e:
+        return {'error': str(e)}
+
 @multi_user_bp.route('/mobile')
 def mobile_simple():
     """Mobile-optimized simple signup"""
