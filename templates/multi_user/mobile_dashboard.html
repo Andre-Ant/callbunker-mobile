@@ -2896,10 +2896,12 @@
                         blockedStat.textContent = currentCount;
                     }
                     
-                    // Refresh whitelist displays
-                    refreshWhitelistScreen();
-                    loadContacts();
-                    loadAnalytics();
+                    // Refresh whitelist displays after a short delay to ensure DB commit
+                    setTimeout(() => {
+                        refreshWhitelistScreen();
+                        loadContacts();
+                        loadAnalytics();
+                    }, 300);
                 }
             } catch (error) {
                 console.error('Error adding to whitelist:', error);
@@ -3127,10 +3129,12 @@
                     blockedStat.textContent = currentCount;
                 }
                 
-                // Refresh both whitelist displays and analytics
-                loadContacts();
-                refreshWhitelistScreen();
-                loadAnalytics();
+                // Refresh both whitelist displays and analytics after delay to ensure DB commits
+                setTimeout(() => {
+                    loadContacts();
+                    refreshWhitelistScreen();
+                    loadAnalytics();
+                }, 300);
                 
                 toggleSelectionMode();
             }
