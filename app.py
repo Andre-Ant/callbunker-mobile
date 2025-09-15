@@ -34,6 +34,49 @@ with app.app_context():
     import models
     import models_multi_user
     db.create_all()
+    
+    # Auto-seed phone pool from Twilio if empty (for production deployment)
+    def ensure_phone_pool_seeded():
+        """Automatically populate phone pool from Twilio API if database is empty"""
+        try:
+            from models_multi_user import TwilioPhonePool
+            
+            # Check if phone pool is empty
+            if TwilioPhonePool.query.count() == 0:
+                print("Phone pool is empty, seeding from Twilio API...")
+                
+                from utils.twilio_helpers import twilio_client
+                client = twilio_client()
+                
+                # Get all incoming phone numbers from Twilio
+                numbers = client.incoming_phone_numbers.list()
+                
+                added_count = 0
+                for number in numbers:
+                    # Add each number to pool
+                    pool_entry = TwilioPhonePool(
+                        phone_number=number.phone_number,
+                        monthly_cost=1.00,
+                        is_assigned=False
+                    )
+                    db.session.add(pool_entry)
+                    added_count += 1
+                
+                db.session.commit()
+                print(f"Auto-seeded {added_count} phone numbers from Twilio API")
+                return added_count
+            else:
+                existing_count = TwilioPhonePool.query.count()
+                print(f"Phone pool already has {existing_count} numbers, skipping seed")
+                return 0
+                
+        except Exception as e:
+            print(f"Phone pool seeding failed: {e}")
+            # Don't crash app startup on seeding failure
+            return 0
+    
+    # Seed phone pool if empty
+    ensure_phone_pool_seeded()
 
 # Register blueprints
 from routes.voice import voice_bp
