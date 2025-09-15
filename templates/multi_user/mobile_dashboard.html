@@ -287,12 +287,18 @@
         }
         
         .selection-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .selection-mode-controls {
             display: none;
             gap: 8px;
             align-items: center;
         }
         
-        .selection-controls.active {
+        .selection-mode-controls.active {
             display: flex;
         }
         
@@ -1024,9 +1030,11 @@
                 <div class="activity-header">
                     <div class="stats-title">Recent Activity</div>
                     <div class="selection-controls">
-                        <button class="select-btn" onclick="toggleSelectionMode()">Select Multiple</button>
-                        <button class="select-btn secondary" onclick="selectAllActivity()">Select All</button>
-                        <button class="select-btn secondary" onclick="cancelSelection()">Cancel</button>
+                        <button class="select-btn" id="select-multiple-btn" onclick="toggleSelectionMode()">Select Multiple</button>
+                        <div class="selection-mode-controls">
+                            <button class="select-btn secondary" onclick="selectAllActivity()">Select All</button>
+                            <button class="select-btn secondary" onclick="cancelSelection()">Done</button>
+                        </div>
                     </div>
                 </div>
                 <div id="recent-activity">
@@ -2545,19 +2553,21 @@
         function toggleSelectionMode() {
             selectionMode = !selectionMode;
             const checkboxes = document.querySelectorAll('.activity-checkbox');
-            const controls = document.querySelector('.selection-controls');
+            const modeControls = document.querySelector('.selection-mode-controls');
+            const multipleBtn = document.getElementById('select-multiple-btn');
             
             if (selectionMode) {
                 // Enter selection mode
                 checkboxes.forEach(checkbox => checkbox.classList.add('active'));
-                controls.classList.add('active');
-                controls.querySelector('button').textContent = 'Done';
+                modeControls.classList.add('active');
+                multipleBtn.style.display = 'none';
             } else {
                 // Exit selection mode
                 checkboxes.forEach(checkbox => {
                     checkbox.classList.remove('active', 'checked');
                 });
-                controls.classList.remove('active');
+                modeControls.classList.remove('active');
+                multipleBtn.style.display = 'block';
                 document.getElementById('bulk-actions').classList.remove('active');
                 selectedItems.clear();
             }
