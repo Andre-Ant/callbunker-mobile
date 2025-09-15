@@ -2611,75 +2611,60 @@
         }
         
         function loadRecentActivity() {
-            // Load recent blocked calls with individual action buttons
-            setHTML('recent-activity', `
-                <div class="activity-item" data-phone="(555) 999-8888">
+            // Sample blocked calls data
+            const allBlockedCalls = [
+                { phone: '(555) 999-8888', time: 'Blocked 2 hours ago • Failed authentication' },
+                { phone: '(555) 123-0000', time: 'Blocked 1 day ago • Unknown caller' },
+                { phone: '(555) 777-4444', time: 'Blocked 3 days ago • Spam detected' },
+                { phone: '(555) 234-5678', time: 'Blocked 5 hours ago • Invalid PIN' },
+                { phone: '(555) 876-5432', time: 'Blocked 30 minutes ago • Suspicious activity' },
+                { phone: '(555) 321-9876', time: 'Blocked 15 minutes ago • Too many attempts' }
+            ];
+            
+            // Filter out removed and transferred items
+            const activeBlockedCalls = allBlockedCalls.filter(call => 
+                !removedActivityItems.has(call.phone) && !transferredToWhitelist.has(call.phone)
+            );
+            
+            // Update the blocked calls count in header
+            const headerTitle = document.querySelector('.stats-title');
+            if (headerTitle && headerTitle.textContent.includes('BLOCKED CALLS')) {
+                headerTitle.textContent = `BLOCKED CALLS (${activeBlockedCalls.length})`;
+            }
+            
+            // Update the blocked calls stat
+            const blockedStat = document.getElementById('blocked-calls-stat');
+            if (blockedStat) {
+                blockedStat.textContent = activeBlockedCalls.length;
+            }
+            
+            if (activeBlockedCalls.length === 0) {
+                setHTML('recent-activity', `
+                    <div style="text-align: center; padding: 40px; color: #8e8e93;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                        <div style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">No Recent Activity</div>
+                        <div style="font-size: 14px;">Blocked calls will appear here</div>
+                    </div>
+                `);
+                return;
+            }
+            
+            // Render active blocked calls
+            const activityHTML = activeBlockedCalls.map(call => `
+                <div class="activity-item" data-phone="${call.phone}">
                     <div class="activity-icon">🚫</div>
                     <div class="activity-content">
-                        <div class="activity-title">(555) 999-8888</div>
-                        <div class="activity-time">Blocked 2 hours ago • Failed authentication</div>
+                        <div class="activity-title">${call.phone}</div>
+                        <div class="activity-time">${call.time}</div>
                     </div>
                     <div class="activity-actions">
-                        <button class="action-btn whitelist-btn" onclick="addToWhitelist('(555) 999-8888')">Whitelist</button>
-                        <button class="action-btn remove-btn" onclick="removeActivity('(555) 999-8888')">Remove</button>
+                        <button class="action-btn whitelist-btn" onclick="addToWhitelist('${call.phone}')">Whitelist</button>
+                        <button class="action-btn remove-btn" onclick="removeActivity('${call.phone}')">Remove</button>
                     </div>
                 </div>
-                <div class="activity-item" data-phone="(555) 123-0000">
-                    <div class="activity-icon">🚫</div>
-                    <div class="activity-content">
-                        <div class="activity-title">(555) 123-0000</div>
-                        <div class="activity-time">Blocked 1 day ago • Unknown caller</div>
-                    </div>
-                    <div class="activity-actions">
-                        <button class="action-btn whitelist-btn" onclick="addToWhitelist('(555) 123-0000')">Whitelist</button>
-                        <button class="action-btn remove-btn" onclick="removeActivity('(555) 123-0000')">Remove</button>
-                    </div>
-                </div>
-                <div class="activity-item" data-phone="(555) 777-4444">
-                    <div class="activity-icon">🚫</div>
-                    <div class="activity-content">
-                        <div class="activity-title">(555) 777-4444</div>
-                        <div class="activity-time">Blocked 3 days ago • Spam detected</div>
-                    </div>
-                    <div class="activity-actions">
-                        <button class="action-btn whitelist-btn" onclick="addToWhitelist('(555) 777-4444')">Whitelist</button>
-                        <button class="action-btn remove-btn" onclick="removeActivity('(555) 777-4444')">Remove</button>
-                    </div>
-                </div>
-                <div class="activity-item" data-phone="(555) 234-5678">
-                    <div class="activity-icon">🚫</div>
-                    <div class="activity-content">
-                        <div class="activity-title">(555) 234-5678</div>
-                        <div class="activity-time">Blocked 5 hours ago • Invalid PIN</div>
-                    </div>
-                    <div class="activity-actions">
-                        <button class="action-btn whitelist-btn" onclick="addToWhitelist('(555) 234-5678')">Whitelist</button>
-                        <button class="action-btn remove-btn" onclick="removeActivity('(555) 234-5678')">Remove</button>
-                    </div>
-                </div>
-                <div class="activity-item" data-phone="(555) 876-5432">
-                    <div class="activity-icon">🚫</div>
-                    <div class="activity-content">
-                        <div class="activity-title">(555) 876-5432</div>
-                        <div class="activity-time">Blocked 30 minutes ago • Suspicious activity</div>
-                    </div>
-                    <div class="activity-actions">
-                        <button class="action-btn whitelist-btn" onclick="addToWhitelist('(555) 876-5432')">Whitelist</button>
-                        <button class="action-btn remove-btn" onclick="removeActivity('(555) 876-5432')">Remove</button>
-                    </div>
-                </div>
-                <div class="activity-item" data-phone="(555) 321-9876">
-                    <div class="activity-icon">🚫</div>
-                    <div class="activity-content">
-                        <div class="activity-title">(555) 321-9876</div>
-                        <div class="activity-time">Blocked 15 minutes ago • Too many attempts</div>
-                    </div>
-                    <div class="activity-actions">
-                        <button class="action-btn whitelist-btn" onclick="addToWhitelist('(555) 321-9876')">Whitelist</button>
-                        <button class="action-btn remove-btn" onclick="removeActivity('(555) 321-9876')">Remove</button>
-                    </div>
-                </div>
-            `);
+            `).join('');
+            
+            setHTML('recent-activity', activityHTML);
         }
         
         // Whitelist Bulk Selection Functions
@@ -2871,7 +2856,10 @@
                 });
                 
                 if (response.ok || response.status === 400) {
-                    // Success or already exists - remove from activity list
+                    // Track as transferred to whitelist permanently
+                    transferredToWhitelist.add(phoneNumber);
+                    
+                    // Remove from activity list with animation
                     const activityItem = document.querySelector(`[data-phone="${phoneNumber}"]`);
                     if (activityItem) {
                         activityItem.style.transform = 'translateX(100%)';
@@ -2918,6 +2906,9 @@
             );
             
             if (confirmed) {
+                // Track as permanently removed
+                removedActivityItems.add(phoneNumber);
+                
                 const activityItem = document.querySelector(`[data-phone="${phoneNumber}"]`);
                 if (activityItem) {
                     activityItem.style.transform = 'translateX(-100%)';
@@ -2940,7 +2931,11 @@
             }
         }
         
-        // Simplified Selection Functions
+        // Persistent Activity State Management
+        let removedActivityItems = new Set(); // Track permanently removed items
+        let transferredToWhitelist = new Set(); // Track items transferred to whitelist
+        
+        // Selection Functions
         let selectionMode = false;
         let selectedItems = new Set();
         
@@ -3088,7 +3083,10 @@
                     }
                 }
                 
-                // Animate removal of all successfully processed items (including already existing ones)
+                // Track all selected items as transferred to whitelist
+                numbers.forEach(phone => transferredToWhitelist.add(phone));
+                
+                // Animate removal of all successfully processed items
                 selectedElements.forEach((element, index) => {
                     if (element && element.parentNode) {
                         setTimeout(() => {
@@ -3140,6 +3138,9 @@
             );
             
             if (result) {
+                // Track all selected items as permanently removed
+                selectedItems.forEach(phone => removedActivityItems.add(phone));
+                
                 // Remove selected items from display
                 selectedItems.forEach(phoneNumber => {
                     const item = document.querySelector(`[data-phone="${phoneNumber}"]`);
