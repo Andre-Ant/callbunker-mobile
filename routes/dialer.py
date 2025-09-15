@@ -53,7 +53,7 @@ def dialer_interface(user_id):
 
 @dialer_bp.route('/dialer/<int:user_id>/call', methods=['POST'])
 def initiate_call(user_id):
-    """Initiate an outgoing call through Google Voice/Twilio"""
+    """Initiate an outgoing call through Twilio Voice SDK"""
     user = MultiUser.query.get_or_404(user_id)
     
     data = request.get_json()
@@ -71,7 +71,7 @@ def initiate_call(user_id):
         client = twilio_client()
         
         # Debug logging
-        logging.info(f"Making call - From: {user.google_voice_number}, To: {user.real_phone_number}")
+        logging.info(f"Making call - From: {user.assigned_twilio_number}, To: {user.real_phone_number}")
         
         # Get available verified numbers from Twilio
         try:
@@ -84,16 +84,16 @@ def initiate_call(user_id):
         
         # Try to find a verified number to use
         from_number = None
-        if user.google_voice_number in verified_numbers:
-            from_number = user.google_voice_number
-            logging.info(f"Using Google Voice number: {from_number}")
+        if user.assigned_twilio_number in verified_numbers:
+            from_number = user.assigned_twilio_number
+            logging.info(f"Using assigned Twilio number: {from_number}")
         elif verified_numbers:
             from_number = verified_numbers[0]  # Use first available verified number
-            logging.info(f"Google Voice number not available, using: {from_number}")
+            logging.info(f"Assigned Twilio number not available, using: {from_number}")
         else:
             # If no verified numbers, provide clear guidance
             return jsonify({
-                'error': 'No verified phone numbers found in Twilio account. Please verify your Google Voice number in the Twilio Console.',
+                'error': 'No verified phone numbers found in Twilio account. Please verify your assigned Twilio number in the Console.',
                 'error_type': 'no_verified_numbers'
             }), 400
         
@@ -139,7 +139,7 @@ def initiate_call(user_id):
         # Handle specific Twilio errors
         if "21210" in error_msg or "not yet verified" in error_msg:
             return jsonify({
-                'error': 'Google Voice number not verified in Twilio. Please complete verification first.',
+                'error': 'Assigned Twilio number not verified. Please complete verification first.',
                 'error_type': 'twilio_verification'
             }), 400
         elif "21211" in error_msg or "Invalid 'To' Phone Number" in error_msg:
@@ -173,7 +173,7 @@ def api_call_direct(user_id):
     # Mobile app will use device's native calling with spoofed caller ID
     call_log = MultiUserCallLog()
     call_log.user_id = user_id
-    call_log.from_number = user.google_voice_number
+    call_log.from_number = user.assigned_twilio_number
     call_log.to_number = normalized_to
     call_log.direction = 'outbound'
     call_log.status = 'mobile_initiated'
@@ -185,13 +185,13 @@ def api_call_direct(user_id):
         'approach': 'native_calling',
         'instructions': {
             'method': 'Use device native calling with caller ID spoofing',
-            'caller_id': user.google_voice_number,
+            'caller_id': user.assigned_twilio_number,
             'target': normalized_to,
             'implementation': 'Mobile app should use platform-specific APIs to make call with spoofed caller ID'
         },
         'call_log_id': call_log.id,
         'to_number': normalized_to,
-        'from_number': user.google_voice_number
+        'from_number': user.assigned_twilio_number
     })
 
 # Mobile API endpoints
@@ -223,8 +223,8 @@ def api_initiate_call(user_id):
             verified_numbers = []
         
         from_number = None
-        if user.google_voice_number in verified_numbers:
-            from_number = user.google_voice_number
+        if user.assigned_twilio_number in verified_numbers:
+            from_number = user.assigned_twilio_number
         elif verified_numbers:
             from_number = verified_numbers[0]
         else:
