@@ -331,6 +331,7 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            background: white;
         }
         
         .activity-checkbox.active {
@@ -341,6 +342,16 @@
             background: #007aff;
             border-color: #007aff;
             color: white;
+        }
+        
+        .activity-checkbox span {
+            display: none;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .activity-checkbox.checked span {
+            display: block;
         }
         
         .bulk-actions {
@@ -2630,6 +2641,7 @@
             if (selectedItems.size === 0) return;
             
             const count = selectedItems.size;
+            const numbers = Array.from(selectedItems);
             const result = await showCustomConfirm(
                 'Add to Whitelist',
                 `Add ${count} selected number${count > 1 ? 's' : ''} to your whitelist? These contacts will bypass call screening in the future.`,
@@ -2638,6 +2650,17 @@
             );
             
             if (result) {
+                // Get elements before processing
+                const selectedElements = [];
+                numbers.forEach(phone => {
+                    const element = document.querySelector(`[data-phone="${phone}"]`);
+                    if (element) {
+                        selectedElements.push(element);
+                        element.style.opacity = '0.6';
+                        element.style.pointerEvents = 'none';
+                    }
+                });
+                
                 let successCount = 0;
                 for (const phoneNumber of selectedItems) {
                     try {
@@ -2663,6 +2686,20 @@
                     }
                 }
                 
+                // Animate removal of successfully added items
+                const successfulElements = selectedElements.slice(0, successCount);
+                successfulElements.forEach((element, index) => {
+                    setTimeout(() => {
+                        element.style.transform = 'translateX(100%)';
+                        element.style.transition = 'all 0.4s ease-out';
+                        setTimeout(() => {
+                            if (element.parentNode) {
+                                element.remove();
+                            }
+                        }, 400);
+                    }, index * 150);
+                });
+                
                 showCustomAlert('Added to Whitelist', `${successCount} of ${count} contacts added to whitelist successfully.`);
                 
                 // Update whitelist count
@@ -2670,6 +2707,13 @@
                 if (whitelistStat) {
                     const currentCount = parseInt(whitelistStat.textContent) || 0;
                     whitelistStat.textContent = currentCount + successCount;
+                }
+                
+                // Update blocked calls count
+                const blockedStat = document.getElementById('blocked-calls-stat');
+                if (blockedStat) {
+                    const currentCount = Math.max(0, parseInt(blockedStat.textContent) - successCount);
+                    blockedStat.textContent = currentCount;
                 }
                 
                 toggleSelectionMode();
