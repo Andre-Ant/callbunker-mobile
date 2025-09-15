@@ -279,6 +279,38 @@
             color: #8e8e93;
         }
         
+        .activity-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: 8px;
+        }
+        
+        .activity-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .activity-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .whitelist-btn {
+            background: #34c759;
+            color: white;
+        }
+        
+        .remove-btn {
+            background: #ff3b30;
+            color: white;
+        }
+        
         .back-button {
             position: absolute;
             left: 20px;
@@ -2382,7 +2414,7 @@
         
         function loadRecentActivity() {
             // This would load recent blocked calls for the activity section
-            // For now, we'll show the sample data that matches the mobile demo
+            // For now, we'll show the sample data that matches the mobile demo with action buttons
             const activityDiv = document.getElementById('recent-activity');
             setHTML('recent-activity', `
                 <div class="activity-item">
@@ -2391,8 +2423,130 @@
                         <div class="activity-title">Blocked call from (555) 999-8888</div>
                         <div class="activity-time">2 hours ago</div>
                     </div>
+                    <div class="activity-actions">
+                        <button class="activity-btn whitelist-btn" onclick="addToWhitelist('(555) 999-8888')" title="Add to whitelist">
+                            👥
+                        </button>
+                        <button class="activity-btn remove-btn" onclick="removeActivity('(555) 999-8888')" title="Remove from history">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">🚫</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Blocked call from (555) 123-4567</div>
+                        <div class="activity-time">5 hours ago</div>
+                    </div>
+                    <div class="activity-actions">
+                        <button class="activity-btn whitelist-btn" onclick="addToWhitelist('(555) 123-4567')" title="Add to whitelist">
+                            👥
+                        </button>
+                        <button class="activity-btn remove-btn" onclick="removeActivity('(555) 123-4567')" title="Remove from history">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">🚫</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Blocked call from (555) 777-9999</div>
+                        <div class="activity-time">1 day ago</div>
+                    </div>
+                    <div class="activity-actions">
+                        <button class="activity-btn whitelist-btn" onclick="addToWhitelist('(555) 777-9999')" title="Add to whitelist">
+                            👥
+                        </button>
+                        <button class="activity-btn remove-btn" onclick="removeActivity('(555) 777-9999')" title="Remove from history">
+                            🗑️
+                        </button>
+                    </div>
                 </div>
             `);
+        }
+        
+        // Activity action functions matching mobile demo functionality
+        async function addToWhitelist(phoneNumber) {
+            const result = await showCustomConfirm(
+                'Add to Whitelist',
+                `Add ${phoneNumber} to your whitelist? This contact will bypass call screening in the future.`,
+                'Add',
+                'Cancel'
+            );
+            
+            if (result) {
+                try {
+                    const response = await fetch(`/multi/user/${USER_ID}/contacts`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': 'demo-key-callbunker-2025',
+                            'X-CSRF-Token': 'demo-csrf-callbunker'
+                        },
+                        body: JSON.stringify({
+                            name: `Contact ${phoneNumber}`,
+                            phone_number: phoneNumber,
+                            auto_whitelisted: false
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        showCustomAlert('Added to Whitelist', `${phoneNumber} has been added to your whitelist. Future calls from this number will bypass screening.`);
+                        // Update whitelist count in the home screen
+                        const whitelistStat = document.getElementById('trusted-contacts-stat');
+                        if (whitelistStat) {
+                            const currentCount = parseInt(whitelistStat.textContent) || 0;
+                            whitelistStat.textContent = currentCount + 1;
+                        }
+                        // Reload contacts if we're viewing the whitelist
+                        if (document.getElementById('contacts-list')) {
+                            loadWhitelistContacts();
+                        }
+                    } else {
+                        const errorData = await response.json();
+                        showCustomAlert('Error', errorData.error || 'Failed to add contact to whitelist.');
+                    }
+                } catch (error) {
+                    showCustomAlert('Error', 'Network error occurred while adding to whitelist.');
+                }
+            }
+        }
+        
+        async function removeActivity(phoneNumber) {
+            const result = await showCustomConfirm(
+                'Remove Activity',
+                `Remove this activity record for ${phoneNumber}? This action cannot be undone.`,
+                'Remove',
+                'Cancel'
+            );
+            
+            if (result) {
+                // Remove the activity item from the display
+                const activityItems = document.querySelectorAll('.activity-item');
+                activityItems.forEach(item => {
+                    const titleElement = item.querySelector('.activity-title');
+                    if (titleElement && titleElement.textContent.includes(phoneNumber)) {
+                        item.style.opacity = '0.5';
+                        item.style.transform = 'translateX(-100px)';
+                        setTimeout(() => {
+                            item.remove();
+                            // If no more activity items, show empty state
+                            const remainingItems = document.querySelectorAll('#recent-activity .activity-item');
+                            if (remainingItems.length === 0) {
+                                setHTML('recent-activity', `
+                                    <div style="text-align: center; padding: 40px; color: #8e8e93;">
+                                        <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                                        <div style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">No Recent Activity</div>
+                                        <div style="font-size: 14px;">Blocked calls will appear here</div>
+                                    </div>
+                                `);
+                            }
+                        }, 300);
+                    }
+                });
+                
+                showCustomAlert('Activity Removed', `Activity record for ${phoneNumber} has been removed.`);
+            }
         }
         
         // Utility functions
