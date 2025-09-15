@@ -243,6 +243,14 @@ def login():
         # Find user by email
         user = User.query.filter_by(email=email).first()
         
+        # Debug logging for production
+        total_users = User.query.count()
+        all_emails = [u.email for u in User.query.all()]
+        print(f"LOGIN DEBUG: Email lookup for '{email}'")
+        print(f"LOGIN DEBUG: Total users in database: {total_users}")
+        print(f"LOGIN DEBUG: All emails in database: {all_emails}")
+        print(f"LOGIN DEBUG: User found: {user is not None}")
+        
         if not user:
             flash('Invalid email or password', 'error')
             return render_template('multi_user/login.html')
