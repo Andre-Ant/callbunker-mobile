@@ -2638,10 +2638,17 @@
         }
         
         async function bulkAddToWhitelist() {
-            if (selectedItems.size === 0) return;
+            console.log('bulkAddToWhitelist called, selectedItems:', selectedItems);
+            if (selectedItems.size === 0) {
+                console.log('No items selected, returning');
+                return;
+            }
             
             const count = selectedItems.size;
             const numbers = Array.from(selectedItems);
+            console.log('Numbers to add:', numbers);
+            console.log('USER_ID:', USER_ID);
+            
             const result = await showCustomConfirm(
                 'Add to Whitelist',
                 `Add ${count} selected number${count > 1 ? 's' : ''} to your whitelist? These contacts will bypass call screening in the future.`,
@@ -2649,6 +2656,7 @@
                 'Cancel'
             );
             
+            console.log('User confirmed?', result);
             if (result) {
                 // Get elements before processing
                 const selectedElements = [];
@@ -2664,6 +2672,13 @@
                 let successCount = 0;
                 for (const phoneNumber of selectedItems) {
                     try {
+                        console.log('Adding contact:', phoneNumber);
+                        const requestBody = {
+                            phone_number: phoneNumber,
+                            custom_pin: ''
+                        };
+                        console.log('Request body:', requestBody);
+                        
                         const response = await fetch(`/multi/user/${USER_ID}/contacts`, {
                             method: 'POST',
                             headers: {
@@ -2671,18 +2686,19 @@
                                 'X-API-Key': 'demo-key-callbunker-2025',
                                 'X-CSRF-Token': 'demo-csrf-callbunker'
                             },
-                            body: JSON.stringify({
-                                name: `Contact ${phoneNumber}`,
-                                phone_number: phoneNumber,
-                                auto_whitelisted: false
-                            })
+                            body: JSON.stringify(requestBody)
                         });
                         
+                        console.log('Response status:', response.status);
                         if (response.ok) {
                             successCount++;
+                            console.log('Successfully added:', phoneNumber);
+                        } else {
+                            const errorText = await response.text();
+                            console.error('Failed to add contact:', phoneNumber, 'Error:', errorText);
                         }
                     } catch (error) {
-                        console.error('Failed to add contact:', error);
+                        console.error('Exception adding contact:', phoneNumber, error);
                     }
                 }
                 
