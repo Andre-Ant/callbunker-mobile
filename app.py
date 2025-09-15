@@ -18,6 +18,16 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
+# Production session configuration
+# Fix for deployed environments where sessions don't work
+is_production = os.environ.get("REPLIT_DEPLOYMENT") is not None
+app.config.update(
+    SESSION_COOKIE_SECURE=is_production,     # HTTPS only in production
+    SESSION_COOKIE_HTTPONLY=True,           # No JS access to cookies
+    SESSION_COOKIE_SAMESITE='Lax',          # CSRF protection
+    PERMANENT_SESSION_LIFETIME=7200,        # 2 hours
+)
+
 # Configure the database
 database_url = os.environ.get("DATABASE_URL", "sqlite:///callbunker.db")
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
