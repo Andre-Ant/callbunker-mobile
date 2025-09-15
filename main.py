@@ -40,8 +40,8 @@ def mobile_demo():
         <script>window.location.reload();</script>
         ''')
 
-# Add main home route - redirect to mobile interface by default
-@app.route('/')
+# Landing page route (not root - avoid conflict with blueprint)
+@app.route('/landing')
 def home():
     return render_template_string('''
     <!DOCTYPE html>
