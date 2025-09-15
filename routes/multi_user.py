@@ -203,19 +203,24 @@ def test_page():
     """Ultra simple test page"""
     return """
     <html>
-    <head><title>Test Page</title></head>
-    <body>
-        <h1>Server is Working!</h1>
-        <p>This is a simple test page.</p>
-        <form method="POST" action="/multi/signup">
-            <input type="text" name="name" value="Test User" placeholder="Name">
-            <input type="email" name="email" value="test@example.com" placeholder="Email">
-            <input type="text" name="real_phone_number" value="5559876543" placeholder="Real Phone">
-            <input type="text" name="password" value="testpass" placeholder="Password">
-            <input type="text" name="pin" value="1122" placeholder="PIN">
-            <input type="text" name="verbal_code" value="open sesame" placeholder="Verbal Code">
-            <button type="submit">Test Submit</button>
-        </form>
+    <head><title>CallBunker - Server Test</title></head>
+    <body style="font-family: Arial, sans-serif; margin: 50px; background: #f0f0f0;">
+        <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h1 style="color: #333;">🛡️ CallBunker Server is Working!</h1>
+            <p style="color: #666; font-size: 18px;">Routing successfully configured ✅</p>
+            <hr style="margin: 20px 0;">
+            <h3>Available Routes:</h3>
+            <ul style="font-size: 16px; line-height: 1.6;">
+                <li><strong><a href="/multi/login" style="color: #007bff;">Login Page</a></strong> - Sign into your account</li>
+                <li><strong><a href="/multi/signup" style="color: #28a745;">Signup Page</a></strong> - Create new account</li>
+                <li><strong><a href="/multi/" style="color: #6c757d;">Main Page</a></strong> - Redirects to login</li>
+            </ul>
+            <div style="margin-top: 30px; padding: 15px; background: #e7f3ff; border-left: 4px solid #007bff;">
+                <strong>Login Credentials:</strong><br>
+                Email: andre_antoine49@yahoo.com<br>
+                Password: 123456!
+            </div>
+        </div>
     </body>
     </html>
     """
