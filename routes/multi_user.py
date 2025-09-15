@@ -172,6 +172,32 @@ def debug_signup():
     """Simple debug signup page"""
     return render_template('multi_user/debug_signup.html')
 
+@multi_user_bp.route('/debug-database')
+def debug_database():
+    """Check production database phone pool status"""
+    try:
+        total = TwilioPhonePool.query.count()
+        available = TwilioPhonePool.query.filter_by(is_assigned=False).count()
+        assigned = TwilioPhonePool.query.filter_by(is_assigned=True).count()
+        
+        all_numbers = TwilioPhonePool.query.all()
+        numbers_list = [(n.phone_number, n.is_assigned) for n in all_numbers]
+        
+        return f"""
+        <h1>Database Status</h1>
+        <p><strong>Total Numbers:</strong> {total}</p>
+        <p><strong>Available:</strong> {available}</p>
+        <p><strong>Assigned:</strong> {assigned}</p>
+        <h2>All Numbers:</h2>
+        <ul>
+        {"".join([f"<li>{num} - {'ASSIGNED' if assigned else 'AVAILABLE'}</li>" for num, assigned in numbers_list])}
+        </ul>
+        <p>Threshold check: available > 0 = {available > 0}</p>
+        <p>Signup button should show: {'CREATE ACCOUNT' if available > 0 else 'JOIN WAITLIST'}</p>
+        """
+    except Exception as e:
+        return f"<h1>Database Error</h1><p>{str(e)}</p>"
+
 @multi_user_bp.route('/test')
 def test_page():
     """Ultra simple test page"""
