@@ -1646,6 +1646,9 @@
         }
         
         function switchTab(tab) {
+            // Reset recent activity flag when switching tabs
+            window.recentActivityLoaded = false;
+            
             // Hide all screens and detail screens
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.detail-screen').forEach(s => s.classList.remove('active'));
@@ -2352,7 +2355,11 @@
                 
                 const analytics = await response.json();
                 
-                setText('blocked-calls-stat', analytics.blocked_calls);
+                // Only update blocked calls stat if recent activity hasn't been loaded yet
+                // (recent activity applies filtering based on removed/transferred items)
+                if (!window.recentActivityLoaded) {
+                    setText('blocked-calls-stat', analytics.blocked_calls);
+                }
                 setText('trusted-contacts-stat', analytics.trusted_contacts);
             } catch (error) {
                 console.error('Failed to load analytics:', error);
@@ -2637,6 +2644,9 @@
             if (blockedStat) {
                 blockedStat.textContent = activeBlockedCalls.length;
             }
+            
+            // Mark that recent activity has been loaded with filtering
+            window.recentActivityLoaded = true;
             
             if (activeBlockedCalls.length === 0) {
                 setHTML('recent-activity', `
@@ -3338,6 +3348,7 @@
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', async function() {
+            window.recentActivityLoaded = false; // Reset flag on page load
             loadAnalytics();
             setupEventListeners(); // Initialize event delegation for call buttons
             
