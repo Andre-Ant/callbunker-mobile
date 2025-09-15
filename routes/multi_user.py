@@ -95,6 +95,7 @@ def mobile_signup():
         name = request.form.get('name', '').strip()
         real_phone_number = normalize_phone(request.form.get('real_phone_number', '').strip())
         password = request.form.get('password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
         pin = request.form.get('pin', '1122').strip()
         verbal_code = request.form.get('verbal_code', 'open sesame').strip()
         
@@ -102,8 +103,13 @@ def mobile_signup():
         available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
         
         # Validation
-        if not all([email, name, real_phone_number, password]):
+        if not all([email, name, real_phone_number, password, confirm_password]):
             flash('All fields are required', 'error')
+            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
+        
+        # Password confirmation validation
+        if password != confirm_password:
+            flash('Passwords do not match', 'error')
             return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
         
         if len(password) < 6:

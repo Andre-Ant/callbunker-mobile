@@ -221,7 +221,13 @@
             
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+                <div style="position: relative;">
+                    <input type="password" id="password" name="password" required>
+                    <button type="button" onclick="togglePassword('password')" 
+                            style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #8e8e93; cursor: pointer; font-size: 16px;">
+                        👁️
+                    </button>
+                </div>
             </div>
             
             <div class="remember-me">
@@ -262,6 +268,20 @@
                 passwordField.focus();
             }
         });
+        
+        // Password toggle functionality
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const button = field.nextElementSibling;
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                button.textContent = '🙈';
+            } else {
+                field.type = 'password';
+                button.textContent = '👁️';
+            }
+        }
     </script>
 </body>
 </html>

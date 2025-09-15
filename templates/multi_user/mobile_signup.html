@@ -304,9 +304,28 @@
                 
                 <div class="form-group">
                     <label for="password" class="label">Create Password</label>
-                    <input type="password" class="input" id="password" name="password" 
-                           placeholder="Enter a secure password" required minlength="6">
+                    <div style="position: relative;">
+                        <input type="password" class="input" id="password" name="password" 
+                               placeholder="Enter a secure password" required minlength="6">
+                        <button type="button" onclick="togglePassword('password')" 
+                                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #8e8e93; cursor: pointer; font-size: 16px;">
+                            👁️
+                        </button>
+                    </div>
                     <div class="help-text">For logging into your CallBunker account</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password" class="label">Re-enter Password</label>
+                    <div style="position: relative;">
+                        <input type="password" class="input" id="confirm_password" name="confirm_password" 
+                               placeholder="Confirm your password" required minlength="6">
+                        <button type="button" onclick="togglePassword('confirm_password')" 
+                                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #8e8e93; cursor: pointer; font-size: 16px;">
+                            👁️
+                        </button>
+                    </div>
+                    <div class="help-text">Must match the password above</div>
                 </div>
                 
                 <div class="row">
@@ -400,6 +419,53 @@
         
         document.getElementById('real_phone_number').addEventListener('input', function() {
             formatPhoneNumber(this);
+        });
+        
+        // Password toggle functionality
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const button = field.nextElementSibling;
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                button.textContent = '🙈';
+            } else {
+                field.type = 'password';
+                button.textContent = '👁️';
+            }
+        }
+        
+        // Password confirmation validation
+        document.getElementById('confirm_password').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            const submitButton = document.querySelector('.signup-button');
+            
+            if (confirmPassword && password !== confirmPassword) {
+                this.style.borderColor = '#ff3b30';
+                this.style.backgroundColor = '#fff2f2';
+                submitButton.disabled = true;
+                submitButton.style.backgroundColor = '#8e8e93';
+            } else {
+                this.style.borderColor = '#e5e5ea';
+                this.style.backgroundColor = '#f8f9fa';
+                if (!this.form.querySelector('[disabled]')) {
+                    submitButton.disabled = false;
+                    submitButton.style.backgroundColor = '#007AFF';
+                }
+            }
+        });
+        
+        // Form submission validation
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Passwords do not match. Please check and try again.');
+                return false;
+            }
         });
         
         // Updated function name for new flow
