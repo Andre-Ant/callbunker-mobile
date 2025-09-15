@@ -220,29 +220,6 @@ def test_page():
     </html>
     """
 
-@multi_user_bp.route('/debug-users')
-def debug_users():
-    """Debug endpoint to check what users exist in production"""
-    try:
-        from models_multi_user import User
-        users = User.query.all()
-        user_list = []
-        for user in users:
-            user_list.append({
-                'id': user.id,
-                'email': user.email,
-                'name': user.name,
-                'has_password': bool(user.password_hash),
-                'assigned_number': user.assigned_twilio_number
-            })
-        
-        return {
-            'total_users': len(users),
-            'users': user_list,
-            'database_url': "*** HIDDEN ***"
-        }
-    except Exception as e:
-        return {'error': str(e)}
 
 @multi_user_bp.route('/mobile')
 def mobile_simple():
@@ -266,14 +243,6 @@ def login():
         
         # Find user by email
         user = User.query.filter_by(email=email).first()
-        
-        # Debug logging for production
-        total_users = User.query.count()
-        all_emails = [u.email for u in User.query.all()]
-        print(f"LOGIN DEBUG: Email lookup for '{email}'")
-        print(f"LOGIN DEBUG: Total users in database: {total_users}")
-        print(f"LOGIN DEBUG: All emails in database: {all_emails}")
-        print(f"LOGIN DEBUG: User found: {user is not None}")
         
         if not user:
             flash('Invalid email or password', 'error')
