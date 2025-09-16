@@ -35,13 +35,8 @@ app.config['LANGUAGES'] = {
 
 def get_locale():
     """Select the best language based on user preference, session, or browser"""
-    # Debug logging
-    print(f"DEBUG get_locale: session.get('language') = {session.get('language')}")
-    print(f"DEBUG get_locale: session.get('user_id') = {session.get('user_id')}")
-    
     # 1. Check session for manually selected language (takes priority)
     if 'language' in session:
-        print(f"DEBUG get_locale: Using session language: {session['language']}")
         return session['language']
     
     # 2. Check if user is logged in and has a preferred language
@@ -50,16 +45,12 @@ def get_locale():
             from models_multi_user import User
             user = User.query.get(session['user_id'])
             if user and user.preferred_language:
-                print(f"DEBUG get_locale: Using user preferred language: {user.preferred_language}")
                 return user.preferred_language
-        except Exception as e:
-            print(f"DEBUG get_locale: Error getting user language: {e}")
+        except:
             pass
     
     # 3. Use browser's preferred language if supported
-    fallback = request.accept_languages.best_match(app.config['LANGUAGES'].keys()) or 'en'
-    print(f"DEBUG get_locale: Using fallback language: {fallback}")
-    return fallback
+    return request.accept_languages.best_match(app.config['LANGUAGES'].keys()) or 'en'
 
 # Configure Flask-Babel for internationalization with the locale selector
 babel = Babel(app, locale_selector=get_locale)

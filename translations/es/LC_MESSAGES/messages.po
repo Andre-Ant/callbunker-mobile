@@ -151,3 +151,15 @@ msgstr "¿Ya tienes una cuenta?"
 
 msgid "Sign In"
 msgstr "Iniciar Sesión"
+
+msgid "Settings"
+msgstr "Configuración"
+
+msgid "Home"
+msgstr "Inicio"
+
+msgid "Security Settings"
+msgstr "Configuración de Seguridad"
+
+msgid "Language"
+msgstr "Idioma"
