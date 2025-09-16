@@ -2,6 +2,7 @@
 CallBunker Business Routes - Each user gets their own Twilio number
 """
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, make_response, Response, session, abort
+from flask_babel import gettext, ngettext, get_locale
 from werkzeug.security import generate_password_hash, check_password_hash
 from models_multi_user import User, TwilioPhonePool, UserWhitelist, MultiUserCallLog, UserBlocklist, UserFailLog
 from app import db
@@ -23,6 +24,45 @@ def index():
     else:
         # User not logged in, redirect to login
         return redirect(url_for('multi_user.login'))
+
+@multi_user_bp.route('/set-language/<language>')
+def set_language(language=None):
+    """Set the session language for internationalization"""
+    from flask import current_app
+    
+    # Validate language is supported
+    if language in current_app.config['LANGUAGES']:
+        session['language'] = language
+        
+        # If user is logged in, update their preferred language
+        if session.get('user_id'):
+            try:
+                user = User.query.get(session['user_id'])
+                if user:
+                    user.preferred_language = language
+                    db.session.commit()
+            except Exception as e:
+                # Don't fail the language switch if database update fails
+                print(f"Failed to update user language preference: {e}")
+        
+        flash(gettext('Language updated successfully'), 'success')
+    else:
+        flash(gettext('Language not supported'), 'error')
+    
+    # Redirect back to the referring page or to index
+    return redirect(request.referrer or url_for('multi_user.index'))
+
+@multi_user_bp.route('/language-status')
+def language_status():
+    """API endpoint to check current language and available languages"""
+    from flask import current_app
+    
+    return jsonify({
+        'current_language': str(get_locale()),
+        'available_languages': current_app.config['LANGUAGES'],
+        'session_language': session.get('language'),
+        'user_language': None  # Will be filled in if user is logged in
+    })
 
 def require_authentication():
     """Helper to require user authentication for API endpoints"""

@@ -1,7 +1,8 @@
 import os
 import logging
-from flask import Flask
+from flask import Flask, request, session
 from flask_sqlalchemy import SQLAlchemy
+from flask_babel import Babel, get_locale
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -15,8 +16,44 @@ db = SQLAlchemy(model_class=Base)
 
 # Create the app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
+app.secret_key = os.environ.get("SESSION_SECRET")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+# Configure supported languages
+app.config['LANGUAGES'] = {
+    'en': 'English',
+    'es': 'Español',
+    'fr': 'Français',
+    'de': 'Deutsch',
+    'it': 'Italiano',
+    'pt': 'Português',
+    'ru': 'Русский',
+    'ja': '日本語',
+    'ko': '한국어',
+    'zh': '中文'
+}
+
+def get_locale():
+    """Select the best language based on user preference, session, or browser"""
+    # 1. Check if user is logged in and has a preferred language
+    if 'user_id' in session:
+        try:
+            from models_multi_user import User
+            user = User.query.get(session['user_id'])
+            if user and user.preferred_language:
+                return user.preferred_language
+        except:
+            pass
+    
+    # 2. Check session for manually selected language
+    if 'language' in session:
+        return session['language']
+    
+    # 3. Use browser's preferred language if supported
+    return request.accept_languages.best_match(app.config['LANGUAGES'].keys()) or 'en'
+
+# Configure Flask-Babel for internationalization with the locale selector
+babel = Babel(app, locale_selector=get_locale)
 
 # Production session configuration
 # Fix for deployed environments where sessions don't work
