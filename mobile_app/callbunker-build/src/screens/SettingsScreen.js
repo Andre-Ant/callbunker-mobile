@@ -16,9 +16,11 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useCallBunker} from '../services/CallBunkerContext';
+import LanguageSelectionModal, {LANGUAGES} from '../components/LanguageSelectionModal';
 
 function SettingsScreen() {
   const {settings, updateSettings, callBunker} = useCallBunker();
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
   
   const handleSettingChange = (key, value) => {
     updateSettings({[key]: value});
@@ -53,6 +55,35 @@ function SettingsScreen() {
       'Version 1.0.0\n\nIntelligent Communication Security Platform\n\nProtect your privacy with advanced call screening and number protection.',
       [{text: 'OK'}]
     );
+  };
+
+  const handleLanguageSelect = () => {
+    setShowLanguageModal(true);
+  };
+
+  const changeLanguage = async (languageCode) => {
+    try {
+      // Update local settings
+      handleSettingChange('language', languageCode);
+      
+      // Show success message
+      const selectedLanguage = LANGUAGES.find(lang => lang.code === languageCode);
+      Alert.alert(
+        'Language Preference Saved',
+        `Language preference changed to ${selectedLanguage?.name || languageCode.toUpperCase()} and saved to your settings.`,
+        [{text: 'OK'}]
+      );
+      
+      // Note: In a real implementation, you would also update the backend user preferences
+      // and potentially trigger an app restart or reload to apply the language change
+    } catch (error) {
+      Alert.alert('Error', 'Failed to change language. Please try again.');
+    }
+  };
+
+  const getCurrentLanguageName = () => {
+    const selectedLanguage = LANGUAGES.find(lang => lang.code === (settings.language || 'en'));
+    return selectedLanguage ? selectedLanguage.name : 'English';
   };
 
   const renderSettingItem = (icon, title, subtitle, onPress, rightComponent) => (
@@ -134,6 +165,13 @@ function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Appearance</Text>
         
+        {renderSettingItem(
+          'language',
+          'Language',
+          `Current: ${getCurrentLanguageName()}`,
+          handleLanguageSelect
+        )}
+        
         {renderSwitchItem(
           'dark-mode',
           'Dark Mode (Coming Soon)',
@@ -214,6 +252,14 @@ function SettingsScreen() {
           </View>
         </View>
       </View>
+
+      {/* Language Selection Modal */}
+      <LanguageSelectionModal
+        visible={showLanguageModal}
+        onClose={() => setShowLanguageModal(false)}
+        selectedLanguage={settings.language || 'en'}
+        onLanguageSelect={changeLanguage}
+      />
     </ScrollView>
   );
 }

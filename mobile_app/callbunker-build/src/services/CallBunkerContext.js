@@ -20,6 +20,7 @@ const initialState = {
     callRecording: false,
     notifications: true,
     darkMode: false,
+    language: 'en',
   },
   isLoading: false,
   error: null,
