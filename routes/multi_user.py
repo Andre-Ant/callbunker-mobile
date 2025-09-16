@@ -336,6 +336,107 @@ def db_test():
         </html>
         """
 
+@multi_user_bp.route('/quick-signup', methods=['GET', 'POST'])
+def quick_signup():
+    """Quick signup bypass for form validation issues"""
+    if request.method == 'GET':
+        return """
+        <html>
+        <head><title>Quick Signup</title></head>
+        <body style="font-family: Arial; margin: 30px;">
+            <h2>🚀 Quick CallBunker Signup</h2>
+            <p>Bypass form validation issues</p>
+            <form method="POST">
+                <p><input type="text" name="name" value="Andre Antoine" placeholder="Full Name" style="width: 300px; padding: 10px;"></p>
+                <p><input type="email" name="email" value="andre_antoine49@yahoo.com" placeholder="Email" style="width: 300px; padding: 10px;"></p>
+                <p><input type="tel" name="real_phone_number" value="(508) 638-8084" placeholder="Phone Number" style="width: 300px; padding: 10px;"></p>
+                <p><input type="password" name="password" value="123456!" placeholder="Password" style="width: 300px; padding: 10px;"></p>
+                <p><input type="text" name="pin" value="1122" placeholder="PIN" style="width: 100px; padding: 10px;"></p>
+                <p><input type="text" name="verbal_code" value="open sesame" placeholder="Verbal Code" style="width: 200px; padding: 10px;"></p>
+                <p><button type="submit" style="padding: 15px 30px; background: #007AFF; color: white; border: none; font-size: 16px;">Create Account Now</button></p>
+            </form>
+        </body>
+        </html>
+        """
+    
+    # Handle POST - create account directly
+    try:
+        from werkzeug.security import generate_password_hash
+        
+        # Get form data
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        real_phone_number = normalize_phone(request.form.get('real_phone_number', '').strip())
+        password = request.form.get('password', '').strip()
+        pin = request.form.get('pin', '1122').strip()
+        verbal_code = request.form.get('verbal_code', 'open sesame').strip()
+        
+        # Validate required fields
+        if not all([name, email, real_phone_number, password]):
+            return "Missing required fields. <a href='/multi/quick-signup'>Try again</a>"
+        
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return f"Account already exists! <a href='/multi/login'>Login here</a>"
+        
+        # Get available Twilio number
+        available_number = TwilioPhonePool.query.filter_by(is_assigned=False).first()
+        if not available_number:
+            return "No phone numbers available. Contact support."
+        
+        # Create user account
+        password_hash = generate_password_hash(password)
+        new_user = User(
+            name=name,
+            email=email,
+            real_phone_number=real_phone_number,
+            assigned_twilio_number=available_number.phone_number,
+            pin=pin,
+            verbal_code=verbal_code,
+            password_hash=password_hash,
+            retry_limit=3,
+            forward_mode='bridge',
+            rl_window_sec=3600,
+            rl_max_attempts=5,
+            rl_block_minutes=60,
+            is_active=True,
+            twilio_number_configured=True
+        )
+        
+        # Assign the phone number
+        available_number.is_assigned = True
+        available_number.assigned_to_user_id = new_user.id
+        available_number.assigned_at = datetime.utcnow()
+        
+        # Save to database
+        db.session.add(new_user)
+        db.session.commit()
+        
+        # Log the user in immediately
+        session['user_id'] = new_user.id
+        session['user_email'] = new_user.email
+        session['logged_in'] = True
+        
+        return f"""
+        <html>
+        <head><title>Account Created!</title></head>
+        <body style="font-family: Arial; margin: 30px; text-align: center;">
+            <h1>🎉 Account Created Successfully!</h1>
+            <p><strong>Name:</strong> {new_user.name}</p>
+            <p><strong>Email:</strong> {new_user.email}</p>
+            <p><strong>Defense Number:</strong> <span style="background: #e8f5e8; padding: 8px; font-family: monospace; font-size: 18px;">{new_user.assigned_twilio_number}</span></p>
+            <p><strong>PIN:</strong> {new_user.pin}</p>
+            <p><strong>Verbal Code:</strong> {new_user.verbal_code}</p>
+            <hr>
+            <p><a href="/multi/login" style="background: #007AFF; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px;">Access Dashboard</a></p>
+        </body>
+        </html>
+        """
+        
+    except Exception as e:
+        return f"Error creating account: {str(e)}. <a href='/multi/quick-signup'>Try again</a>"
+
 @multi_user_bp.route('/mobile')
 def mobile_simple():
     """Mobile-optimized simple signup"""
