@@ -281,11 +281,60 @@ def debug_auth():
     <head><title>Debug Results</title></head>
     <body style="font-family: Arial; margin: 30px;">
         {result}
-        <p><a href="/multi/debug-auth">← Test Again</a> | <a href="/multi/login">Try Real Login</a></p>
+        <p><a href="/multi/debug-auth">← Test Again</a> | <a href="/multi/login">Try Real Login</a> | <a href="/multi/db-test">DB Test</a></p>
     </body>
     </html>
     """
 
+
+@multi_user_bp.route('/db-test')
+def db_test():
+    """Test database connection and show all users"""
+    try:
+        # Test database connection
+        all_users = User.query.all()
+        
+        result = f"<h2>🗄️ Database Test Results</h2>"
+        result += f"<p><strong>Total Users Found:</strong> {len(all_users)}</p>"
+        
+        if all_users:
+            result += "<h3>All Users in Database:</h3><ul>"
+            for user in all_users:
+                result += f"<li><strong>ID:</strong> {user.id} | <strong>Email:</strong> {user.email} | <strong>Name:</strong> {user.name} | <strong>Active:</strong> {user.is_active}</li>"
+            result += "</ul>"
+        else:
+            result += "<p>❌ <strong>No users found in database!</strong></p>"
+            
+        # Test specific email lookup
+        test_email = 'andre_antoine49@yahoo.com'
+        test_user = User.query.filter_by(email=test_email).first()
+        result += f"<h3>Test Email Lookup: {test_email}</h3>"
+        if test_user:
+            result += f"<p>✅ <strong>Found:</strong> {test_user.name} (ID: {test_user.id})</p>"
+        else:
+            result += f"<p>❌ <strong>Not Found</strong></p>"
+            
+        return f"""
+        <html>
+        <head><title>Database Test</title></head>
+        <body style="font-family: Arial; margin: 30px;">
+            {result}
+            <p><a href="/multi/debug-auth">← Debug Auth</a> | <a href="/multi/login">Login</a></p>
+        </body>
+        </html>
+        """
+        
+    except Exception as e:
+        return f"""
+        <html>
+        <head><title>Database Error</title></head>
+        <body style="font-family: Arial; margin: 30px;">
+            <h2>❌ Database Connection Error</h2>
+            <p><strong>Error:</strong> {str(e)}</p>
+            <p><a href="/multi/debug-auth">← Debug Auth</a></p>
+        </body>
+        </html>
+        """
 
 @multi_user_bp.route('/mobile')
 def mobile_simple():
