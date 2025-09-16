@@ -161,6 +161,14 @@ def format_phone_display(phone):
         return f"({digits[1:4]}) {digits[4:7]}-{digits[7:11]}"
     return phone
 
+@multi_user_bp.route('/dashboard')
+def dashboard_redirect():
+    """Redirect to user dashboard based on session"""
+    if session.get('logged_in') and session.get('user_id'):
+        return redirect(url_for('multi_user.dashboard', user_id=session['user_id']))
+    else:
+        return redirect(url_for('multi_user.login'))
+
 @multi_user_bp.route('/settings')
 def settings():
     """User settings page with language selection"""
