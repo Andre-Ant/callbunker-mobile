@@ -108,3 +108,30 @@ app.register_blueprint(demo_bp)
 app.register_blueprint(tutorial_bp, url_prefix='/tutorial')
 app.register_blueprint(dialer_bp)
 app.register_blueprint(demo_api_bp)
+
+# Simple test route to verify deployment is working
+@app.route('/working')
+def working_test():
+    return """
+    <html>
+    <head><title>CallBunker - Deployment Test</title></head>
+    <body style="font-family: Arial; padding: 30px; background: #f0f0f0;">
+        <div style="background: white; padding: 30px; border-radius: 10px;">
+            <h1 style="color: green;">✅ Deployment is Working!</h1>
+            <p><strong>This confirms the app is deployed correctly.</strong></p>
+            <hr>
+            <h3>Available Routes:</h3>
+            <ul>
+                <li><a href="/multi/login">Multi Login</a></li>
+                <li><a href="/multi/test">Multi Test</a></li>
+                <li><a href="/multi/debug-auth">Debug Auth</a></li>
+                <li><a href="/multi/">Multi Home</a></li>
+            </ul>
+            <hr>
+            <p><strong>Login Credentials:</strong><br>
+            Email: andre_antoine49@yahoo.com<br>
+            Password: 123456!</p>
+        </div>
+    </body>
+    </html>
+    """
