@@ -40,3 +40,30 @@ def how_it_works():
 def health():
     """Health check endpoint"""
     return {"status": "ok", "service": "CallBunker"}, 200
+
+# Temporary bridge routes for /multi URLs until deployment is updated
+@main_bp.route('/multi')
+@main_bp.route('/multi/')
+def multi_index():
+    """Handle /multi requests - redirect to login"""
+    return redirect(url_for('multi_user.login'))
+
+@main_bp.route('/multi/login')
+def multi_login_redirect():
+    """Handle /multi/login requests - redirect to actual login"""
+    return redirect(url_for('multi_user.login'))
+
+@main_bp.route('/multi/test')
+def multi_test_redirect():
+    """Handle /multi/test requests - redirect to actual test page"""
+    return redirect(url_for('multi_user.test_page'))
+
+@main_bp.route('/multi/debug-auth')
+def multi_debug_redirect():
+    """Handle /multi/debug-auth requests - redirect to actual debug page"""
+    return redirect(url_for('multi_user.debug_auth'))
+
+@main_bp.route('/multi/signup')
+def multi_signup_redirect():
+    """Handle /multi/signup requests - redirect to actual signup page"""
+    return redirect(url_for('multi_user.signup'))
