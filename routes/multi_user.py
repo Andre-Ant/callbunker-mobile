@@ -159,7 +159,9 @@ def mobile_signup():
         session['logged_in'] = True
         
         # Check if this is an AJAX request (for JavaScript modal)
-        if request.headers.get('Content-Type') == 'application/json' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 
+            request.headers.get('Accept') == 'application/json' or
+            'application/json' in request.headers.get('Accept', '')):
             # Return JSON for AJAX requests to trigger modal
             from utils.phone_utils import format_phone_display
             return jsonify({
@@ -175,6 +177,15 @@ def mobile_signup():
         
     except Exception as e:
         db.session.rollback()
+        # Check if this is an AJAX request for error handling
+        if (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 
+            request.headers.get('Accept') == 'application/json' or
+            'application/json' in request.headers.get('Accept', '')):
+            return jsonify({
+                'success': False,
+                'message': f'Signup failed: {str(e)}'
+            }), 400
+        
         flash(f'Signup failed: {str(e)}', 'error')
         return redirect(url_for('multi_user.mobile_signup'))
 
