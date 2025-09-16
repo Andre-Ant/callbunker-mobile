@@ -109,6 +109,12 @@ app.register_blueprint(tutorial_bp, url_prefix='/tutorial')
 app.register_blueprint(dialer_bp)
 app.register_blueprint(demo_api_bp)
 
+# Root route to fix deployment health checks
+@app.route('/')
+def root():
+    """Root route - redirect to login"""
+    return redirect(url_for('multi_user.login'))
+
 # Simple test route to verify deployment is working
 @app.route('/working')
 def working_test():
