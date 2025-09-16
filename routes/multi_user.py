@@ -161,6 +161,12 @@ def format_phone_display(phone):
         return f"({digits[1:4]}) {digits[4:7]}-{digits[7:11]}"
     return phone
 
+@multi_user_bp.route('/settings')
+def settings():
+    """User settings page with language selection"""
+    return render_template('multi_user/settings.html')
+
+
 @multi_user_bp.route('/mobile-signup', methods=['GET', 'POST'])
 def mobile_signup():
     """Clean mobile-style signup interface"""
@@ -926,6 +932,10 @@ def add_twilio_number():
 def api_get_user_settings(user_id):
     """Get user settings for mobile app - SECURED"""
     user = verify_user_access(user_id)
+    # Get available languages
+    from flask import current_app
+    available_languages = current_app.config.get('LANGUAGES', {})
+    
     return jsonify({
         'pin': user.pin,
         'verbal_code': user.verbal_code,
@@ -934,7 +944,10 @@ def api_get_user_settings(user_id):
         'rl_window_sec': user.rl_window_sec,
         'rl_max_attempts': user.rl_max_attempts,
         'rl_block_minutes': user.rl_block_minutes,
-        'twilio_number_configured': user.twilio_number_configured
+        'twilio_number_configured': user.twilio_number_configured,
+        'preferred_language': user.preferred_language,
+        'country': user.country,
+        'available_languages': available_languages
     })
 
 @multi_user_bp.route('/user/<int:user_id>/settings', methods=['PUT'])
@@ -961,6 +974,16 @@ def api_update_user_settings(user_id):
     
     if 'rl_block_minutes' in data and isinstance(data['rl_block_minutes'], int):
         user.rl_block_minutes = data['rl_block_minutes']
+    
+    # Language preference setting
+    if 'preferred_language' in data and data['preferred_language']:
+        # Validate against supported languages
+        from flask import current_app
+        supported_languages = current_app.config.get('LANGUAGES', {}).keys()
+        if data['preferred_language'] in supported_languages:
+            user.preferred_language = data['preferred_language']
+            # Also update session language
+            session['language'] = data['preferred_language']
     
     try:
         db.session.commit()
