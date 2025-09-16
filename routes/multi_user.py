@@ -437,6 +437,84 @@ def quick_signup():
     except Exception as e:
         return f"Error creating account: {str(e)}. <a href='/multi/quick-signup'>Try again</a>"
 
+@multi_user_bp.route('/reset-database', methods=['GET', 'POST'])
+def reset_database():
+    """Reset the deployed database - delete all users and release phone numbers"""
+    if request.method == 'GET':
+        return """
+        <html>
+        <head><title>⚠️ Database Reset</title></head>
+        <body style="font-family: Arial; margin: 30px;">
+            <h2>⚠️ Reset Deployed Database</h2>
+            <p><strong>WARNING:</strong> This will delete ALL user accounts and release ALL phone numbers.</p>
+            <p>Current users will be logged out and need to create new accounts.</p>
+            <form method="POST">
+                <p><input type="text" name="confirm" placeholder="Type 'RESET' to confirm" style="width: 200px; padding: 10px;" required></p>
+                <p><button type="submit" style="padding: 15px 30px; background: #dc3545; color: white; border: none; font-size: 16px;">⚠️ RESET DATABASE</button></p>
+            </form>
+            <p><a href="/multi/db-test">← Back to Database Test</a></p>
+        </body>
+        </html>
+        """
+    
+    # Handle POST - perform reset
+    confirm = request.form.get('confirm', '').strip()
+    if confirm != 'RESET':
+        return "Confirmation failed. Type 'RESET' exactly. <a href='/multi/reset-database'>Try again</a>"
+    
+    try:
+        # Clear session first
+        session.clear()
+        
+        # Get all users to clean up related data
+        all_users = User.query.all()
+        user_ids = [user.id for user in all_users]
+        
+        # Delete related data first (to avoid foreign key constraints)
+        if user_ids:
+            # Clean up related tables
+            from models_multi_user import MultiUserCallLog, UserWhitelist, UserFailLog, UserBlocklist
+            
+            # Delete call logs
+            for user_id in user_ids:
+                MultiUserCallLog.query.filter_by(user_id=user_id).delete()
+                UserWhitelist.query.filter_by(user_id=user_id).delete()
+                UserFailLog.query.filter_by(user_id=user_id).delete()
+                UserBlocklist.query.filter_by(user_id=user_id).delete()
+        
+        # Release all phone numbers
+        phone_numbers = TwilioPhonePool.query.all()
+        for number in phone_numbers:
+            number.is_assigned = False
+            number.assigned_to_user_id = None
+            number.assigned_at = None
+        
+        # Delete all users
+        User.query.delete()
+        
+        # Commit all changes
+        db.session.commit()
+        
+        return """
+        <html>
+        <head><title>✅ Database Reset Complete</title></head>
+        <body style="font-family: Arial; margin: 30px; text-align: center;">
+            <h1>✅ Database Reset Successful!</h1>
+            <p><strong>All user accounts deleted</strong></p>
+            <p><strong>All phone numbers released</strong></p>
+            <p><strong>Database is now clean</strong></p>
+            <hr>
+            <p><a href="/multi/db-test" style="background: #007AFF; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px;">Verify Reset</a></p>
+            <p><a href="/multi/quick-signup" style="background: #28a745; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px;">Create New Account</a></p>
+        </body>
+        </html>
+        """
+        
+    except Exception as e:
+        # Rollback on error
+        db.session.rollback()
+        return f"Reset failed: {str(e)}. <a href='/multi/reset-database'>Try again</a>"
+
 @multi_user_bp.route('/mobile')
 def mobile_simple():
     """Mobile-optimized simple signup"""
