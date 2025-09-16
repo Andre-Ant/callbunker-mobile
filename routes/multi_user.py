@@ -60,7 +60,7 @@ def verify_user_access(requested_user_id):
     user = User.query.get_or_404(requested_user_id)
     return user
 
-@multi_user_bp.route('/')
+@multi_user_bp.route('/list')
 def user_list():
     """List all users for easy dashboard access"""
     users = User.query.all()
