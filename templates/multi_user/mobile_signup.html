@@ -263,8 +263,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="title">🛡️ Join CallBunker</div>
-            <div class="subtitle">Direct Voice SDK calling with advanced call screening</div>
+            <div class="title">🛡️ {{ _("Join CallBunker") }}</div>
+            <div class="subtitle">{{ _("Direct Voice SDK calling with advanced call screening") }}</div>
         </div>
         
         <!-- Flash Messages -->
@@ -283,21 +283,21 @@
         <div class="form-card">
             <form method="POST" id="signupForm">
                 <div class="form-group">
-                    <label for="name" class="label">Full Name</label>
+                    <label for="name" class="label">{{ _("Full Name") }}</label>
                     <input type="text" class="input" id="name" name="name" value="{{ request.form.get('name', '') }}" required>
-                    <div class="help-text">Your name for account identification</div>
+                    <div class="help-text">{{ _("Your name for account identification") }}</div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="email" class="label">Email Address</label>
+                    <label for="email" class="label">{{ _("Email Address") }}</label>
                     <input type="email" class="input" id="email" name="email" value="{{ request.form.get('email', '') }}" required>
-                    <div class="help-text">For account management and notifications</div>
+                    <div class="help-text">{{ _("For account management and notifications") }}</div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="country" class="label">🌍 Country</label>
+                    <label for="country" class="label">🌍 {{ _("Country") }}</label>
                     <select class="input" id="country" name="country" required onchange="updateLanguage()">
-                        <option value="">Select your country...</option>
+                        <option value="">{{ _("Select your country...") }}</option>
                         <option value="US" data-lang="en" data-flag="🇺🇸">🇺🇸 United States</option>
                         <option value="CA" data-lang="en" data-flag="🇨🇦">🇨🇦 Canada</option>
                         <option value="GB" data-lang="en" data-flag="🇬🇧">🇬🇧 United Kingdom</option>
@@ -349,72 +349,72 @@
                         <option value="NZ" data-lang="en" data-flag="🇳🇿">🇳🇿 New Zealand</option>
                         <option value="ZZ" data-lang="en" data-flag="🌍">🌍 Other Country</option>
                     </select>
-                    <div class="help-text">This will set your app language and optimize call routing</div>
+                    <div class="help-text">{{ _("This will set your app language and optimize call routing") }}</div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="real_phone_number" class="label">Your Phone Number</label>
+                    <label for="real_phone_number" class="label">{{ _("Your Phone Number") }}</label>
                     <input type="tel" class="input" id="real_phone_number" name="real_phone_number" 
                            placeholder="(555) 987-6543" value="{{ request.form.get('real_phone_number', '') }}" required>
-                    <div class="help-text">Your actual phone number for forwarding screened calls</div>
+                    <div class="help-text">{{ _("Your actual phone number for forwarding screened calls") }}</div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="password" class="label">Create Password</label>
+                    <label for="password" class="label">{{ _("Create Password") }}</label>
                     <div style="position: relative;">
                         <input type="password" class="input" id="password" name="password" 
-                               placeholder="Enter a secure password" required minlength="6">
+                               placeholder="{{ _("Enter a secure password") }}" required minlength="6">
                         <button type="button" onclick="togglePassword('password')" 
                                 style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #8e8e93; cursor: pointer; font-size: 16px;">
                             👁️
                         </button>
                     </div>
-                    <div class="help-text">For logging into your CallBunker account</div>
+                    <div class="help-text">{{ _("For logging into your CallBunker account") }}</div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="confirm_password" class="label">Re-enter Password</label>
+                    <label for="confirm_password" class="label">{{ _("Re-enter Password") }}</label>
                     <div style="position: relative;">
                         <input type="password" class="input" id="confirm_password" name="confirm_password" 
-                               placeholder="Confirm your password" required minlength="6">
+                               placeholder="{{ _("Confirm your password") }}" required minlength="6">
                         <button type="button" onclick="togglePassword('confirm_password')" 
                                 style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #8e8e93; cursor: pointer; font-size: 16px;">
                             👁️
                         </button>
                     </div>
-                    <div class="help-text">Must match the password above</div>
+                    <div class="help-text">{{ _("Must match the password above") }}</div>
                 </div>
                 
                 <div class="row">
                     <div class="col">
                         <div class="form-group">
-                            <label for="pin" class="label">4-Digit PIN</label>
+                            <label for="pin" class="label">{{ _("4-Digit PIN") }}</label>
                             <input type="text" class="input" id="pin" name="pin" 
                                    value="1122" maxlength="4" pattern="[0-9]{4}" required>
-                            <div class="help-text">Callers enter this on keypad</div>
+                            <div class="help-text">{{ _("Callers enter this on keypad") }}</div>
                         </div>
                     </div>
                     <div class="col">
                         <div class="form-group">
-                            <label for="verbal_code" class="label">Verbal Code</label>
+                            <label for="verbal_code" class="label">{{ _("Verbal Code") }}</label>
                             <input type="text" class="input" id="verbal_code" name="verbal_code" 
                                    value="open sesame" required>
-                            <div class="help-text">Callers can say this instead</div>
+                            <div class="help-text">{{ _("Callers can say this instead") }}</div>
                         </div>
                     </div>
                 </div>
                 
                 <button type="submit" class="signup-button" {% if available_numbers == 0 %}disabled{% endif %}>
                     {% if available_numbers > 0 %}
-                    🚀 Create My CallBunker Account
+                    🚀 {{ _("Create My CallBunker Account") }}
                     {% else %}
-                    Join Waiting List
+                    {{ _("Join Waiting List") }}
                     {% endif %}
                 </button>
             </form>
             
             <div class="login-link" style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e5e7;">
-                <p style="color: #666; font-size: 14px; margin: 0;">Already have an account? <a href="/multi/login" style="color: #007AFF; text-decoration: none; font-weight: 600;">Sign In</a></p>
+                <p style="color: #666; font-size: 14px; margin: 0;">{{ _("Already have an account?") }} <a href="/multi/login" style="color: #007AFF; text-decoration: none; font-weight: 600;">{{ _("Sign In") }}</a></p>
             </div>
         </div>
         

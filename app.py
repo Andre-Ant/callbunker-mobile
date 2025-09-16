@@ -55,6 +55,20 @@ def get_locale():
 # Configure Flask-Babel for internationalization with the locale selector
 babel = Babel(app, locale_selector=get_locale)
 
+# Enable template auto-reload for development
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.jinja_env.auto_reload = True
+
+@app.context_processor
+def inject_conf_vars():
+    """Make Flask-Babel functions available in templates"""
+    from flask_babel import gettext, ngettext
+    return dict(
+        _=gettext,
+        ngettext=ngettext,
+        get_locale=get_locale
+    )
+
 # Production session configuration
 # Fix for deployed environments where sessions don't work
 is_production = os.environ.get("REPLIT_DEPLOYMENT") is not None

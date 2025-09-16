@@ -88,3 +88,66 @@ msgstr "Código numérico de 4 dígitos para autenticación rápida"
 
 msgid "Memorable phrase for voice authentication"
 msgstr "Frase memorable para autenticación por voz"
+
+msgid "Join CallBunker"
+msgstr "Únete a CallBunker"
+
+msgid "Direct Voice SDK calling with advanced call screening"
+msgstr "Llamadas directas con SDK de voz y filtrado avanzado"
+
+msgid "Your name for account identification"
+msgstr "Tu nombre para identificación de cuenta"
+
+msgid "For account management and notifications"
+msgstr "Para gestión de cuenta y notificaciones"
+
+msgid "Country"
+msgstr "País"
+
+msgid "Select your country..."
+msgstr "Selecciona tu país..."
+
+msgid "Your Phone Number"
+msgstr "Tu Número de Teléfono"
+
+msgid "Your actual phone number for forwarding screened calls"
+msgstr "Tu número de teléfono real para reenviar llamadas filtradas"
+
+msgid "Create Password"
+msgstr "Crear Contraseña"
+
+msgid "Enter a secure password"
+msgstr "Ingresa una contraseña segura"
+
+msgid "For logging into your CallBunker account"
+msgstr "Para iniciar sesión en tu cuenta CallBunker"
+
+msgid "Re-enter Password"
+msgstr "Reingresa Contraseña"
+
+msgid "Confirm your password"
+msgstr "Confirma tu contraseña"
+
+msgid "Must match the password above"
+msgstr "Debe coincidir con la contraseña de arriba"
+
+msgid "4-Digit PIN"
+msgstr "PIN de 4 Dígitos"
+
+msgid "Callers enter this on keypad"
+msgstr "Llamantes ingresan esto en el teclado"
+
+msgid "Callers can say this instead"
+msgstr "Llamantes pueden decir esto en su lugar"
+
+msgid "Create My CallBunker Account"
+msgstr "Crear Mi Cuenta CallBunker"
+
+msgid "Join Waiting List"
+msgstr "Unirse a Lista de Espera"
+
+msgid "Already have an account?"
+msgstr "¿Ya tienes una cuenta?"
+
+msgid "Sign In"
+msgstr "Iniciar Sesión"

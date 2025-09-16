@@ -64,6 +64,46 @@ def language_status():
         'user_language': None  # Will be filled in if user is logged in
     })
 
+@multi_user_bp.route('/translation-test')
+def translation_test():
+    """Debug route to test Flask-Babel translations directly"""
+    from flask import current_app
+    
+    # Test direct translation
+    full_name = gettext('Full Name')
+    email_address = gettext('Email Address')
+    
+    # Test template rendering with translation
+    template_content = """
+    <html>
+    <head><title>Translation Test</title></head>
+    <body style="font-family: Arial; padding: 30px;">
+        <h1>Flask-Babel Translation Test</h1>
+        <p><strong>Current Locale:</strong> {{ get_locale() }}</p>
+        <p><strong>Session Language:</strong> {{ session.get('language', 'None') }}</p>
+        <hr>
+        <h3>Direct gettext() Results:</h3>
+        <p><strong>gettext('Full Name'):</strong> "{{ full_name }}"</p>
+        <p><strong>gettext('Email Address'):</strong> "{{ email_address }}"</p>
+        <hr>
+        <h3>Template {{ _('...') }} Tests:</h3>
+        <p><strong>{{ _('Full Name') }}:</strong> {{ _('Full Name') }}</p>
+        <p><strong>{{ _('Email Address') }}:</strong> {{ _('Email Address') }}</p>
+        <p><strong>{{ _('Country') }}:</strong> {{ _('Country') }}</p>
+        <hr>
+        <p><strong>Expected in Spanish:</strong> "Nombre Completo", "Dirección de Email", "País"</p>
+        <hr>
+        <p><a href="/multi/set-language/en">Switch to English</a> | 
+           <a href="/multi/set-language/es">Switch to Spanish</a></p>
+    </body>
+    </html>
+    """
+    
+    from flask import render_template_string
+    return render_template_string(template_content, 
+                                full_name=full_name, 
+                                email_address=email_address)
+
 def require_authentication():
     """Helper to require user authentication for API endpoints"""
     # For now, use a simple session-based auth or require admin key
