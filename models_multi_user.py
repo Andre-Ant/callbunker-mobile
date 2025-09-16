@@ -123,3 +123,70 @@ class UserBlocklist(db.Model):
     
     # Relationships
     user = relationship("User", back_populates="blocklists")
+
+class CallQualityMetrics(db.Model):
+    """Real-time call quality monitoring and metrics"""
+    __tablename__ = 'call_quality_metrics'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    call_log_id = db.Column(db.Integer, ForeignKey('multi_user_call_logs.id'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, ForeignKey('users.id'), nullable=False, index=True)
+    
+    # Quality metrics from Twilio Voice Insights
+    jitter_ms = db.Column(db.Float, nullable=True)  # Network jitter in milliseconds
+    latency_ms = db.Column(db.Float, nullable=True)  # Round-trip latency in milliseconds
+    packet_loss_percent = db.Column(db.Float, nullable=True)  # Packet loss percentage
+    mos_score = db.Column(db.Float, nullable=True)  # Mean Opinion Score (1-5)
+    
+    # Audio quality metrics
+    audio_input_level = db.Column(db.Float, nullable=True)  # Microphone input level
+    audio_output_level = db.Column(db.Float, nullable=True)  # Speaker output level
+    echo_score = db.Column(db.Float, nullable=True)  # Echo detection score
+    
+    # Network and device info
+    network_type = db.Column(db.String(20), nullable=True)  # wifi, cellular, etc.
+    device_platform = db.Column(db.String(20), nullable=True)  # ios, android, web
+    app_version = db.Column(db.String(20), nullable=True)  # CallBunker app version
+    
+    # User feedback
+    user_rating = db.Column(db.Integer, nullable=True)  # User's quality rating (1-5)
+    user_feedback = db.Column(db.Text, nullable=True)  # Optional user comments
+    feedback_submitted_at = db.Column(db.DateTime, nullable=True)
+    
+    # Automatic quality assessment
+    quality_category = db.Column(db.String(20), nullable=True)  # excellent, good, fair, poor
+    quality_issues = db.Column(db.Text, nullable=True)  # JSON array of detected issues
+    
+    # Timestamps
+    measurement_time = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    call_log = relationship("MultiUserCallLog", foreign_keys=[call_log_id])
+    user = relationship("User", foreign_keys=[user_id])
+
+class QualityAlert(db.Model):
+    """Automated alerts for call quality issues"""
+    __tablename__ = 'quality_alerts'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, ForeignKey('users.id'), nullable=False, index=True)
+    alert_type = db.Column(db.String(50), nullable=False)  # poor_quality, network_issues, device_issues
+    severity = db.Column(db.String(20), nullable=False)  # low, medium, high, critical
+    message = db.Column(db.Text, nullable=False)
+    
+    # Alert conditions
+    trigger_condition = db.Column(db.Text, nullable=True)  # JSON describing what triggered the alert
+    calls_affected = db.Column(db.Integer, default=1, nullable=False)
+    time_period_hours = db.Column(db.Integer, default=1, nullable=False)
+    
+    # Alert status
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    acknowledged_at = db.Column(db.DateTime, nullable=True)
+    resolved_at = db.Column(db.DateTime, nullable=True)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id])

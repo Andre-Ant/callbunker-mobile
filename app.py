@@ -115,11 +115,10 @@ with app.app_context():
                 added_count = 0
                 for number in numbers:
                     # Add each number to pool
-                    pool_entry = TwilioPhonePool(
-                        phone_number=number.phone_number,
-                        monthly_cost=1.00,
-                        is_assigned=False
-                    )
+                    pool_entry = TwilioPhonePool()
+                    pool_entry.phone_number = number.phone_number
+                    pool_entry.monthly_cost = 1.00
+                    pool_entry.is_assigned = False
                     db.session.add(pool_entry)
                     added_count += 1
                 
@@ -149,6 +148,7 @@ from routes.demo import demo_bp
 from routes.tutorial import tutorial_bp
 from routes.dialer import dialer_bp
 from routes.demo_api import demo_api_bp
+from routes.call_quality import call_quality_bp
 
 app.register_blueprint(voice_bp, url_prefix='/voice')
 app.register_blueprint(admin_bp, url_prefix='/admin')
@@ -159,6 +159,7 @@ app.register_blueprint(demo_bp)
 app.register_blueprint(tutorial_bp, url_prefix='/tutorial')
 app.register_blueprint(dialer_bp)
 app.register_blueprint(demo_api_bp)
+app.register_blueprint(call_quality_bp, url_prefix='/quality')
 
 # Simple test route to verify deployment is working
 @app.route('/working')

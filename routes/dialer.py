@@ -317,13 +317,61 @@ def api_call_complete(user_id, call_log_id):
     # Update call log
     call_log.status = f'native_{status}'
     call_log.duration_seconds = duration_seconds
+    
+    # If quality metrics are provided, store them
+    quality_data = data.get('quality_metrics')
+    if quality_data:
+        from models_multi_user import CallQualityMetrics
+        
+        quality_metrics = CallQualityMetrics()
+        quality_metrics.call_log_id = call_log_id
+        quality_metrics.user_id = user_id
+        
+        # Map quality data from mobile app
+        if 'jitter_ms' in quality_data:
+            quality_metrics.jitter_ms = quality_data['jitter_ms']
+        if 'latency_ms' in quality_data:
+            quality_metrics.latency_ms = quality_data['latency_ms']
+        if 'packet_loss_percent' in quality_data:
+            quality_metrics.packet_loss_percent = quality_data['packet_loss_percent']
+        if 'audio_input_level' in quality_data:
+            quality_metrics.audio_input_level = quality_data['audio_input_level']
+        if 'audio_output_level' in quality_data:
+            quality_metrics.audio_output_level = quality_data['audio_output_level']
+        if 'network_type' in quality_data:
+            quality_metrics.network_type = quality_data['network_type']
+        if 'device_platform' in quality_data:
+            quality_metrics.device_platform = quality_data['device_platform']
+        if 'app_version' in quality_data:
+            quality_metrics.app_version = quality_data['app_version']
+        
+        # Auto-assess quality category
+        if quality_metrics.latency_ms or quality_metrics.jitter_ms:
+            poor_indicators = 0
+            if quality_metrics.latency_ms and quality_metrics.latency_ms > 300:
+                poor_indicators += 1
+            if quality_metrics.jitter_ms and quality_metrics.jitter_ms > 100:
+                poor_indicators += 1
+            if quality_metrics.packet_loss_percent and quality_metrics.packet_loss_percent > 5:
+                poor_indicators += 1
+            
+            if poor_indicators >= 2:
+                quality_metrics.quality_category = 'poor'
+            elif poor_indicators == 1:
+                quality_metrics.quality_category = 'fair'
+            else:
+                quality_metrics.quality_category = 'good'
+        
+        db.session.add(quality_metrics)
+    
     db.session.commit()
     
     return jsonify({
         'success': True,
         'call_log_id': call_log_id,
         'status': call_log.status,
-        'duration_seconds': duration_seconds
+        'duration_seconds': duration_seconds,
+        'quality_monitoring_enabled': quality_data is not None
     })
 
 @dialer_bp.route('/api/users/<int:user_id>/calls', methods=['GET'])
