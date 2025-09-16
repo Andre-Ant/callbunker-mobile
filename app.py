@@ -127,10 +127,6 @@ def working_test():
                 <li><a href="/multi/debug-auth">Debug Auth</a></li>
                 <li><a href="/multi/">Multi Home</a></li>
             </ul>
-            <hr>
-            <p><strong>Login Credentials:</strong><br>
-            Email: andre_antoine49@yahoo.com<br>
-            Password: 123456!</p>
         </div>
     </body>
     </html>
