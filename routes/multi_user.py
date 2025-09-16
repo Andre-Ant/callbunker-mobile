@@ -57,17 +57,31 @@ def language_status():
     """API endpoint to check current language and available languages"""
     from flask import current_app
     
+    # Get user language if logged in
+    user_language = None
+    if 'user_id' in session:
+        try:
+            from models_multi_user import User
+            user = User.query.get(session['user_id'])
+            if user:
+                user_language = user.preferred_language
+        except:
+            pass
+    
     return jsonify({
         'current_language': str(get_locale()),
         'available_languages': current_app.config['LANGUAGES'],
         'session_language': session.get('language'),
-        'user_language': None  # Will be filled in if user is logged in
+        'user_language': user_language,
+        'session_user_id': session.get('user_id'),  # Debug info
+        'session_keys': list(session.keys())        # Debug info
     })
 
 @multi_user_bp.route('/translation-test')
 def translation_test():
     """Debug route to test Flask-Babel translations directly"""
     from flask import current_app
+    from flask_babel import gettext as _
     
     # Test direct translation
     full_name = gettext('Full Name')

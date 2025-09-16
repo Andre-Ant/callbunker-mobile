@@ -72,8 +72,16 @@ def inject_conf_vars():
 # Production session configuration
 # Fix for deployed environments where sessions don't work
 is_production = os.environ.get("REPLIT_DEPLOYMENT") is not None
+
+# Check if SESSION_SECRET is properly set
+if not os.environ.get("SESSION_SECRET"):
+    print("WARNING: SESSION_SECRET not set! Sessions will not persist.")
+    if not is_production:
+        app.secret_key = "dev-secret-change-me"
+        print("Using development fallback secret key")
+
 app.config.update(
-    SESSION_COOKIE_SECURE=is_production,     # HTTPS only in production
+    SESSION_COOKIE_SECURE=False,            # Allow HTTP in development 
     SESSION_COOKIE_HTTPONLY=True,           # No JS access to cookies
     SESSION_COOKIE_SAMESITE='Lax',          # CSRF protection
     PERMANENT_SESSION_LIFETIME=7200,        # 2 hours
