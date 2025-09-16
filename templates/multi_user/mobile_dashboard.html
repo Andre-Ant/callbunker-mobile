@@ -1020,7 +1020,7 @@
             <div class="list-item" onclick="showDetail('security')">
                 <div class="list-avatar">🛡️</div>
                 <div class="list-content">
-                    <div class="list-title">Security Settings</div>
+                    <div class="list-title">{{ _("Security Settings") }}</div>
                     <div class="list-subtitle">PIN: {{ user.pin }}, Verbal: "{{ user.verbal_code }}"</div>
                 </div>
                 <div class="list-arrow">›</div>
@@ -1036,7 +1036,7 @@
             <div class="list-item" onclick="showDetail('language')">
                 <div class="list-avatar">🌐</div>
                 <div class="list-content">
-                    <div class="list-title">Language</div>
+                    <div class="list-title">{{ _("Language") }}</div>
                     <div class="list-subtitle">English - Change app language</div>
                 </div>
                 <div class="list-arrow">›</div>
@@ -1311,7 +1311,7 @@
     <div class="tab-bar">
         <div class="tab active" onclick="switchTab('home')">
             <div class="tab-icon">🏠</div>
-            <div class="tab-label">Home</div>
+            <div class="tab-label">{{ _("Home") }}</div>
         </div>
         <div class="tab" onclick="switchTab('dialer')">
             <div class="tab-icon">📞</div>
@@ -1331,7 +1331,7 @@
         </div>
         <div class="tab" onclick="switchTab('settings')">
             <div class="tab-icon">⚙️</div>
-            <div class="tab-label">Settings</div>
+            <div class="tab-label">{{ _("Settings") }}</div>
         </div>
     </div>
 
