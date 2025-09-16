@@ -1297,6 +1297,13 @@
                         <span class="language-check" id="check-zh"></span>
                     </div>
                 </div>
+                
+                <!-- Save Button (hidden by default) -->
+                <div id="language-save-container" style="margin-top: 16px; display: none;">
+                    <button id="save-language-btn" onclick="saveLanguageSelection()" style="width: 100%; background: #007aff; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; font-weight: 600;">
+                        Save Language
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -3387,6 +3394,8 @@
         }
 
         // Language settings functions
+        let selectedLanguage = { code: 'en', name: 'English' }; // Track selected language
+        
         function changeLanguage(langCode, langName) {
             // Clear all checkmarks
             document.querySelectorAll('.language-check').forEach(check => {
@@ -3395,6 +3404,23 @@
             
             // Set checkmark for selected language
             document.getElementById('check-' + langCode).textContent = '✓';
+            
+            // Store selected language for saving later
+            selectedLanguage = { code: langCode, name: langName };
+            
+            // Show save button if different from current language
+            const currentLang = document.getElementById('current-language').textContent;
+            if (langName !== currentLang) {
+                document.getElementById('language-save-container').style.display = 'block';
+                document.getElementById('save-language-btn').textContent = `Save - Change to ${langName}`;
+            } else {
+                document.getElementById('language-save-container').style.display = 'none';
+            }
+        }
+        
+        function saveLanguageSelection() {
+            const langCode = selectedLanguage.code;
+            const langName = selectedLanguage.name;
             
             // Update current language display
             document.getElementById('current-language').textContent = langName;
@@ -3405,12 +3431,15 @@
                 settingsSubtitle.textContent = langName + ' - Change app language';
             }
             
-            // Call backend to save language preference
+            // Hide save button
+            document.getElementById('language-save-container').style.display = 'none';
+            
+            // Call backend to save language preference and reload
             fetch(`/multi/set-language/${langCode}`)
                 .then(response => {
                     if (response.ok) {
-                        // Show brief confirmation message
-                        showCustomAlert('Language Changed', `Interface changing to ${langName}...`);
+                        // Show confirmation and reload
+                        showCustomAlert('Language Saved', `Changing interface to ${langName}...`);
                         
                         // Reload page after short delay to see the language change
                         setTimeout(() => {
@@ -3440,6 +3469,7 @@
         window.updatePin = updatePin;
         window.updateVerbalCode = updateVerbalCode;
         window.changeLanguage = changeLanguage;
+        window.saveLanguageSelection = saveLanguageSelection;
 
         // Clean up device on page unload
         window.addEventListener('beforeunload', () => {
