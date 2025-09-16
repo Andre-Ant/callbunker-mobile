@@ -3409,7 +3409,13 @@
             fetch(`/multi/set-language/${langCode}`)
                 .then(response => {
                     if (response.ok) {
-                        showCustomAlert('Language Changed', `Language preference changed to ${langName} and saved to your settings.`);
+                        // Show brief confirmation message
+                        showCustomAlert('Language Changed', `Interface changing to ${langName}...`);
+                        
+                        // Reload page after short delay to see the language change
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
                     } else {
                         showCustomAlert('Error', 'Failed to save language preference.');
                     }
