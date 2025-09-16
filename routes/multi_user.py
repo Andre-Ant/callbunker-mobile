@@ -214,6 +214,7 @@ def test_page():
                 <li><strong><a href="/multi/login" style="color: #007bff;">Login Page</a></strong> - Sign into your account</li>
                 <li><strong><a href="/multi/signup" style="color: #28a745;">Signup Page</a></strong> - Create new account</li>
                 <li><strong><a href="/multi/" style="color: #6c757d;">Main Page</a></strong> - Redirects to login</li>
+                <li><strong><a href="/multi/debug-auth" style="color: #dc3545;">Debug Auth</a></strong> - Test authentication</li>
             </ul>
             <div style="margin-top: 30px; padding: 15px; background: #e7f3ff; border-left: 4px solid #007bff;">
                 <strong>Login Credentials:</strong><br>
@@ -221,6 +222,66 @@ def test_page():
                 Password: 123456!
             </div>
         </div>
+    </body>
+    </html>
+    """
+
+@multi_user_bp.route('/debug-auth', methods=['GET', 'POST'])
+def debug_auth():
+    """Debug authentication issues"""
+    if request.method == 'GET':
+        return """
+        <html>
+        <head><title>Debug Authentication</title></head>
+        <body style="font-family: Arial; margin: 30px;">
+            <h2>🔍 Debug Authentication</h2>
+            <form method="POST">
+                <p><input type="email" name="email" value="andre_antoine49@yahoo.com" style="width: 300px; padding: 10px;" placeholder="Email"></p>
+                <p><input type="password" name="password" value="123456!" style="width: 300px; padding: 10px;" placeholder="Password"></p>
+                <p><button type="submit" style="padding: 10px 20px; background: #007bff; color: white; border: none;">Test Login</button></p>
+            </form>
+        </body>
+        </html>
+        """
+    
+    from werkzeug.security import check_password_hash
+    
+    email = request.form.get('email', '').strip().lower()
+    password = request.form.get('password', '').strip()
+    
+    result = f"<h2>🔍 Authentication Debug Results</h2>"
+    result += f"<p><strong>Email:</strong> {email}</p>"
+    result += f"<p><strong>Password Length:</strong> {len(password)}</p>"
+    
+    # Find user
+    user = User.query.filter_by(email=email).first()
+    if user:
+        result += f"<p>✅ <strong>User Found:</strong> {user.name} (ID: {user.id})</p>"
+        result += f"<p><strong>Active:</strong> {user.is_active}</p>"
+        result += f"<p><strong>Has Password Hash:</strong> {'Yes' if user.password_hash else 'No'}</p>"
+        
+        if user.password_hash:
+            password_valid = check_password_hash(user.password_hash, password)
+            result += f"<p><strong>Password Valid:</strong> {'✅ YES' if password_valid else '❌ NO'}</p>"
+            
+            if password_valid:
+                # Test session
+                session['test_user_id'] = user.id
+                session['test_logged_in'] = True
+                result += f"<p>✅ <strong>Session Test:</strong> Set session variables</p>"
+                result += f"<p><strong>Session User ID:</strong> {session.get('test_user_id')}</p>"
+                result += f"<p><strong>Session Logged In:</strong> {session.get('test_logged_in')}</p>"
+        else:
+            result += f"<p>❌ <strong>No password hash found</strong></p>"
+    else:
+        result += f"<p>❌ <strong>User Not Found</strong></p>"
+    
+    return f"""
+    <html>
+    <head><title>Debug Results</title></head>
+    <body style="font-family: Arial; margin: 30px;">
+        {result}
+        <p><a href="/multi/debug-auth">← Test Again</a> | <a href="/multi/login">Try Real Login</a></p>
     </body>
     </html>
     """
