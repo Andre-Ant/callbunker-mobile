@@ -35,7 +35,11 @@ app.config['LANGUAGES'] = {
 
 def get_locale():
     """Select the best language based on user preference, session, or browser"""
-    # 1. Check if user is logged in and has a preferred language
+    # 1. Check session for manually selected language (takes priority)
+    if 'language' in session:
+        return session['language']
+    
+    # 2. Check if user is logged in and has a preferred language
     if 'user_id' in session:
         try:
             from models_multi_user import User
@@ -44,10 +48,6 @@ def get_locale():
                 return user.preferred_language
         except:
             pass
-    
-    # 2. Check session for manually selected language
-    if 'language' in session:
-        return session['language']
     
     # 3. Use browser's preferred language if supported
     return request.accept_languages.best_match(app.config['LANGUAGES'].keys()) or 'en'
