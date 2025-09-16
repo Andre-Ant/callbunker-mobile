@@ -6,7 +6,7 @@ packages = ["openssl", "postgresql"]
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
+run = ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-5000} main:app"]
 
 [workflows]
 runButton = "Project"
@@ -70,4 +70,10 @@ localPort = 43089
 externalPort = 4200
 
 [agent]
-integrations = ["twilio_send_message==1.0.0", "python_database==1.0.0", "styling_replit==1.0.0", "python_log_in_with_replit==1.0.0", "python_sendgrid==1.0.0"]
+integrations = [
+  "twilio_send_message==1.0.0",
+  "python_database==1.0.0",
+  "styling_replit==1.0.0",
+  "python_log_in_with_replit==1.0.0",
+  "python_sendgrid==1.0.0",
+]
