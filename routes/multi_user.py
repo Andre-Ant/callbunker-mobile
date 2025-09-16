@@ -158,9 +158,20 @@ def mobile_signup():
         session['user_email'] = user.email
         session['logged_in'] = True
         
-        # Redirect directly to dashboard - no Google Voice setup needed
+        # Check if this is an AJAX request (for JavaScript modal)
+        if request.headers.get('Content-Type') == 'application/json' or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Return JSON for AJAX requests to trigger modal
+            from utils.phone_utils import format_phone_display
+            return jsonify({
+                'success': True,
+                'message': 'Account created successfully!',
+                'defense_number': format_phone_display(user.assigned_twilio_number),
+                'user_id': user.id
+            })
+        
+        # For regular form submissions, redirect to success page with Defense Number
         flash(f'Account created! Your Defense Number is {format_phone_display(user.assigned_twilio_number)}', 'success')
-        return redirect(url_for('multi_user.dashboard', user_id=user.id))
+        return redirect(url_for('multi_user.signup_success', defense_number=user.assigned_twilio_number))
         
     except Exception as e:
         db.session.rollback()
@@ -171,6 +182,36 @@ def mobile_signup():
 def debug_signup():
     """Simple debug signup page"""
     return render_template('multi_user/debug_signup.html')
+
+@multi_user_bp.route('/signup-success')
+def signup_success():
+    """Show signup success page with Defense Number"""
+    defense_number = request.args.get('defense_number')
+    if not defense_number:
+        return redirect(url_for('multi_user.mobile_signup'))
+    
+    from utils.phone_utils import format_phone_display
+    formatted_number = format_phone_display(defense_number)
+    
+    return f"""
+    <html>
+    <head><title>🎉 CallBunker Account Created!</title></head>
+    <body style="font-family: Arial; margin: 30px; text-align: center; background: #f8f9fa;">
+        <div style="max-width: 500px; margin: 50px auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <h1 style="color: #28a745; margin-bottom: 20px;">🎉 Account Created Successfully!</h1>
+            <p style="font-size: 18px; margin-bottom: 30px;">Your CallBunker Defense Number is:</p>
+            <div style="background: #e8f5e8; color: #4caf50; padding: 20px; border-radius: 12px; font-size: 28px; font-weight: bold; margin: 20px 0; font-family: monospace; letter-spacing: 2px;">
+                {formatted_number}
+            </div>
+            <p style="color: #666; margin-bottom: 30px;">Share this number with people you want to reach you. All calls will be screened with your PIN or verbal code.</p>
+            <div style="margin-top: 40px;">
+                <a href="/multi/login" style="background: #007AFF; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin: 0 10px; display: inline-block;">📱 Login to Dashboard</a>
+                <a href="/multi/quick-signup" style="background: #28a745; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin: 0 10px; display: inline-block;">➕ Create Another Account</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
 
 @multi_user_bp.route('/show-my-number')
 def show_my_number():

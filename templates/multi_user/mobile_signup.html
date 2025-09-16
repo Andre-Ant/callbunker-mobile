@@ -462,16 +462,53 @@
         document.getElementById('confirm_password').addEventListener('input', validateForm);
         document.getElementById('password').addEventListener('input', validateForm);
         
-        // Form submission validation
+        // Form submission with AJAX to trigger modal
         document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Always prevent default to use AJAX
+            
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
             
             if (password !== confirmPassword) {
-                e.preventDefault();
                 alert('Passwords do not match. Please check and try again.');
                 return false;
             }
+            
+            // Submit via AJAX to get JSON response for modal
+            const formData = new FormData(this);
+            const submitButton = document.querySelector('.signup-button');
+            const originalText = submitButton.textContent;
+            
+            // Show loading state
+            submitButton.disabled = true;
+            submitButton.textContent = '⏳ Creating Account...';
+            
+            fetch('/multi/quick-signup', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success modal with Defense Number
+                    document.getElementById('defenseNumber').textContent = data.defense_number;
+                    document.getElementById('successModal').style.display = 'flex';
+                } else {
+                    alert('Signup failed: ' + (data.message || 'Please try again.'));
+                }
+            })
+            .catch(error => {
+                console.error('Signup error:', error);
+                alert('Signup failed. Please try again.');
+            })
+            .finally(() => {
+                // Reset button
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            });
         });
         
         // Updated function name for new flow
