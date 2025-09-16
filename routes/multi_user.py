@@ -172,6 +172,37 @@ def debug_signup():
     """Simple debug signup page"""
     return render_template('multi_user/debug_signup.html')
 
+@multi_user_bp.route('/show-my-number')
+def show_my_number():
+    """Show current user's assigned Defense Number"""
+    try:
+        # Find user andre_antoine49@yahoo.com
+        user = User.query.filter_by(email='andre_antoine49@yahoo.com').first()
+        if not user:
+            return "<h1>User Not Found</h1><p>No user found with that email</p>"
+        
+        from utils.phone_utils import format_phone_display
+        defense_number = format_phone_display(user.assigned_twilio_number)
+        
+        return f"""
+        <html>
+        <head><title>Your Defense Number</title></head>
+        <body style="font-family: Arial; margin: 30px; text-align: center;">
+            <h1>🛡️ Your CallBunker Defense Number</h1>
+            <div style="background: #e8f5e8; color: #4caf50; padding: 20px; border-radius: 12px; font-size: 24px; font-weight: bold; margin: 20px 0; font-family: monospace;">
+                {defense_number}
+            </div>
+            <p>This is your CallBunker number that others should call to reach you.</p>
+            <p>All calls to this number will be screened with your PIN or verbal code.</p>
+            <hr style="margin: 30px 0;">
+            <p><a href="/multi/quick-signup" style="background: #007AFF; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px;">Create Another Account</a></p>
+            <p><a href="/multi/login" style="background: #28a745; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px;">Login to Dashboard</a></p>
+        </body>
+        </html>
+        """
+    except Exception as e:
+        return f"<h1>Error</h1><p>{str(e)}</p>"
+
 @multi_user_bp.route('/debug-database')
 def debug_database():
     """Check production database phone pool status"""
@@ -183,6 +214,10 @@ def debug_database():
         all_numbers = TwilioPhonePool.query.all()
         numbers_list = [(n.phone_number, n.is_assigned) for n in all_numbers]
         
+        # Also show user assignments
+        users = User.query.all()
+        user_assignments = [(u.email, u.assigned_twilio_number) for u in users]
+        
         return f"""
         <h1>Database Status</h1>
         <p><strong>Total Numbers:</strong> {total}</p>
@@ -191,6 +226,10 @@ def debug_database():
         <h2>All Numbers:</h2>
         <ul>
         {"".join([f"<li>{num} - {'ASSIGNED' if assigned else 'AVAILABLE'}</li>" for num, assigned in numbers_list])}
+        </ul>
+        <h2>User Assignments:</h2>
+        <ul>
+        {"".join([f"<li>{email} → {number}</li>" for email, number in user_assignments])}
         </ul>
         <p>Threshold check: available > 0 = {available > 0}</p>
         <p>Signup button should show: {'CREATE ACCOUNT' if available > 0 else 'JOIN WAITLIST'}</p>
