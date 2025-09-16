@@ -294,6 +294,63 @@
                     <div class="help-text">For account management and notifications</div>
                 </div>
                 
+                <div class="form-group">
+                    <label for="country" class="label">🌍 Country</label>
+                    <select class="input" id="country" name="country" required onchange="updateLanguage()">
+                        <option value="">Select your country...</option>
+                        <option value="US" data-lang="en" data-flag="🇺🇸">🇺🇸 United States</option>
+                        <option value="CA" data-lang="en" data-flag="🇨🇦">🇨🇦 Canada</option>
+                        <option value="GB" data-lang="en" data-flag="🇬🇧">🇬🇧 United Kingdom</option>
+                        <option value="AU" data-lang="en" data-flag="🇦🇺">🇦🇺 Australia</option>
+                        <option value="ES" data-lang="es" data-flag="🇪🇸">🇪🇸 Spain</option>
+                        <option value="MX" data-lang="es" data-flag="🇲🇽">🇲🇽 Mexico</option>
+                        <option value="AR" data-lang="es" data-flag="🇦🇷">🇦🇷 Argentina</option>
+                        <option value="CO" data-lang="es" data-flag="🇨🇴">🇨🇴 Colombia</option>
+                        <option value="FR" data-lang="fr" data-flag="🇫🇷">🇫🇷 France</option>
+                        <option value="BE" data-lang="fr" data-flag="🇧🇪">🇧🇪 Belgium</option>
+                        <option value="CH" data-lang="fr" data-flag="🇨🇭">🇨🇭 Switzerland</option>
+                        <option value="DE" data-lang="de" data-flag="🇩🇪">🇩🇪 Germany</option>
+                        <option value="AT" data-lang="de" data-flag="🇦🇹">🇦🇹 Austria</option>
+                        <option value="IT" data-lang="it" data-flag="🇮🇹">🇮🇹 Italy</option>
+                        <option value="PT" data-lang="pt" data-flag="🇵🇹">🇵🇹 Portugal</option>
+                        <option value="BR" data-lang="pt" data-flag="🇧🇷">🇧🇷 Brazil</option>
+                        <option value="NL" data-lang="nl" data-flag="🇳🇱">🇳🇱 Netherlands</option>
+                        <option value="SE" data-lang="sv" data-flag="🇸🇪">🇸🇪 Sweden</option>
+                        <option value="NO" data-lang="no" data-flag="🇳🇴">🇳🇴 Norway</option>
+                        <option value="DK" data-lang="da" data-flag="🇩🇰">🇩🇰 Denmark</option>
+                        <option value="FI" data-lang="fi" data-flag="🇫🇮">🇫🇮 Finland</option>
+                        <option value="PL" data-lang="pl" data-flag="🇵🇱">🇵🇱 Poland</option>
+                        <option value="CZ" data-lang="cs" data-flag="🇨🇿">🇨🇿 Czech Republic</option>
+                        <option value="HU" data-lang="hu" data-flag="🇭🇺">🇭🇺 Hungary</option>
+                        <option value="RO" data-lang="ro" data-flag="🇷🇴">🇷🇴 Romania</option>
+                        <option value="GR" data-lang="el" data-flag="🇬🇷">🇬🇷 Greece</option>
+                        <option value="JP" data-lang="ja" data-flag="🇯🇵">🇯🇵 Japan</option>
+                        <option value="KR" data-lang="ko" data-flag="🇰🇷">🇰🇷 South Korea</option>
+                        <option value="CN" data-lang="zh" data-flag="🇨🇳">🇨🇳 China</option>
+                        <option value="IN" data-lang="hi" data-flag="🇮🇳">🇮🇳 India</option>
+                        <option value="SG" data-lang="en" data-flag="🇸🇬">🇸🇬 Singapore</option>
+                        <option value="PH" data-lang="en" data-flag="🇵🇭">🇵🇭 Philippines</option>
+                        <option value="TH" data-lang="th" data-flag="🇹🇭">🇹🇭 Thailand</option>
+                        <option value="VN" data-lang="vi" data-flag="🇻🇳">🇻🇳 Vietnam</option>
+                        <option value="ID" data-lang="id" data-flag="🇮🇩">🇮🇩 Indonesia</option>
+                        <option value="MY" data-lang="ms" data-flag="🇲🇾">🇲🇾 Malaysia</option>
+                        <option value="ZA" data-lang="en" data-flag="🇿🇦">🇿🇦 South Africa</option>
+                        <option value="NG" data-lang="en" data-flag="🇳🇬">🇳🇬 Nigeria</option>
+                        <option value="KE" data-lang="en" data-flag="🇰🇪">🇰🇪 Kenya</option>
+                        <option value="EG" data-lang="ar" data-flag="🇪🇬">🇪🇬 Egypt</option>
+                        <option value="SA" data-lang="ar" data-flag="🇸🇦">🇸🇦 Saudi Arabia</option>
+                        <option value="AE" data-lang="ar" data-flag="🇦🇪">🇦🇪 UAE</option>
+                        <option value="IL" data-lang="he" data-flag="🇮🇱">🇮🇱 Israel</option>
+                        <option value="TR" data-lang="tr" data-flag="🇹🇷">🇹🇷 Turkey</option>
+                        <option value="RU" data-lang="ru" data-flag="🇷🇺">🇷🇺 Russia</option>
+                        <option value="UA" data-lang="uk" data-flag="🇺🇦">🇺🇦 Ukraine</option>
+                        <option value="BY" data-lang="be" data-flag="🇧🇾">🇧🇾 Belarus</option>
+                        <option value="KZ" data-lang="kk" data-flag="🇰🇿">🇰🇿 Kazakhstan</option>
+                        <option value="NZ" data-lang="en" data-flag="🇳🇿">🇳🇿 New Zealand</option>
+                        <option value="ZZ" data-lang="en" data-flag="🌍">🌍 Other Country</option>
+                    </select>
+                    <div class="help-text">This will set your app language and optimize call routing</div>
+                </div>
                 
                 <div class="form-group">
                     <label for="real_phone_number" class="label">Your Phone Number</label>
@@ -461,6 +518,160 @@
         // Password confirmation validation
         document.getElementById('confirm_password').addEventListener('input', validateForm);
         document.getElementById('password').addEventListener('input', validateForm);
+        
+        // Language and localization mapping
+        const translations = {
+            en: {
+                title: "🛡️ Join CallBunker",
+                subtitle: "Direct Voice SDK calling with advanced call screening",
+                fullName: "Full Name",
+                nameHelp: "Your name for account identification",
+                emailAddress: "Email Address", 
+                emailHelp: "For account management and notifications",
+                country: "🌍 Country",
+                countryHelp: "This will set your app language and optimize call routing",
+                yourPhone: "Your Phone Number",
+                phoneHelp: "Your actual phone number for forwarding screened calls",
+                createPassword: "Create Password",
+                passwordHelp: "For logging into your CallBunker account",
+                reenterPassword: "Re-enter Password",
+                confirmHelp: "Must match the password above",
+                fourDigitPIN: "4-Digit PIN",
+                pinHelp: "Callers enter this on keypad",
+                verbalCode: "Verbal Code",
+                verbalHelp: "Callers can say this instead",
+                createAccount: "⏳ Creating Account...",
+                createButton: "🚀 Create Account",
+                alreadyHave: "Already have an account?",
+                signIn: "Sign In"
+            },
+            es: {
+                title: "🛡️ Únete a CallBunker",
+                subtitle: "Llamadas directas con SDK de voz y filtrado avanzado",
+                fullName: "Nombre Completo",
+                nameHelp: "Tu nombre para identificación de cuenta",
+                emailAddress: "Dirección de Email",
+                emailHelp: "Para gestión de cuenta y notificaciones",
+                country: "🌍 País",
+                countryHelp: "Esto establecerá el idioma de tu app y optimizará el enrutamiento",
+                yourPhone: "Tu Número de Teléfono",
+                phoneHelp: "Tu número real para reenviar llamadas filtradas",
+                createPassword: "Crear Contraseña",
+                passwordHelp: "Para iniciar sesión en tu cuenta CallBunker",
+                reenterPassword: "Vuelve a ingresar Contraseña",
+                confirmHelp: "Debe coincidir con la contraseña anterior",
+                fourDigitPIN: "PIN de 4 Dígitos",
+                pinHelp: "Los llamadores ingresan esto en el teclado",
+                verbalCode: "Código Verbal",
+                verbalHelp: "Los llamadores pueden decir esto en su lugar",
+                createAccount: "⏳ Creando Cuenta...",
+                createButton: "🚀 Crear Cuenta",
+                alreadyHave: "¿Ya tienes una cuenta?",
+                signIn: "Iniciar Sesión"
+            },
+            fr: {
+                title: "🛡️ Rejoindre CallBunker",
+                subtitle: "Appels directs avec SDK vocal et filtrage avancé",
+                fullName: "Nom Complet",
+                nameHelp: "Votre nom pour l'identification du compte",
+                emailAddress: "Adresse Email",
+                emailHelp: "Pour la gestion de compte et les notifications",
+                country: "🌍 Pays",
+                countryHelp: "Ceci définira la langue de votre app et optimisera le routage",
+                yourPhone: "Votre Numéro de Téléphone",
+                phoneHelp: "Votre numéro réel pour transférer les appels filtrés",
+                createPassword: "Créer un Mot de Passe",
+                passwordHelp: "Pour vous connecter à votre compte CallBunker",
+                reenterPassword: "Ressaisir le Mot de Passe",
+                confirmHelp: "Doit correspondre au mot de passe ci-dessus",
+                fourDigitPIN: "PIN à 4 Chiffres",
+                pinHelp: "Les appelants saisissent ceci sur le clavier",
+                verbalCode: "Code Verbal",
+                verbalHelp: "Les appelants peuvent dire ceci à la place",
+                createAccount: "⏳ Création du Compte...",
+                createButton: "🚀 Créer un Compte",
+                alreadyHave: "Vous avez déjà un compte?",
+                signIn: "Se Connecter"
+            },
+            de: {
+                title: "🛡️ CallBunker Beitreten",
+                subtitle: "Direkte Voice SDK Anrufe mit erweitertem Anruffilter",
+                fullName: "Vollständiger Name",
+                nameHelp: "Ihr Name zur Kontoidentifikation",
+                emailAddress: "E-Mail Adresse",
+                emailHelp: "Für Kontoverwaltung und Benachrichtigungen",
+                country: "🌍 Land",
+                countryHelp: "Dies setzt Ihre App-Sprache und optimiert das Routing",
+                yourPhone: "Ihre Telefonnummer",
+                phoneHelp: "Ihre echte Nummer für die Weiterleitung gefilterter Anrufe",
+                createPassword: "Passwort Erstellen",
+                passwordHelp: "Zum Anmelden bei Ihrem CallBunker-Konto",
+                reenterPassword: "Passwort Wiederholen",
+                confirmHelp: "Muss mit dem obigen Passwort übereinstimmen",
+                fourDigitPIN: "4-stellige PIN",
+                pinHelp: "Anrufer geben dies auf der Tastatur ein",
+                verbalCode: "Verbaler Code",
+                verbalHelp: "Anrufer können dies stattdessen sagen",
+                createAccount: "⏳ Konto Wird Erstellt...",
+                createButton: "🚀 Konto Erstellen",
+                alreadyHave: "Haben Sie bereits ein Konto?",
+                signIn: "Anmelden"
+            }
+        };
+        
+        // Update page language based on country selection
+        function updateLanguage() {
+            const countrySelect = document.getElementById('country');
+            const selectedOption = countrySelect.options[countrySelect.selectedIndex];
+            const language = selectedOption.getAttribute('data-lang') || 'en';
+            
+            // Map languages to supported translations
+            const supportedLang = translations[language] ? language : 'en';
+            const t = translations[supportedLang];
+            
+            // Update all translatable elements
+            document.querySelector('.title').textContent = t.title;
+            document.querySelector('.subtitle').textContent = t.subtitle;
+            
+            // Update labels
+            document.querySelector('label[for="name"]').textContent = t.fullName;
+            document.querySelector('label[for="email"]').textContent = t.emailAddress;
+            document.querySelector('label[for="country"]').textContent = t.country;
+            document.querySelector('label[for="real_phone_number"]').textContent = t.yourPhone;
+            document.querySelector('label[for="password"]').textContent = t.createPassword;
+            document.querySelector('label[for="confirm_password"]').textContent = t.reenterPassword;
+            document.querySelector('label[for="pin"]').textContent = t.fourDigitPIN;
+            document.querySelector('label[for="verbal_code"]').textContent = t.verbalCode;
+            
+            // Update help texts
+            const helpTexts = document.querySelectorAll('.help-text');
+            if (helpTexts[0]) helpTexts[0].textContent = t.nameHelp;
+            if (helpTexts[1]) helpTexts[1].textContent = t.emailHelp;
+            if (helpTexts[2]) helpTexts[2].textContent = t.countryHelp;
+            if (helpTexts[3]) helpTexts[3].textContent = t.phoneHelp;
+            if (helpTexts[4]) helpTexts[4].textContent = t.passwordHelp;
+            if (helpTexts[5]) helpTexts[5].textContent = t.confirmHelp;
+            if (helpTexts[6]) helpTexts[6].textContent = t.pinHelp;
+            if (helpTexts[7]) helpTexts[7].textContent = t.verbalHelp;
+            
+            // Update button text
+            const createButton = document.querySelector('.signup-button');
+            if (createButton && !createButton.disabled) {
+                createButton.textContent = t.createButton;
+            }
+            
+            // Store selected language for form submission
+            const languageInput = document.getElementById('selected_language') || document.createElement('input');
+            languageInput.type = 'hidden';
+            languageInput.id = 'selected_language';
+            languageInput.name = 'selected_language';
+            languageInput.value = supportedLang;
+            if (!document.getElementById('selected_language')) {
+                document.getElementById('signupForm').appendChild(languageInput);
+            }
+            
+            console.log(`Language updated to: ${supportedLang} (from country: ${countrySelect.value})`);
+        }
         
         // Form submission with AJAX to trigger modal
         document.getElementById('signupForm').addEventListener('submit', function(e) {

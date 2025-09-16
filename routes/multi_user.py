@@ -98,6 +98,8 @@ def mobile_signup():
         confirm_password = request.form.get('confirm_password', '').strip()
         pin = request.form.get('pin', '1122').strip()
         verbal_code = request.form.get('verbal_code', 'open sesame').strip()
+        country = request.form.get('country', 'US').strip().upper()
+        selected_language = request.form.get('selected_language', 'en').strip().lower()
         
         # Check available numbers for template
         available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
@@ -141,6 +143,8 @@ def mobile_signup():
             email=email,
             name=name,
             real_phone_number=real_phone_number,
+            country=country,
+            preferred_language=selected_language,
             pin=pin,
             verbal_code=verbal_code,
             assigned_twilio_number=available_number.phone_number,
@@ -464,6 +468,8 @@ def quick_signup():
         password = request.form.get('password', '').strip()
         pin = request.form.get('pin', '1122').strip()
         verbal_code = request.form.get('verbal_code', 'open sesame').strip()
+        country = request.form.get('country', 'US').strip().upper()
+        selected_language = request.form.get('selected_language', 'en').strip().lower()
         
         # Helper function to return error (JSON for AJAX, HTML for regular)
         def return_error(message):
@@ -494,6 +500,8 @@ def quick_signup():
             name=name,
             email=email,
             real_phone_number=real_phone_number,
+            country=country,
+            preferred_language=selected_language,
             assigned_twilio_number=available_number.phone_number,
             pin=pin,
             verbal_code=verbal_code,

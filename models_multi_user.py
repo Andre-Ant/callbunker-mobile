@@ -16,6 +16,10 @@ class User(db.Model):
     real_phone_number = db.Column(db.String(20), nullable=False)  # Where calls should be forwarded
     assigned_twilio_number = db.Column(db.String(20), nullable=False, unique=True, index=True)  # Their CallBunker number
     
+    # Localization settings
+    country = db.Column(db.String(2), default="US", nullable=False)  # ISO country code (US, ES, FR, etc.)
+    preferred_language = db.Column(db.String(5), default="en", nullable=False)  # Language code (en, es, fr, etc.)
+    
     # Authentication settings
     pin = db.Column(db.String(4), default="1122", nullable=False)
     verbal_code = db.Column(db.String(50), default="open sesame", nullable=False)
