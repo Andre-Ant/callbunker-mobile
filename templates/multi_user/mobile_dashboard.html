@@ -707,6 +707,35 @@
             font-weight: 500;
         }
         
+        .language-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f2f2f7;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .language-option:last-child {
+            border-bottom: none;
+        }
+        
+        .language-option:active {
+            background-color: #f2f2f7;
+        }
+        
+        .language-name {
+            font-size: 16px;
+            color: #1c1c1e;
+        }
+        
+        .language-check {
+            font-size: 16px;
+            color: #007aff;
+            font-weight: bold;
+        }
+        
         .feature-list {
             list-style: none;
             padding: 0;
@@ -1004,6 +1033,14 @@
                 </div>
                 <div class="list-arrow">›</div>
             </div>
+            <div class="list-item" onclick="showDetail('language')">
+                <div class="list-avatar">🌐</div>
+                <div class="list-content">
+                    <div class="list-title">Language</div>
+                    <div class="list-subtitle">English - Change app language</div>
+                </div>
+                <div class="list-arrow">›</div>
+            </div>
             <div class="list-item" onclick="showDetail('about')">
                 <div class="list-avatar">ℹ️</div>
                 <div class="list-content">
@@ -1200,6 +1237,65 @@
                 <div style="margin-top: 8px;">
                     <div style="font-size: 14px; color: #1c1c1e; margin-bottom: 4px;">{{ user.name }}</div>
                     <div style="font-size: 12px; color: #8e8e93;">{{ user.email }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Language Detail Screen -->
+        <div class="detail-screen" id="language-detail">
+            <div class="detail-header">
+                <button class="back-arrow" onclick="hideDetail()">‹</button>
+                <div class="detail-title">Language Settings</div>
+            </div>
+            
+            <div class="detail-card">
+                <div class="detail-label">Current Language</div>
+                <div class="detail-value" id="current-language">English</div>
+            </div>
+
+            <div class="detail-card">
+                <div class="detail-label">Available Languages</div>
+                <div class="language-list" style="margin-top: 12px;">
+                    <div class="language-option" onclick="changeLanguage('en', 'English')" data-lang="en">
+                        <span class="language-name">English</span>
+                        <span class="language-check" id="check-en">✓</span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('es', 'Español')" data-lang="es">
+                        <span class="language-name">Español</span>
+                        <span class="language-check" id="check-es"></span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('fr', 'Français')" data-lang="fr">
+                        <span class="language-name">Français</span>
+                        <span class="language-check" id="check-fr"></span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('de', 'Deutsch')" data-lang="de">
+                        <span class="language-name">Deutsch</span>
+                        <span class="language-check" id="check-de"></span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('it', 'Italiano')" data-lang="it">
+                        <span class="language-name">Italiano</span>
+                        <span class="language-check" id="check-it"></span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('pt', 'Português')" data-lang="pt">
+                        <span class="language-name">Português</span>
+                        <span class="language-check" id="check-pt"></span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('ru', 'Русский')" data-lang="ru">
+                        <span class="language-name">Русский</span>
+                        <span class="language-check" id="check-ru"></span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('ja', '日本語')" data-lang="ja">
+                        <span class="language-name">日本語</span>
+                        <span class="language-check" id="check-ja"></span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('ko', '한국어')" data-lang="ko">
+                        <span class="language-name">한국어</span>
+                        <span class="language-check" id="check-ko"></span>
+                    </div>
+                    <div class="language-option" onclick="changeLanguage('zh', '中文')" data-lang="zh">
+                        <span class="language-name">中文</span>
+                        <span class="language-check" id="check-zh"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2462,6 +2558,7 @@
             const titles = {
                 security: 'Security Settings',
                 privacy: 'Privacy Protection', 
+                language: 'Language Settings',
                 about: 'About CallBunker'
             };
             setText('screen-title', titles[detailType]);
@@ -3289,6 +3386,39 @@
             showCustomAlert('Settings', 'Verbal code update feature coming soon!'); 
         }
 
+        // Language settings functions
+        function changeLanguage(langCode, langName) {
+            // Clear all checkmarks
+            document.querySelectorAll('.language-check').forEach(check => {
+                check.textContent = '';
+            });
+            
+            // Set checkmark for selected language
+            document.getElementById('check-' + langCode).textContent = '✓';
+            
+            // Update current language display
+            document.getElementById('current-language').textContent = langName;
+            
+            // Update settings subtitle
+            const settingsSubtitle = document.querySelector('#settings .list-item[onclick*="language"] .list-subtitle');
+            if (settingsSubtitle) {
+                settingsSubtitle.textContent = langName + ' - Change app language';
+            }
+            
+            // Call backend to save language preference
+            fetch(`/multi/set-language/${langCode}`)
+                .then(response => {
+                    if (response.ok) {
+                        showCustomAlert('Language Changed', `Language preference changed to ${langName} and saved to your settings.`);
+                    } else {
+                        showCustomAlert('Error', 'Failed to save language preference.');
+                    }
+                })
+                .catch(error => {
+                    showCustomAlert('Error', 'Failed to save language preference.');
+                });
+        }
+
         // Expose functions globally for onclick handlers
         window.switchTab = switchTab;
         window.showScreen = showScreen;
@@ -3303,6 +3433,7 @@
         window.removeContact = removeContact;
         window.updatePin = updatePin;
         window.updateVerbalCode = updateVerbalCode;
+        window.changeLanguage = changeLanguage;
 
         // Clean up device on page unload
         window.addEventListener('beforeunload', () => {
