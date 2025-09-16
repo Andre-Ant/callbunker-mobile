@@ -102,35 +102,39 @@ def mobile_signup():
         # Check available numbers for template
         available_numbers = TwilioPhonePool.query.filter_by(is_assigned=False).count()
         
+        # Helper function to return error (JSON for AJAX, flash+template for regular)
+        def return_error(message):
+            if (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 
+                request.headers.get('Accept') == 'application/json' or
+                'application/json' in request.headers.get('Accept', '')):
+                return jsonify({'success': False, 'message': message}), 400
+            else:
+                flash(message, 'error')
+                return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
+        
         # Validation
         if not all([email, name, real_phone_number, password, confirm_password]):
-            flash('All fields are required', 'error')
-            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
+            return return_error('All fields are required')
         
         # Password confirmation validation
         if password != confirm_password:
-            flash('Passwords do not match', 'error')
-            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
+            return return_error('Passwords do not match')
         
         if len(password) < 6:
-            flash('Password must be at least 6 characters long', 'error')
-            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
+            return return_error('Password must be at least 6 characters long')
         
         # Check if email already exists
         if User.query.filter_by(email=email).first():
-            flash('Email already registered', 'error')
-            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
+            return return_error('Email already registered')
         
         # Check if real phone number already registered
         if User.query.filter_by(real_phone_number=real_phone_number).first():
-            flash('Phone number already registered', 'error')
-            return render_template('multi_user/mobile_signup.html', available_numbers=available_numbers)
+            return return_error('Phone number already registered')
         
         # Assign next available Twilio number from pool with database lock
         available_number = TwilioPhonePool.query.filter_by(is_assigned=False).with_for_update().first()
         if not available_number:
-            flash('No CallBunker numbers available. Please contact support.', 'error')
-            return render_template('multi_user/mobile_signup.html', available_numbers=0)
+            return return_error('No CallBunker numbers available. Please contact support.')
         
         # Create new user with password hash
         user = User(
@@ -163,7 +167,6 @@ def mobile_signup():
             request.headers.get('Accept') == 'application/json' or
             'application/json' in request.headers.get('Accept', '')):
             # Return JSON for AJAX requests to trigger modal
-            from utils.phone_utils import format_phone_display
             return jsonify({
                 'success': True,
                 'message': 'Account created successfully!',
@@ -462,19 +465,28 @@ def quick_signup():
         pin = request.form.get('pin', '1122').strip()
         verbal_code = request.form.get('verbal_code', 'open sesame').strip()
         
+        # Helper function to return error (JSON for AJAX, HTML for regular)
+        def return_error(message):
+            if (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 
+                request.headers.get('Accept') == 'application/json' or
+                'application/json' in request.headers.get('Accept', '')):
+                return jsonify({'success': False, 'message': message}), 400
+            else:
+                return f"{message} <a href='/multi/quick-signup'>Try again</a>"
+        
         # Validate required fields
         if not all([name, email, real_phone_number, password]):
-            return "Missing required fields. <a href='/multi/quick-signup'>Try again</a>"
+            return return_error('Missing required fields.')
         
         # Check if user already exists
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
-            return f"Account already exists! <a href='/multi/login'>Login here</a>"
+            return return_error('Account already exists! Please login instead.')
         
         # Get available Twilio number
         available_number = TwilioPhonePool.query.filter_by(is_assigned=False).first()
         if not available_number:
-            return "No phone numbers available. Contact support."
+            return return_error('No phone numbers available. Contact support.')
         
         # Create user account
         password_hash = generate_password_hash(password)
@@ -509,6 +521,19 @@ def quick_signup():
         session['user_email'] = new_user.email
         session['logged_in'] = True
         
+        # Check if this is an AJAX request (for JavaScript modal)
+        if (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 
+            request.headers.get('Accept') == 'application/json' or
+            'application/json' in request.headers.get('Accept', '')):
+            # Return JSON for AJAX requests to trigger modal
+            return jsonify({
+                'success': True,
+                'message': 'Account created successfully!',
+                'defense_number': format_phone_display(new_user.assigned_twilio_number),
+                'user_id': new_user.id
+            })
+        
+        # For regular form submissions, return HTML page
         return f"""
         <html>
         <head><title>Account Created!</title></head>
@@ -526,6 +551,16 @@ def quick_signup():
         """
         
     except Exception as e:
+        db.session.rollback()
+        # Check if this is an AJAX request for error handling
+        if (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 
+            request.headers.get('Accept') == 'application/json' or
+            'application/json' in request.headers.get('Accept', '')):
+            return jsonify({
+                'success': False,
+                'message': f'Error creating account: {str(e)}'
+            }), 500
+        
         return f"Error creating account: {str(e)}. <a href='/multi/quick-signup'>Try again</a>"
 
 @multi_user_bp.route('/reset-database', methods=['GET', 'POST'])
