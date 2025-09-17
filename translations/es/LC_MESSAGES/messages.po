@@ -163,3 +163,15 @@ msgstr "Configuración de Seguridad"
 
 msgid "Language"
 msgstr "Idioma"
+
+msgid "Dialer"
+msgstr "Marcador"
+
+msgid "Messages"
+msgstr "Mensajes"
+
+msgid "Whitelist"
+msgstr "Lista Blanca"
+
+msgid "History"
+msgstr "Historial"
