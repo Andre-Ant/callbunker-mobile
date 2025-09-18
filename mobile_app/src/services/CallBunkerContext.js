@@ -12,7 +12,7 @@ const CallBunkerContext = createContext();
 const initialState = {
   user: null,
   apiUrl: window.location.origin || 'https://your-replit-url.replit.app', // Auto-detect or set your Replit URL
-  userId: 1, // Replace with dynamic user ID
+  userId: null, // Will be loaded from authentication session
   callHistory: [],
   contacts: [],
   settings: {
@@ -34,7 +34,10 @@ function callBunkerReducer(state, action) {
       return {...state, error: action.payload, isLoading: false};
     
     case 'SET_USER':
-      return {...state, user: action.payload};
+      return {...state, user: action.payload, userId: action.payload?.id || null};
+    
+    case 'SET_USER_ID':
+      return {...state, userId: action.payload};
     
     case 'SET_CALL_HISTORY':
       return {...state, callHistory: action.payload};
@@ -88,6 +91,14 @@ export function CallBunkerProvider({children}) {
   useEffect(() => {
     loadStoredData();
   }, []);
+  
+  // Load call history and contacts when user is authenticated
+  useEffect(() => {
+    if (state.userId) {
+      loadCallHistory();
+      loadContacts();
+    }
+  }, [state.userId]);
 
   const loadStoredData = async () => {
     try {
@@ -99,11 +110,7 @@ export function CallBunkerProvider({children}) {
         dispatch({type: 'UPDATE_SETTINGS', payload: JSON.parse(storedSettings)});
       }
       
-      // Load call history
-      await loadCallHistory();
-      
-      // Load contacts
-      await loadContacts();
+      // Call history and contacts will be loaded when userId is set
       
     } catch (error) {
       console.error('Error loading stored data:', error);
@@ -137,6 +144,11 @@ export function CallBunkerProvider({children}) {
 
   const makeCall = async (phoneNumber) => {
     try {
+      // Security check: Ensure user is authenticated
+      if (!state.userId) {
+        throw new Error('Authentication required - please log in first');
+      }
+      
       dispatch({type: 'SET_LOADING', payload: true});
       dispatch({type: 'SET_ERROR', payload: null});
       
@@ -195,6 +207,11 @@ export function CallBunkerProvider({children}) {
 
   const addTrustedContact = async (contact) => {
     try {
+      // Security check: Ensure user is authenticated
+      if (!state.userId) {
+        throw new Error('Authentication required - please log in first');
+      }
+      
       dispatch({type: 'SET_LOADING', payload: true});
       
       const response = await fetch(`${state.apiUrl}/multi/user/${state.userId}/contacts`, {

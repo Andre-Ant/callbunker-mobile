@@ -193,7 +193,7 @@ function CallLogDetailScreen({route, navigation}) {
           
           <View style={styles.privacyItem}>
             <Icon name="verified-user" size={16} color="#4CAF50" />
-            <Text style={styles.privacyText}>Google Voice caller ID used</Text>
+            <Text style={styles.privacyText}>Twilio privacy protection used</Text>
           </View>
           
           <View style={styles.privacyItem}>

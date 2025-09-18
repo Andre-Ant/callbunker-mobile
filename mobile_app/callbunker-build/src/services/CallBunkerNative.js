@@ -9,11 +9,11 @@ import { NativeModules, Platform } from 'react-native';
 
 const { CallManager } = NativeModules;
 
-export class CallBunkerNative {
-    constructor(baseUrl, userId, userDefenseNumber = null) {
+export default class CallBunkerNative {
+    constructor(baseUrl, userId) {
         this.baseUrl = baseUrl;
         this.userId = userId;
-        this.userDefenseNumber = userDefenseNumber;
+        this.twilioNumber = null; // Twilio number assigned from phone pool
         this.activeCalls = new Map();
         this.simulationMode = Platform.OS === 'web' || !CallManager;
     }
@@ -35,11 +35,11 @@ export class CallBunkerNative {
                 const callInfo = {
                     callLogId,
                     targetNumber: targetNumber,
-                    callerIdShown: this.userDefenseNumber || 'Private',
+                    callerIdShown: 'Twilio Simulated',
                     status: 'simulated',
                     config: {
                         target_number: targetNumber,
-                        spoofed_caller_id: this.userDefenseNumber || 'Private'
+                        twilio_caller_id: 'Twilio Simulated'
                     }
                 };
                 
@@ -80,26 +80,33 @@ export class CallBunkerNative {
                 status: 'initiating'
             });
 
-            // Use native calling with caller ID spoofing
+            // Validate Twilio response format
+            if (!callData.target_number || !callData.twilio_caller_id) {
+                throw new Error('Invalid Twilio response format - missing target_number or twilio_caller_id');
+            }
+
+            // Use Twilio-powered native calling with privacy protection
             if (CallManager) {
                 await CallManager.makeCall({
-                    number: callData.native_call_config.target_number,
-                    callerId: callData.native_call_config.spoofed_caller_id
+                    number: callData.target_number,
+                    callerId: callData.twilio_caller_id
                 });
             } else {
-                // Fallback for development/testing
-                console.warn('[CallBunker] CallManager not available, using fallback');
-                // In production, this would open the default dialer
-                // For now, just log the action
+                // Fallback for development/testing - open system dialer
+                const { Linking } = require('react-native');
+                const telUrl = `tel:${callData.target_number}`;
+                console.warn('[CallBunker] CallManager not available, opening system dialer:', telUrl);
+                await Linking.openURL(telUrl);
             }
 
             console.log('[CallBunker] Native call initiated successfully');
             
             return {
                 callLogId: callData.call_log_id,
-                targetNumber: callData.to_number,
-                callerIdShown: callData.from_number,
-                config: callData.native_call_config
+                targetNumber: callData.target_number,
+                callerIdShown: callData.twilio_caller_id,
+                twilioNumber: callData.twilio_caller_id,
+                config: callData
             };
 
         } catch (error) {
@@ -286,4 +293,3 @@ export class CallBunkerNative {
     }
 }
 
-export default CallBunkerNative;

@@ -55,7 +55,7 @@ function DialerScreen() {
       // Show confirmation with privacy info
       Alert.alert(
         'Protected Call',
-        `Call ${phoneNumber}?\n\nYour Google Voice number will be shown as caller ID. Your real number stays hidden.`,
+        `Call ${phoneNumber}?\n\nYour Twilio number will be shown as caller ID. Your real number stays hidden.`,
         [
           {
             text: 'Cancel',
@@ -204,7 +204,7 @@ function DialerScreen() {
         </View>
         <View style={styles.featureItem}>
           <Icon name="security" size={18} color="#FF9500" />
-          <Text style={styles.featureText}>Google Voice caller ID</Text>
+          <Text style={styles.featureText}>Twilio privacy protection</Text>
         </View>
       </View>
     </View>

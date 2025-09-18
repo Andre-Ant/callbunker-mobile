@@ -9,7 +9,7 @@ import { NativeModules, Platform } from 'react-native';
 
 const { CallManager } = NativeModules;
 
-export class CallBunkerNative {
+export default class CallBunkerNative {
     constructor(baseUrl, userId) {
         this.baseUrl = baseUrl;
         this.userId = userId;
@@ -80,6 +80,11 @@ export class CallBunkerNative {
                 startTime: Date.now(),
                 status: 'initiating'
             });
+
+            // Validate Twilio response format
+            if (!callData.target_number || !callData.twilio_caller_id) {
+                throw new Error('Invalid Twilio response format - missing target_number or twilio_caller_id');
+            }
 
             // Use Twilio-powered native calling with privacy protection
             if (CallManager) {
