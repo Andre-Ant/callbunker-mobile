@@ -15,21 +15,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
-const LANGUAGES = [
-  { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'es', name: 'Spanish', nativeName: 'Español' },
-  { code: 'fr', name: 'French', nativeName: 'Français' },
-  { code: 'de', name: 'German', nativeName: 'Deutsch' },
-  { code: 'it', name: 'Italian', nativeName: 'Italiano' },
-  { code: 'pt', name: 'Portuguese', nativeName: 'Português' },
-  { code: 'ru', name: 'Russian', nativeName: 'Русский' },
-  { code: 'ja', name: 'Japanese', nativeName: '日本語' },
-  { code: 'ko', name: 'Korean', nativeName: '한국어' },
-  { code: 'zh', name: 'Chinese', nativeName: '中文' },
-  { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
-  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
-];
+import i18n, { LANGUAGES } from '../i18n';
 
 function LanguageSelectionModal({ 
   visible, 
@@ -38,11 +24,19 @@ function LanguageSelectionModal({
   onLanguageSelect 
 }) {
   
-  const handleLanguageSelect = (languageCode) => {
-    if (onLanguageSelect) {
-      onLanguageSelect(languageCode);
+  const handleLanguageSelect = async (languageCode) => {
+    try {
+      // Update i18n system
+      await i18n.setLanguage(languageCode);
+      
+      // Call parent callback
+      if (onLanguageSelect) {
+        await onLanguageSelect(languageCode);
+      }
+      onClose();
+    } catch (error) {
+      console.error('Failed to change language:', error);
     }
-    onClose();
   };
 
   const renderLanguageItem = ({ item }) => {
@@ -98,14 +92,14 @@ function LanguageSelectionModal({
             <Icon name="close" size={24} color="#007AFF" />
           </TouchableOpacity>
           
-          <Text style={styles.title}>Select Language</Text>
+          <Text style={styles.title}>{i18n.t('Language')}</Text>
           
           <View style={styles.placeholder} />
         </View>
 
         {/* Current Selection Info */}
         <View style={styles.currentSelectionContainer}>
-          <Text style={styles.currentSelectionLabel}>Current Language</Text>
+          <Text style={styles.currentSelectionLabel}>{i18n.t('Current')} {i18n.t('Language')}</Text>
           <Text style={styles.currentSelectionValue}>{getCurrentLanguageName()}</Text>
         </View>
 
@@ -124,7 +118,7 @@ function LanguageSelectionModal({
         {/* Footer Info */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Language preference will be saved to your settings.
+            {i18n.t('Language')} preference will be saved to your settings.
           </Text>
         </View>
       </SafeAreaView>
