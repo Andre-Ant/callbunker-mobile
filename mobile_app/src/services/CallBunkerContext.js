@@ -125,7 +125,7 @@ export function CallBunkerProvider({children}) {
   const loadContacts = async () => {
     try {
       // Load trusted contacts from API
-      const response = await fetch(`${state.apiUrl}/api/users/${state.userId}/contacts`);
+      const response = await fetch(`${state.apiUrl}/multi/user/${state.userId}/contacts`);
       if (response.ok) {
         const contacts = await response.json();
         dispatch({type: 'SET_CONTACTS', payload: contacts});
@@ -197,7 +197,7 @@ export function CallBunkerProvider({children}) {
     try {
       dispatch({type: 'SET_LOADING', payload: true});
       
-      const response = await fetch(`${state.apiUrl}/api/users/${state.userId}/contacts`, {
+      const response = await fetch(`${state.apiUrl}/multi/user/${state.userId}/contacts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -224,7 +224,7 @@ export function CallBunkerProvider({children}) {
 
   const removeTrustedContact = async (contactId) => {
     try {
-      const response = await fetch(`${state.apiUrl}/api/users/${state.userId}/contacts/${contactId}`, {
+      const response = await fetch(`${state.apiUrl}/multi/user/${state.userId}/contacts/${contactId}`, {
         method: 'DELETE',
       });
       

@@ -1,8 +1,8 @@
 /**
  * CallBunker Native Calling Integration for React Native
  * 
- * This module provides native calling capabilities with caller ID spoofing
- * for CallBunker's privacy protection system.
+ * This module provides Twilio-powered calling capabilities with privacy protection
+ * for CallBunker's multi-user system. Uses Twilio phone pool for caller ID protection.
  */
 
 import { NativeModules, Platform } from 'react-native';
@@ -15,11 +15,11 @@ export class CallBunkerNative {
         this.userId = userId;
         this.activeCalls = new Map();
         this.simulationMode = Platform.OS === 'web' || !CallManager;
-        this.twilioNumber = null; // Twilio number from backend config
+        this.twilioNumber = null; // Twilio number assigned from phone pool
     }
 
     /**
-     * Make a call using native device calling with caller ID spoofing
+     * Make a call using Twilio-powered native calling with privacy protection
      * @param {string} targetNumber - Phone number to call
      * @returns {Promise<Object>} Call configuration and log ID
      */
@@ -35,11 +35,12 @@ export class CallBunkerNative {
                 const callInfo = {
                     callLogId,
                     targetNumber: targetNumber,
-                    callerIdShown: this.twilioNumber || '+16179421250',
+                    callerIdShown: 'Simulated Twilio',
                     status: 'simulated',
                     config: {
                         target_number: targetNumber,
-                        spoofed_caller_id: this.twilioNumber || '+16179421250'
+                        twilio_caller_id: 'Simulated Twilio',
+                        approach: 'twilio_native_calling'
                     }
                 };
                 
@@ -80,26 +81,28 @@ export class CallBunkerNative {
                 status: 'initiating'
             });
 
-            // Use native calling with caller ID spoofing
+            // Use Twilio-powered native calling with privacy protection
             if (CallManager) {
                 await CallManager.makeCall({
-                    number: callData.native_call_config.target_number,
-                    callerId: callData.native_call_config.spoofed_caller_id
+                    number: callData.target_number,
+                    callerId: callData.twilio_caller_id
                 });
             } else {
-                // Fallback for development/testing
-                console.warn('[CallBunker] CallManager not available, using fallback');
-                // In production, this would open the default dialer
-                // For now, just log the action
+                // Fallback for development/testing - open system dialer
+                const { Linking } = require('react-native');
+                const telUrl = `tel:${callData.target_number}`;
+                console.warn('[CallBunker] CallManager not available, opening system dialer:', telUrl);
+                await Linking.openURL(telUrl);
             }
 
             console.log('[CallBunker] Native call initiated successfully');
             
             return {
                 callLogId: callData.call_log_id,
-                targetNumber: callData.to_number,
-                callerIdShown: callData.from_number,
-                config: callData.native_call_config
+                targetNumber: callData.target_number,
+                callerIdShown: callData.twilio_caller_id,
+                twilioNumber: callData.twilio_caller_id,
+                config: callData
             };
 
         } catch (error) {
@@ -192,7 +195,7 @@ export class CallBunkerNative {
             {
                 id: 1,
                 phoneNumber: '+15551234567',
-                callerIdShown: '+16179421250',
+                callerIdShown: 'Twilio Pool #1',
                 direction: 'outbound',
                 status: 'completed',
                 timestamp: new Date(Date.now() - 3600000).toISOString(),
@@ -201,7 +204,7 @@ export class CallBunkerNative {
             {
                 id: 2,
                 phoneNumber: '+15559876543',
-                callerIdShown: '+16179421250',
+                callerIdShown: 'Twilio Pool #2',
                 direction: 'outbound',
                 status: 'completed',
                 timestamp: new Date(Date.now() - 7200000).toISOString(),
@@ -210,7 +213,7 @@ export class CallBunkerNative {
             {
                 id: 3,
                 phoneNumber: '+15555551234',
-                callerIdShown: '+16179421250',
+                callerIdShown: 'Twilio Pool #1',
                 direction: 'outbound',
                 status: 'failed',
                 timestamp: new Date(Date.now() - 10800000).toISOString(),

@@ -76,7 +76,7 @@ export const translations = {
     "Enter number": "Enter number",
     "Real number hidden": "Real number hidden",
     "Carrier rates only": "Carrier rates only",
-    "Google Voice caller ID": "Google Voice caller ID",
+    "Twilio privacy protection": "Twilio privacy protection",
     
     // Common
     "Save": "Save",
@@ -184,7 +184,7 @@ export const translations = {
     "Enter number": "Ingresar número",
     "Real number hidden": "Número real oculto",
     "Carrier rates only": "Solo tarifas del operador",
-    "Google Voice caller ID": "ID de llamada Google Voice",
+    "Twilio privacy protection": "Protección de privacidad Twilio",
     
     // Common
     "Save": "Guardar",
