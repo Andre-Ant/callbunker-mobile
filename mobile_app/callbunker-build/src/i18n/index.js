@@ -18,7 +18,13 @@ class I18n {
       // Try to load saved language preference
       const savedLanguage = await AsyncStorage.getItem('user_language');
       if (savedLanguage && this.translations[savedLanguage]) {
+        const previousLanguage = this.currentLanguage;
         this.currentLanguage = savedLanguage;
+        
+        // Notify listeners if language changed during init
+        if (previousLanguage !== savedLanguage) {
+          this.listeners.forEach(listener => listener(savedLanguage));
+        }
       }
     } catch (error) {
       console.warn('Failed to load saved language:', error);

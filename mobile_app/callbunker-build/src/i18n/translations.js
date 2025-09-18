@@ -83,7 +83,33 @@ export const translations = {
     "Cancel": "Cancel",
     "OK": "OK",
     "Error": "Error",
-    "Success": "Success"
+    "Success": "Success",
+    
+    // Test and System
+    "Device Support": "Device Support",
+    "Permissions": "Permissions", 
+    "Yes": "Yes",
+    "No": "No",
+    "Granted": "Granted",
+    "Denied": "Denied",
+    "Test Failed": "Test Failed",
+    "Version": "Version",
+    "Intelligent Communication Security Platform": "Intelligent Communication Security Platform",
+    "Protect your privacy with advanced call screening and number protection": "Protect your privacy with advanced call screening and number protection",
+    "Call Details": "Call Details",
+    
+    // Time/Duration Formatting
+    "Just now": "Just now",
+    "{n}m ago": "{n}m ago",
+    "{n}h ago": "{n}h ago", 
+    "{n}d ago": "{n}d ago",
+    "0s": "0s",
+    "{mins}m {secs}s": "{mins}m {secs}s",
+    "{secs}s": "{secs}s",
+    
+    // Error Messages
+    "Failed to change language. Please try again.": "Failed to change language. Please try again.",
+    "CallBunker Mobile": "CallBunker Mobile"
   },
   
   es: {
@@ -165,7 +191,33 @@ export const translations = {
     "Cancel": "Cancelar", 
     "OK": "OK",
     "Error": "Error",
-    "Success": "Éxito"
+    "Success": "Éxito",
+    
+    // Test and System
+    "Device Support": "Soporte del Dispositivo",
+    "Permissions": "Permisos",
+    "Yes": "Sí", 
+    "No": "No",
+    "Granted": "Concedido",
+    "Denied": "Denegado",
+    "Test Failed": "Prueba Fallida",
+    "Version": "Versión",
+    "Intelligent Communication Security Platform": "Plataforma Inteligente de Seguridad en Comunicaciones",
+    "Protect your privacy with advanced call screening and number protection": "Protege tu privacidad con filtrado avanzado de llamadas y protección de números",
+    "Call Details": "Detalles de Llamada",
+    
+    // Time/Duration Formatting
+    "Just now": "Ahora mismo",
+    "{n}m ago": "hace {n}m",
+    "{n}h ago": "hace {n}h",
+    "{n}d ago": "hace {n}d",
+    "0s": "0s",
+    "{mins}m {secs}s": "{mins}m {secs}s",
+    "{secs}s": "{secs}s",
+    
+    // Error Messages
+    "Failed to change language. Please try again.": "Error al cambiar idioma. Por favor intenta de nuevo.",
+    "CallBunker Mobile": "CallBunker Mobile"
   }
 };
 

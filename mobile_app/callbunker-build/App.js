@@ -3,12 +3,13 @@
  * Intelligent Communication Security Platform
  */
 
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {StatusBar, StyleSheet} from 'react-native';
+import i18n from './src/i18n';
 
 // Screens
 import HomeScreen from './src/screens/HomeScreen';
@@ -26,8 +27,27 @@ import {CallBunkerProvider, useCallBunker} from './src/services/CallBunkerContex
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-// Main Tab Navigator
+// Main Tab Navigator with i18n support
 function MainTabs() {
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.getCurrentLanguage());
+  
+  useEffect(() => {
+    // Initialize i18n system and sync current language
+    const initializeLanguage = async () => {
+      await i18n.init();
+      setCurrentLanguage(i18n.getCurrentLanguage());
+    };
+    
+    initializeLanguage();
+    
+    // Listen for language changes
+    const removeListener = i18n.addLanguageChangeListener((language) => {
+      setCurrentLanguage(language);
+    });
+    
+    return removeListener;
+  }, []);
+  
   return (
     <Tab.Navigator
       screenOptions={({route}) => ({
@@ -60,32 +80,32 @@ function MainTabs() {
       <Tab.Screen 
         name="Home" 
         component={HomeScreen}
-        options={{title: 'CallBunker'}}
+        options={{title: i18n.t('Home')}}
       />
       <Tab.Screen 
         name="Dialer" 
         component={DialerScreen}
-        options={{title: 'Protected Dialer'}}
+        options={{title: i18n.t('Protected Dialer')}}
       />
       <Tab.Screen 
         name="Messages" 
         component={MessagesScreen}
-        options={{title: 'Messages'}}
+        options={{title: i18n.t('Messages')}}
       />
       <Tab.Screen 
         name="History" 
         component={CallHistoryScreen}
-        options={{title: 'Call History'}}
+        options={{title: i18n.t('History')}}
       />
       <Tab.Screen 
         name="Contacts" 
         component={ContactsScreen}
-        options={{title: 'Trusted Contacts'}}
+        options={{title: i18n.t('Contacts')}}
       />
       <Tab.Screen 
         name="Settings" 
         component={SettingsScreen}
-        options={{title: 'Settings'}}
+        options={{title: i18n.t('Settings')}}
       />
     </Tab.Navigator>
   );
@@ -114,7 +134,7 @@ function AuthCheck() {
         component={CallLogDetailScreen}
         options={{
           headerShown: true,
-          title: 'Call Details',
+          title: i18n.t('Call Details'),
           headerStyle: styles.header,
           headerTintColor: '#007AFF',
           headerTitleStyle: styles.headerTitle,

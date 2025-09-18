@@ -4,7 +4,7 @@
  * Updated: September 17, 2025 - Latest production version
  */
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useCallBunker} from '../services/CallBunkerContext';
+import i18n from '../i18n';
 
 function HomeScreen({navigation}) {
   const {
@@ -25,6 +26,25 @@ function HomeScreen({navigation}) {
     loadCallHistory,
     clearError,
   } = useCallBunker();
+  
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.getCurrentLanguage());
+  
+  useEffect(() => {
+    // Initialize i18n system and sync current language
+    const initializeLanguage = async () => {
+      await i18n.init();
+      setCurrentLanguage(i18n.getCurrentLanguage());
+    };
+    
+    initializeLanguage();
+    
+    // Listen for language changes
+    const removeListener = i18n.addLanguageChangeListener((language) => {
+      setCurrentLanguage(language);
+    });
+    
+    return removeListener;
+  }, []);
 
   useEffect(() => {
     loadCallHistory();
@@ -32,8 +52,8 @@ function HomeScreen({navigation}) {
 
   useEffect(() => {
     if (error) {
-      Alert.alert('Error', error, [
-        {text: 'OK', onPress: clearError},
+      Alert.alert(i18n.t('Error'), error, [
+        {text: i18n.t('OK'), onPress: clearError},
       ]);
     }
   }, [error]);
@@ -61,9 +81,9 @@ function HomeScreen({navigation}) {
         <View style={styles.statusHeader}>
           <Icon name="security" size={32} color="#4CAF50" />
           <View style={styles.statusText}>
-            <Text style={styles.statusTitle}>Privacy Protected</Text>
+            <Text style={styles.statusTitle}>{i18n.t('Privacy Protected')}</Text>
             <Text style={styles.statusSubtitle}>
-              Your real number is hidden and secure
+              {i18n.t('Your real number is hidden and secure')}
             </Text>
           </View>
         </View>
@@ -71,31 +91,31 @@ function HomeScreen({navigation}) {
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{protectedCalls}</Text>
-            <Text style={styles.statLabel}>Protected Calls</Text>
+            <Text style={styles.statLabel}>{i18n.t('Protected Calls')}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{totalCalls}</Text>
-            <Text style={styles.statLabel}>Total Calls</Text>
+            <Text style={styles.statLabel}>{i18n.t('Total Calls')}</Text>
           </View>
         </View>
       </View>
 
       {/* Quick Actions */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('Quick Actions')}</Text>
         
         <View style={styles.actionGrid}>
           <TouchableOpacity style={styles.actionCard} onPress={handleQuickDial}>
             <Icon name="phone" size={28} color="#007AFF" />
-            <Text style={styles.actionTitle}>Make Protected Call</Text>
-            <Text style={styles.actionSubtitle}>Hide your real number</Text>
+            <Text style={styles.actionTitle}>{i18n.t('Make Protected Call')}</Text>
+            <Text style={styles.actionSubtitle}>{i18n.t('Hide your real number')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.actionCard} onPress={handleManageContacts}>
             <Icon name="contacts" size={28} color="#FF9500" />
-            <Text style={styles.actionTitle}>Trusted Contacts</Text>
-            <Text style={styles.actionSubtitle}>Manage whitelist</Text>
+            <Text style={styles.actionTitle}>{i18n.t('Trusted Contacts')}</Text>
+            <Text style={styles.actionSubtitle}>{i18n.t('Manage whitelist')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -103,9 +123,9 @@ function HomeScreen({navigation}) {
       {/* Recent Activity */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
+          <Text style={styles.sectionTitle}>{i18n.t('Recent Activity')}</Text>
           <TouchableOpacity onPress={handleViewHistory}>
-            <Text style={styles.viewAllText}>View All</Text>
+            <Text style={styles.viewAllText}>{i18n.t('View All')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -140,9 +160,9 @@ function HomeScreen({navigation}) {
         ) : (
           <View style={styles.emptyState}>
             <Icon name="phone-disabled" size={48} color="#999" />
-            <Text style={styles.emptyStateText}>No recent calls</Text>
+            <Text style={styles.emptyStateText}>{i18n.t('No recent calls')}</Text>
             <Text style={styles.emptyStateSubtext}>
-              Make your first protected call to get started
+              {i18n.t('Make your first protected call to get started')}
             </Text>
           </View>
         )}
@@ -150,15 +170,15 @@ function HomeScreen({navigation}) {
 
       {/* Features Overview */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>CallBunker Features</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('CallBunker Features')}</Text>
         
         <View style={styles.featuresList}>
           <View style={styles.featureItem}>
             <Icon name="visibility-off" size={24} color="#007AFF" />
             <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Number Privacy</Text>
+              <Text style={styles.featureTitle}>{i18n.t('Number Privacy')}</Text>
               <Text style={styles.featureDescription}>
-                Your real number stays hidden from all contacts
+                {i18n.t('Your real number stays hidden from all contacts')}
               </Text>
             </View>
           </View>
@@ -166,9 +186,9 @@ function HomeScreen({navigation}) {
           <View style={styles.featureItem}>
             <Icon name="security" size={24} color="#4CAF50" />
             <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Call Screening</Text>
+              <Text style={styles.featureTitle}>{i18n.t('Call Screening')}</Text>
               <Text style={styles.featureDescription}>
-                Incoming calls require PIN or verbal authentication
+                {i18n.t('Incoming calls require PIN or verbal authentication')}
               </Text>
             </View>
           </View>
@@ -176,9 +196,9 @@ function HomeScreen({navigation}) {
           <View style={styles.featureItem}>
             <Icon name="savings" size={24} color="#FF9500" />
             <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Cost Effective</Text>
+              <Text style={styles.featureTitle}>{i18n.t('Cost Effective')}</Text>
               <Text style={styles.featureDescription}>
-                Native calling with zero per-minute charges
+                {i18n.t('Native calling with zero per-minute charges')}
               </Text>
             </View>
           </View>
@@ -197,17 +217,17 @@ function formatTimeAgo(timestamp) {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  return `${diffDays}d ago`;
+  if (diffMins < 1) return i18n.t('Just now');
+  if (diffMins < 60) return i18n.t('{n}m ago', {n: diffMins});
+  if (diffHours < 24) return i18n.t('{n}h ago', {n: diffHours});
+  return i18n.t('{n}d ago', {n: diffDays});
 }
 
 function formatDuration(seconds) {
-  if (!seconds) return '0s';
+  if (!seconds) return i18n.t('0s');
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
-  return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+  return mins > 0 ? i18n.t('{mins}m {secs}s', {mins, secs}) : i18n.t('{secs}s', {secs});
 }
 
 const styles = StyleSheet.create({

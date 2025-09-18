@@ -3,7 +3,7 @@
  * App configuration and preferences
  */
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -16,11 +16,30 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useCallBunker} from '../services/CallBunkerContext';
-import LanguageSelectionModal, {LANGUAGES} from '../components/LanguageSelectionModal';
+import LanguageSelectionModal from '../components/LanguageSelectionModal';
+import i18n, { LANGUAGES } from '../i18n';
 
 function SettingsScreen() {
   const {settings, updateSettings, callBunker} = useCallBunker();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.getCurrentLanguage());
+  
+  useEffect(() => {
+    // Initialize i18n system and sync current language
+    const initializeLanguage = async () => {
+      await i18n.init();
+      setCurrentLanguage(i18n.getCurrentLanguage());
+    };
+    
+    initializeLanguage();
+    
+    // Listen for language changes
+    const removeListener = i18n.addLanguageChangeListener((language) => {
+      setCurrentLanguage(language);
+    });
+    
+    return removeListener;
+  }, []);
   
   const handleSettingChange = (key, value) => {
     updateSettings({[key]: value});
@@ -32,12 +51,12 @@ function SettingsScreen() {
       const hasPermissions = await callBunker.requestCallPermissions();
       
       Alert.alert(
-        'Native Calling Test',
-        `Device Support: ${isSupported ? 'Yes' : 'No'}\nPermissions: ${hasPermissions ? 'Granted' : 'Denied'}`,
-        [{text: 'OK'}]
+        i18n.t('Test Native Calling'),
+        `${i18n.t('Device Support')}: ${isSupported ? i18n.t('Yes') : i18n.t('No')}\n${i18n.t('Permissions')}: ${hasPermissions ? i18n.t('Granted') : i18n.t('Denied')}`,
+        [{text: i18n.t('OK')}]
       );
     } catch (error) {
-      Alert.alert('Test Failed', error.message);
+      Alert.alert(i18n.t('Test Failed'), error.message);
     }
   };
 
@@ -51,9 +70,9 @@ function SettingsScreen() {
 
   const handleAbout = () => {
     Alert.alert(
-      'CallBunker Mobile',
-      'Version 1.0.0\n\nIntelligent Communication Security Platform\n\nProtect your privacy with advanced call screening and number protection.',
-      [{text: 'OK'}]
+      i18n.t('CallBunker Mobile'),
+      `${i18n.t('Version')} 1.0.0\n\n${i18n.t('Intelligent Communication Security Platform')}\n\n${i18n.t('Protect your privacy with advanced call screening and number protection')}.`,
+      [{text: i18n.t('OK')}]
     );
   };
 
@@ -63,26 +82,30 @@ function SettingsScreen() {
 
   const changeLanguage = async (languageCode) => {
     try {
+      // Update i18n system
+      await i18n.setLanguage(languageCode);
+      
       // Update local settings
       handleSettingChange('language', languageCode);
       
       // Show success message
       const selectedLanguage = LANGUAGES.find(lang => lang.code === languageCode);
       Alert.alert(
-        'Language Preference Saved',
-        `Language preference changed to ${selectedLanguage?.name || languageCode.toUpperCase()} and saved to your settings.`,
-        [{text: 'OK'}]
+        i18n.t('Language Preference Saved'),
+        i18n.t('Language preference changed to {language} and saved to your settings.', {
+          language: selectedLanguage?.name || languageCode.toUpperCase()
+        }),
+        [{text: i18n.t('OK')}]
       );
       
-      // Note: In a real implementation, you would also update the backend user preferences
-      // and potentially trigger an app restart or reload to apply the language change
+      // TODO: Update backend user preferences via API call
     } catch (error) {
-      Alert.alert('Error', 'Failed to change language. Please try again.');
+      Alert.alert(i18n.t('Error'), i18n.t('Failed to change language. Please try again.'));
     }
   };
 
   const getCurrentLanguageName = () => {
-    const selectedLanguage = LANGUAGES.find(lang => lang.code === (settings.language || 'en'));
+    const selectedLanguage = LANGUAGES.find(lang => lang.code === currentLanguage);
     return selectedLanguage ? selectedLanguage.name : 'English';
   };
 
@@ -129,20 +152,20 @@ function SettingsScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Privacy Settings */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Privacy & Security</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('Privacy & Security')}</Text>
         
         {renderSwitchItem(
           'auto-awesome',
-          'Auto-whitelist Verified Callers',
-          'Automatically trust callers who pass authentication',
+          i18n.t('Auto-whitelist Verified Callers'),
+          i18n.t('Automatically trust callers who pass authentication'),
           settings.autoWhitelist,
           (value) => handleSettingChange('autoWhitelist', value)
         )}
         
         {renderSwitchItem(
           'record-voice-over',
-          'Call Recording (Coming Soon)',
-          'Record protected calls for security',
+          i18n.t('Call Recording (Coming Soon)'),
+          i18n.t('Record protected calls for security'),
           false, // settings.callRecording,
           null // (value) => handleSettingChange('callRecording', value)
         )}
@@ -150,12 +173,12 @@ function SettingsScreen() {
 
       {/* Notifications */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Notifications</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('Notifications')}</Text>
         
         {renderSwitchItem(
           'notifications',
-          'Push Notifications',
-          'Get notified about calls and security events',
+          i18n.t('Push Notifications'),
+          i18n.t('Get notified about calls and security events'),
           settings.notifications,
           (value) => handleSettingChange('notifications', value)
         )}
@@ -163,19 +186,19 @@ function SettingsScreen() {
 
       {/* Appearance */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Appearance</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('Appearance')}</Text>
         
         {renderSettingItem(
           'language',
-          'Language',
-          `Current: ${getCurrentLanguageName()}`,
+          i18n.t('Language'),
+          `${i18n.t('Current')}: ${getCurrentLanguageName()}`,
           handleLanguageSelect
         )}
         
         {renderSwitchItem(
           'dark-mode',
-          'Dark Mode (Coming Soon)',
-          'Use dark theme throughout the app',
+          i18n.t('Dark Mode (Coming Soon)'),
+          i18n.t('Use dark theme throughout the app'),
           false, // settings.darkMode,
           null // (value) => handleSettingChange('darkMode', value)
         )}
@@ -183,52 +206,52 @@ function SettingsScreen() {
 
       {/* System */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>System</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('System')}</Text>
         
         {renderSettingItem(
           'phone',
-          'Test Native Calling',
-          'Check device compatibility and permissions',
+          i18n.t('Test Native Calling'),
+          i18n.t('Check device compatibility and permissions'),
           handleTestNativeCalling
         )}
         
         {renderSettingItem(
           'storage',
-          'Clear Call History (Coming Soon)',
-          'Remove all stored call records',
+          i18n.t('Clear Call History (Coming Soon)'),
+          i18n.t('Remove all stored call records'),
           null // handleClearHistory
         )}
       </View>
 
       {/* Support */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Support</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('Support')}</Text>
         
         {renderSettingItem(
           'help',
-          'Help & Support',
-          'Get help with CallBunker features',
+          i18n.t('Help & Support'),
+          i18n.t('Get help with CallBunker features'),
           handleSupport
         )}
         
         {renderSettingItem(
           'privacy-tip',
-          'Privacy Policy',
-          'Learn how we protect your data',
+          i18n.t('Privacy Policy'),
+          i18n.t('Learn how we protect your data'),
           handlePrivacyPolicy
         )}
         
         {renderSettingItem(
           'info',
-          'About CallBunker',
-          'Version and app information',
+          i18n.t('About CallBunker'),
+          i18n.t('Version and app information'),
           handleAbout
         )}
       </View>
 
       {/* Features Overview */}
       <View style={styles.featuresSection}>
-        <Text style={styles.sectionTitle}>CallBunker Features</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('CallBunker Features')}</Text>
         
         <View style={styles.featuresList}>
           <View style={styles.featureItem}>
@@ -257,7 +280,7 @@ function SettingsScreen() {
       <LanguageSelectionModal
         visible={showLanguageModal}
         onClose={() => setShowLanguageModal(false)}
-        selectedLanguage={settings.language || 'en'}
+        selectedLanguage={currentLanguage}
         onLanguageSelect={changeLanguage}
       />
     </ScrollView>
