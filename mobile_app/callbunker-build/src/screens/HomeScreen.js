@@ -1,6 +1,7 @@
 /**
  * CallBunker Home Screen
  * Main dashboard with privacy status and quick actions
+ * Updated: September 17, 2025 - Latest production version
  */
 
 import React, {useEffect} from 'react';

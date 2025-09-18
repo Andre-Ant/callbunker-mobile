@@ -1,6 +1,7 @@
 /**
  * CallBunker Protected Dialer Screen
  * Native calling with caller ID spoofing
+ * Updated: September 17, 2025 - Latest production version
  */
 
 import React, {useState, useRef, useEffect} from 'react';
