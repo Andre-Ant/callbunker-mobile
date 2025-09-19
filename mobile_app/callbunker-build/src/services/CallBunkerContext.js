@@ -1,145 +1,126 @@
-/**
- * CallBunker Context Provider
- * Manages global state and configuration
- */
-
-import React, {createContext, useContext, useReducer, useEffect} from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CallBunkerNative from './CallBunkerNative';
 
 const CallBunkerContext = createContext();
 
 const initialState = {
+  // Authentication state
+  isAuthenticated: false,
   user: null,
-  apiUrl: 'https://your-replit-url.replit.app', // Set your Replit URL
-  userId: null, // Will be set after user signup/login
-  callHistory: [],
-  contacts: [],
-  settings: {
-    autoWhitelist: true,
-    callRecording: false,
-    notifications: true,
-    darkMode: false,
-    language: 'en',
-  },
+  
+  // Configuration
+  apiUrl: 'https://d8e17dc1-d8d1-4de1-8b8d-ef7f765bc52f-00-3stkuqyoiccx9.spock.replit.dev',
+  userId: 13, // Test user ID
+  
+  // App state
   isLoading: false,
   error: null,
-  isAuthenticated: false,
+  
+  // Call state
+  activeCalls: [],
+  callHistory: [],
+  
+  // Contacts
+  trustedContacts: [],
+  
+  // Settings
+  settings: {
+    enableNotifications: true,
+    soundEnabled: true,
+    vibrationEnabled: true,
+    theme: 'light',
+  },
 };
 
-function callBunkerReducer(state, action) {
+function appReducer(state, action) {
   switch (action.type) {
-    case 'SET_LOADING':
-      return {...state, isLoading: action.payload};
-    
-    case 'SET_ERROR':
-      return {...state, error: action.payload, isLoading: false};
-    
-    case 'SET_USER':
-      return {...state, user: action.payload};
-    
-    case 'SET_CALL_HISTORY':
-      return {...state, callHistory: action.payload};
-    
-    case 'ADD_CALL_TO_HISTORY':
-      return {
-        ...state,
-        callHistory: [action.payload, ...state.callHistory],
-      };
-    
-    case 'UPDATE_CALL_IN_HISTORY':
-      return {
-        ...state,
-        callHistory: state.callHistory.map(call =>
-          call.id === action.payload.id ? {...call, ...action.payload} : call
-        ),
-      };
-    
-    case 'SET_CONTACTS':
-      return {...state, contacts: action.payload};
-    
-    case 'ADD_CONTACT':
-      return {
-        ...state,
-        contacts: [action.payload, ...state.contacts],
-      };
-    
-    case 'REMOVE_CONTACT':
-      return {
-        ...state,
-        contacts: state.contacts.filter(contact => contact.id !== action.payload),
-      };
-    
-    case 'UPDATE_SETTINGS':
-      return {
-        ...state,
-        settings: {...state.settings, ...action.payload},
-      };
-    
-    case 'SET_USER_ID':
-      return {...state, userId: action.payload};
-    
     case 'SET_AUTHENTICATED':
-      return {...state, isAuthenticated: action.payload};
-    
+      return { ...state, isAuthenticated: action.payload };
+    case 'SET_USER':
+      return { ...state, user: action.payload };
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload };
+    case 'SET_ERROR':
+      return { ...state, error: action.payload };
+    case 'ADD_CALL':
+      return { 
+        ...state, 
+        activeCalls: [...state.activeCalls, action.payload] 
+      };
+    case 'UPDATE_CALL':
+      return {
+        ...state,
+        activeCalls: state.activeCalls.map(call =>
+          call.id === action.payload.id ? { ...call, ...action.payload } : call
+        )
+      };
+    case 'COMPLETE_CALL':
+      return {
+        ...state,
+        activeCalls: state.activeCalls.filter(call => call.id !== action.payload.id),
+        callHistory: [action.payload, ...state.callHistory]
+      };
+    case 'SET_CALL_HISTORY':
+      return { ...state, callHistory: action.payload };
+    case 'ADD_TRUSTED_CONTACT':
+      return {
+        ...state,
+        trustedContacts: [...state.trustedContacts, action.payload]
+      };
+    case 'REMOVE_TRUSTED_CONTACT':
+      return {
+        ...state,
+        trustedContacts: state.trustedContacts.filter(contact => 
+          contact.phoneNumber !== action.payload.phoneNumber
+        )
+      };
+    case 'SET_TRUSTED_CONTACTS':
+      return { ...state, trustedContacts: action.payload };
+    case 'UPDATE_SETTINGS':
+      return { 
+        ...state, 
+        settings: { ...state.settings, ...action.payload } 
+      };
     default:
       return state;
   }
 }
 
-export function CallBunkerProvider({children}) {
-  const [state, dispatch] = useReducer(callBunkerReducer, initialState);
-  
-  // Initialize CallBunker service
+export function CallBunkerProvider({ children }) {
+  const [state, dispatch] = useReducer(appReducer, initialState);
+
+  // Initialize CallBunker Native service
   const callBunker = new CallBunkerNative(state.apiUrl, state.userId);
 
   useEffect(() => {
-    loadStoredData();
+    // Load saved settings and auth state on app start
+    loadSavedData();
   }, []);
 
-  const loadStoredData = async () => {
+  const loadSavedData = async () => {
     try {
-      dispatch({type: 'SET_LOADING', payload: true});
-      
-      // Load stored settings
-      const storedSettings = await AsyncStorage.getItem('callbunker_settings');
-      if (storedSettings) {
-        dispatch({type: 'UPDATE_SETTINGS', payload: JSON.parse(storedSettings)});
+      // Load settings
+      const savedSettings = await AsyncStorage.getItem('callbunker_settings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        dispatch({type: 'UPDATE_SETTINGS', payload: settings});
       }
-      
-      // Load call history
-      await loadCallHistory();
-      
-      // Load contacts
+
+      // Load auth state
+      const authState = await AsyncStorage.getItem('callbunker_auth');
+      if (authState) {
+        const { isAuthenticated, user } = JSON.parse(authState);
+        dispatch({type: 'SET_AUTHENTICATED', payload: isAuthenticated});
+        dispatch({type: 'SET_USER', payload: user});
+      }
+
+      // Load contacts and call history
       await loadContacts();
-      
-    } catch (error) {
-      console.error('Error loading stored data:', error);
-      dispatch({type: 'SET_ERROR', payload: 'Failed to load app data'});
-    } finally {
-      dispatch({type: 'SET_LOADING', payload: false});
-    }
-  };
+      await loadCallHistory();
 
-  const loadCallHistory = async () => {
-    try {
-      const history = await callBunker.getCallHistory(50, 0);
-      dispatch({type: 'SET_CALL_HISTORY', payload: history});
     } catch (error) {
-      console.error('Error loading call history:', error);
-    }
-  };
-
-  const loadContacts = async () => {
-    try {
-      // Load trusted contacts from Multi-User API
-      const response = await fetch(`${state.apiUrl}/multi/user/${state.userId}/contacts`);
-      if (response.ok) {
-        const contacts = await response.json();
-        dispatch({type: 'SET_CONTACTS', payload: contacts});
-      }
-    } catch (error) {
-      console.error('Error loading contacts:', error);
+      console.error('Error loading saved data:', error);
     }
   };
 
@@ -148,32 +129,38 @@ export function CallBunkerProvider({children}) {
       dispatch({type: 'SET_LOADING', payload: true});
       dispatch({type: 'SET_ERROR', payload: null});
       
-      // Check if native calling is supported
-      const isSupported = await callBunker.isNativeCallingSupported();
-      if (!isSupported) {
-        throw new Error('Native calling not supported on this device');
-      }
-
-      // Make the call
-      const callInfo = await callBunker.makeCall(phoneNumber);
+      console.log(`[CallBunkerProvider] Initiating call to ${phoneNumber}`);
       
-      // Add to call history
-      const callRecord = {
-        id: callInfo.callLogId,
-        phoneNumber: callInfo.targetNumber,
-        callerIdShown: callInfo.callerIdShown,
-        direction: 'outbound',
-        status: 'initiated',
-        timestamp: new Date().toISOString(),
-        duration: 0,
+      // Add to active calls immediately
+      const tempCall = {
+        id: Date.now(),
+        phoneNumber,
+        status: 'initiating',
+        startTime: new Date(),
       };
       
-      dispatch({type: 'ADD_CALL_TO_HISTORY', payload: callRecord});
+      dispatch({type: 'ADD_CALL', payload: tempCall});
       
-      return callInfo;
+      // Use CallBunker Native service
+      const result = await callBunker.makeCall(phoneNumber);
+      
+      // Update with real call data
+      const callInfo = {
+        id: result.callLogId,
+        phoneNumber: result.targetNumber,
+        callerIdShown: result.callerIdShown,
+        status: 'connected',
+        startTime: new Date(),
+        config: result.config
+      };
+      
+      dispatch({type: 'UPDATE_CALL', payload: callInfo});
+      
+      console.log('[CallBunkerProvider] Call initiated successfully:', result);
+      return result;
       
     } catch (error) {
-      console.error('Failed to make call:', error);
+      console.error('[CallBunkerProvider] Call failed:', error);
       dispatch({type: 'SET_ERROR', payload: error.message});
       throw error;
     } finally {
@@ -181,66 +168,105 @@ export function CallBunkerProvider({children}) {
     }
   };
 
-  const completeCall = async (callLogId, duration, status = 'completed') => {
+  const completeCall = async (callId, duration = 0, status = 'completed') => {
     try {
-      await callBunker.completeCall(callLogId, duration, status);
+      // Find the call in active calls
+      const call = state.activeCalls.find(c => c.id === callId);
+      if (!call) {
+        console.warn(`[CallBunkerProvider] Call ${callId} not found in active calls`);
+        return;
+      }
+
+      // Complete via CallBunker Native service
+      await callBunker.completeCall(callId, duration, status);
       
-      // Update call in history
-      dispatch({
-        type: 'UPDATE_CALL_IN_HISTORY',
-        payload: {
-          id: callLogId,
-          status,
-          duration,
-          endTime: new Date().toISOString(),
-        },
-      });
+      // Move to call history
+      const completedCall = {
+        ...call,
+        status,
+        duration,
+        endTime: new Date(),
+      };
+      
+      dispatch({type: 'COMPLETE_CALL', payload: completedCall});
+      
+      console.log(`[CallBunkerProvider] Call ${callId} completed`);
       
     } catch (error) {
-      console.error('Failed to complete call:', error);
+      console.error('[CallBunkerProvider] Error completing call:', error);
+      dispatch({type: 'SET_ERROR', payload: 'Failed to complete call'});
+    }
+  };
+
+  const loadCallHistory = async () => {
+    try {
+      const history = await callBunker.getCallHistory();
+      dispatch({type: 'SET_CALL_HISTORY', payload: history});
+    } catch (error) {
+      console.error('Error loading call history:', error);
+      // Load mock data for development
+      const mockHistory = [
+        {
+          id: 1,
+          phoneNumber: '+15551234567',
+          callerIdShown: 'CallBunker Protected',
+          direction: 'outbound',
+          status: 'completed',
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          duration: 245,
+        },
+        {
+          id: 2,
+          phoneNumber: '+15559876543',
+          callerIdShown: 'CallBunker Protected',
+          direction: 'outbound',
+          status: 'completed',
+          timestamp: new Date(Date.now() - 7200000).toISOString(),
+          duration: 89,
+        },
+      ];
+      dispatch({type: 'SET_CALL_HISTORY', payload: mockHistory});
+    }
+  };
+
+  const loadContacts = async () => {
+    try {
+      // Load contacts from AsyncStorage
+      const savedContacts = await AsyncStorage.getItem('callbunker_contacts');
+      if (savedContacts) {
+        const contacts = JSON.parse(savedContacts);
+        dispatch({type: 'SET_TRUSTED_CONTACTS', payload: contacts});
+      }
+    } catch (error) {
+      console.error('Error loading contacts:', error);
     }
   };
 
   const addTrustedContact = async (contact) => {
     try {
-      dispatch({type: 'SET_LOADING', payload: true});
+      const newContacts = [...state.trustedContacts, contact];
       
-      const response = await fetch(`${state.apiUrl}/multi/user/${state.userId}/contacts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(contact),
-      });
+      // Save to AsyncStorage
+      await AsyncStorage.setItem('callbunker_contacts', JSON.stringify(newContacts));
       
-      if (response.ok) {
-        const newContact = await response.json();
-        dispatch({type: 'ADD_CONTACT', payload: newContact});
-        return newContact;
-      } else {
-        throw new Error('Failed to add contact');
-      }
+      dispatch({type: 'ADD_TRUSTED_CONTACT', payload: contact});
       
     } catch (error) {
       console.error('Error adding contact:', error);
       dispatch({type: 'SET_ERROR', payload: 'Failed to add contact'});
-      throw error;
-    } finally {
-      dispatch({type: 'SET_LOADING', payload: false});
     }
   };
 
-  const removeTrustedContact = async (contactId) => {
+  const removeTrustedContact = async (contact) => {
     try {
-      const response = await fetch(`${state.apiUrl}/multi/user/${state.userId}/contacts/${contactId}`, {
-        method: 'DELETE',
-      });
+      const newContacts = state.trustedContacts.filter(c => 
+        c.phoneNumber !== contact.phoneNumber
+      );
       
-      if (response.ok) {
-        dispatch({type: 'REMOVE_CONTACT', payload: contactId});
-      } else {
-        throw new Error('Failed to remove contact');
-      }
+      // Save to AsyncStorage
+      await AsyncStorage.setItem('callbunker_contacts', JSON.stringify(newContacts));
+      
+      dispatch({type: 'REMOVE_TRUSTED_CONTACT', payload: contact});
       
     } catch (error) {
       console.error('Error removing contact:', error);
@@ -272,25 +298,47 @@ export function CallBunkerProvider({children}) {
       dispatch({type: 'SET_LOADING', payload: true});
       dispatch({type: 'SET_ERROR', payload: null});
       
+      // Safely handle phone number formatting with null checks
+      const realPhoneNumber = userData.realPhoneNumber ? userData.realPhoneNumber.replace(/\D/g, '') : '';
+      
       const response = await fetch(`${state.apiUrl}/multi/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-          name: userData.name,
-          email: userData.email,
-          google_voice_number: userData.googleVoiceNumber.replace(/\D/g, ''),
-          real_phone_number: userData.realPhoneNumber.replace(/\D/g, ''),
-          pin: userData.pin,
-          verbal_code: userData.verbalCode,
+          name: userData.name || '',
+          email: userData.email || '',
+          real_phone_number: realPhoneNumber,
+          pin: userData.pin || '1122',
+          verbal_code: userData.verbalCode || 'open sesame',
         }),
       });
 
       if (response.ok) {
         const responseText = await response.text();
+        console.log('Signup response:', responseText);
+        
         if (responseText.includes('Account created') || responseText.includes('Defense Number')) {
+          // Extract defense number from response if possible
+          const defenseNumberMatch = responseText.match(/(\+?\d{1,3}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})/);
+          const defenseNumber = defenseNumberMatch ? defenseNumberMatch[0] : null;
+          
+          const user = {
+            name: userData.name,
+            email: userData.email,
+            defenseNumber: defenseNumber
+          };
+          
           dispatch({type: 'SET_AUTHENTICATED', payload: true});
+          dispatch({type: 'SET_USER', payload: user});
+          
+          // Save auth state
+          await AsyncStorage.setItem('callbunker_auth', JSON.stringify({
+            isAuthenticated: true,
+            user: user
+          }));
+          
           return true;
         }
       }

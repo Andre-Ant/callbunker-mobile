@@ -14,7 +14,6 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
-  Linking,
 } from 'react-native';
 import { useCallBunker } from '../services/CallBunkerContext';
 
@@ -41,6 +40,9 @@ export default function SignupScreen({ navigation }) {
   };
 
   const formatPhoneNumber = (text) => {
+    // Safe phone number formatting with null checks
+    if (!text) return text;
+    
     const cleaned = text.replace(/\D/g, '');
     const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
     if (match) {
@@ -57,17 +59,17 @@ export default function SignupScreen({ navigation }) {
   const validateForm = () => {
     const { name, email, realPhoneNumber } = formData;
     
-    if (!name.trim()) {
+    if (!name || !name.trim()) {
       Alert.alert('Error', 'Please enter your name');
       return false;
     }
     
-    if (!email.trim() || !email.includes('@')) {
+    if (!email || !email.trim() || !email.includes('@')) {
       Alert.alert('Error', 'Please enter a valid email address');
       return false;
     }
     
-    if (!realPhoneNumber.trim()) {
+    if (!realPhoneNumber || !realPhoneNumber.trim()) {
       Alert.alert('Error', 'Please enter your real phone number');
       return false;
     }
@@ -85,12 +87,13 @@ export default function SignupScreen({ navigation }) {
       
       if (success) {
         // Get the assigned defense number from the response
-        const defenseNumber = state.user?.defenseNumber || '(631) 641-7728';
+        const defenseNumber = state.user?.defenseNumber || 'Your assigned CallBunker number';
         setAssignedDefenseNumber(defenseNumber);
         setShowSuccessModal(true);
       }
       
     } catch (error) {
+      console.error('Signup error:', error);
       Alert.alert('Signup Failed', error.message || 'Please try again');
     } finally {
       setIsLoading(false);
@@ -128,7 +131,6 @@ export default function SignupScreen({ navigation }) {
               autoCapitalize="none"
             />
           </View>
-
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Real Phone Number</Text>

@@ -80,12 +80,12 @@ export default class CallBunkerNative {
                 status: 'initiating'
             });
 
-            // Validate Twilio response format
+            // Validate backend response format (updated for current API)
             if (!callData.target_number || !callData.twilio_caller_id) {
-                throw new Error('Invalid Twilio response format - missing target_number or twilio_caller_id');
+                throw new Error('Invalid API response format - missing target_number or twilio_caller_id');
             }
 
-            // Use Twilio-powered native calling with privacy protection
+            // Use native calling with caller ID spoofing
             if (CallManager) {
                 await CallManager.makeCall({
                     number: callData.target_number,
@@ -292,4 +292,3 @@ export default class CallBunkerNative {
         }
     }
 }
-
