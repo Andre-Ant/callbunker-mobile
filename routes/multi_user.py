@@ -1407,12 +1407,29 @@ def api_call_direct(user_id):
         from utils.twilio_helpers import twilio_client
         client = twilio_client()
         
-        # NOTE: This endpoint is now for fallback only
-        # True no-callback uses Voice SDK directly via device-outbound TwiML
+        # Create call log entry for mobile app native calling
+        call_log = MultiUserCallLog(
+            user_id=user_id,
+            from_number=caller_id_number,
+            to_number=to_number_normalized,
+            direction='outbound',
+            status='mobile_initiated'
+        )
+        
+        db.session.add(call_log)
+        db.session.commit()
+        
+        # Return configuration for mobile app native calling
         return jsonify({
-            'success': False,
-            'message': 'Use Voice SDK for direct calling - this is fallback only',
-            'voice_sdk_ready': True
+            'success': True,
+            'approach': 'native_calling',
+            'target_number': to_number_normalized,
+            'twilio_caller_id': caller_id_number,
+            'call_log_id': call_log.id,
+            'instructions': {
+                'method': 'Use device native calling with caller ID spoofing',
+                'implementation': 'Mobile app should use platform-specific APIs to make call'
+            }
         })
         
         # Create call log entry

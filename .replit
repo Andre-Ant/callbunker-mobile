@@ -89,6 +89,10 @@ externalPort = 4200
 localPort = 43511
 externalPort = 8099
 
+[[ports]]
+localPort = 45747
+externalPort = 9000
+
 [agent]
 integrations = [
   "twilio_send_message==1.0.0",
