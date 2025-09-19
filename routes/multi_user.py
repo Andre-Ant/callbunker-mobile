@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from twilio.twiml.voice_response import VoiceResponse, Gather
 import os
 
-multi_user_bp = Blueprint('multi_user', __name__, url_prefix='/multi')
+multi_user_bp = Blueprint('multi_user', __name__)
 
 @multi_user_bp.route('/')
 def index():
@@ -316,8 +316,14 @@ def signup_success():
     if not defense_number:
         return redirect(url_for('multi_user.mobile_signup'))
     
-    from utils.phone_utils import format_phone_display
-    formatted_number = format_phone_display(defense_number)
+    # Format phone number inline instead of importing missing utility
+    formatted_number = defense_number
+    if defense_number:
+        digits = re.sub(r'\\D', '', defense_number)
+        if len(digits) == 11 and digits.startswith('1'):
+            digits = digits[1:]
+        if len(digits) == 10:
+            formatted_number = f'({digits[:3]}) {digits[3:6]}-{digits[6:]}'
     
     return f"""
     <html>
@@ -348,8 +354,14 @@ def show_my_number():
         if not user:
             return "<h1>User Not Found</h1><p>No user found with that email</p>"
         
-        from utils.phone_utils import format_phone_display
-        defense_number = format_phone_display(user.assigned_twilio_number)
+        # Format phone number for display
+        defense_number = user.assigned_twilio_number
+        if defense_number:
+            digits = re.sub(r'\\D', '', defense_number)
+            if len(digits) == 11 and digits.startswith('1'):
+                digits = digits[1:]
+            if len(digits) == 10:
+                defense_number = f'({digits[:3]}) {digits[3:6]}-{digits[6:]}'
         
         return f"""
         <html>
@@ -1398,8 +1410,15 @@ def api_call_direct(user_id):
         if not to_number:
             return jsonify({'error': 'to_number is required'}), 400
         
-        # Normalize phone numbers
-        to_number_normalized = '+1' + normalize_phone(to_number) if not to_number.startswith('+') else to_number
+        # Normalize phone numbers  
+        import re
+        digits = re.sub(r'\\D', '', to_number)
+        if len(digits) == 10:
+            to_number_normalized = '+1' + digits
+        elif len(digits) == 11 and digits.startswith('1'):
+            to_number_normalized = '+' + digits
+        else:
+            to_number_normalized = to_number
         # Use assigned Twilio number for CallBunker Voice SDK calling
         caller_id_number = user.assigned_twilio_number
         

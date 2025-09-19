@@ -2,8 +2,7 @@ from flask import Blueprint, request, jsonify, render_template, redirect, url_fo
 from datetime import datetime, timedelta
 from app import db
 from models import Tenant, Whitelist, FailLog, Blocklist
-from models_multi_user import TwilioPhonePool
-from models_multi_user import User, TwilioPhonePool, UserWhitelist
+# Import models inside functions to avoid circular imports
 from utils.auth import require_admin_web, parse_annotated_number, norm_digits
 from utils.sendgrid_helper import send_notification_email
 from sqlalchemy import func, and_
