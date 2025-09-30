@@ -244,7 +244,16 @@ def mobile_signup():
         # Assign next available Twilio number from pool with database lock
         available_number = TwilioPhonePool.query.filter_by(is_assigned=False).with_for_update().first()
         if not available_number:
-            return return_error('No CallBunker numbers available. Please contact support.')
+            # No numbers available - try emergency purchase
+            from utils.phone_provisioning import phone_provisioning
+            logger.warning("Phone pool empty! Attempting emergency purchase...")
+            
+            emergency_number = phone_provisioning.purchase_phone_number()
+            if emergency_number:
+                available_number = emergency_number
+                logger.info(f"Emergency purchase successful: {available_number.phone_number}")
+            else:
+                return return_error('No CallBunker numbers available. Please contact support.')
         
         # Create new user with password hash
         user = User(
@@ -266,8 +275,22 @@ def mobile_signup():
         # Assign the phone number using the generated user.id
         available_number.assigned_to_user_id = user.id
         available_number.is_assigned = True
+        available_number.assigned_at = datetime.utcnow()
         
         db.session.commit()
+        
+        # Check pool threshold and trigger replenishment if needed (async)
+        from utils.phone_provisioning import phone_provisioning
+        pool_status = phone_provisioning.get_pool_status()
+        
+        if pool_status['status'] in ['low', 'critical']:
+            logger.warning(f"Pool {pool_status['status']}: {pool_status['available']} numbers remaining. Triggering replenishment...")
+            # Trigger async replenishment (don't block signup)
+            import threading
+            threading.Thread(
+                target=phone_provisioning.check_and_replenish,
+                daemon=True
+            ).start()
         
         # Set up login session for the new user
         session['user_id'] = user.id
