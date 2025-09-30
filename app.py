@@ -157,6 +157,7 @@ from routes.tutorial import tutorial_bp
 from routes.dialer import dialer_bp
 from routes.demo_api import demo_api_bp
 from routes.call_quality import call_quality_bp
+from routes.phone_admin import phone_admin_bp
 
 app.register_blueprint(voice_bp, url_prefix='/voice')
 app.register_blueprint(admin_bp, url_prefix='/admin')
@@ -168,6 +169,7 @@ app.register_blueprint(tutorial_bp, url_prefix='/tutorial')
 app.register_blueprint(dialer_bp)
 app.register_blueprint(demo_api_bp)
 app.register_blueprint(call_quality_bp, url_prefix='/quality')
+app.register_blueprint(phone_admin_bp)
 
 # Simple test route to verify deployment is working
 @app.route('/working')

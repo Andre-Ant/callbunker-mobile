@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Pool Dashboard - CallBunker Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .status-healthy { color: #28a745; }
+        .status-low { color: #ffc107; }
+        .status-critical { color: #dc3545; }
+        .metric-card {
+            border-left: 4px solid #007bff;
+            transition: transform 0.2s;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .phone-number {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        .auto-refresh {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fas fa-phone-volume"></i> CallBunker Phone Pool Admin
+            </span>
+            <span class="text-white">
+                <i class="fas fa-sync auto-refresh"></i> Auto-refreshing every 30s
+            </span>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Pool Status Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card metric-card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Total Numbers</h6>
+                        <h2 class="card-title" id="total-count">{{ pool_status.total }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Available</h6>
+                        <h2 class="card-title status-{{ pool_status.status }}" id="available-count">
+                            {{ pool_status.available }}
+                        </h2>
+                        <small class="text-muted">Threshold: {{ pool_status.threshold_low }}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Assigned</h6>
+                        <h2 class="card-title" id="assigned-count">{{ pool_status.assigned }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Pool Status</h6>
+                        <h2 class="card-title status-{{ pool_status.status }}" id="pool-status">
+                            {{ pool_status.status|upper }}
+                        </h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-tools"></i> Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-success me-2" onclick="replenishPool()">
+                            <i class="fas fa-sync"></i> Auto-Replenish Pool
+                        </button>
+                        <button class="btn btn-primary me-2" onclick="showPurchaseModal()">
+                            <i class="fas fa-shopping-cart"></i> Purchase Numbers
+                        </button>
+                        <button class="btn btn-warning me-2" onclick="configureWebhooks()">
+                            <i class="fas fa-cog"></i> Configure Webhooks
+                        </button>
+                        <button class="btn btn-info" onclick="refreshStatus()">
+                            <i class="fas fa-refresh"></i> Refresh Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Numbers -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-list"></i> Available Numbers ({{ available_numbers|length }})</h5>
+                    </div>
+                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                        {% if available_numbers %}
+                            <div class="list-group">
+                                {% for number in available_numbers %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="phone-number">{{ number.phone_number }}</span>
+                                        <span class="badge bg-success">Available</span>
+                                    </div>
+                                    <small class="text-muted">Added: {{ number.created_at.strftime('%Y-%m-%d %H:%M') if number.created_at else 'N/A' }}</small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center py-3">No available numbers in pool</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Assignments -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-history"></i> Recent Assignments</h5>
+                    </div>
+                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                        {% if recent_assignments %}
+                            <div class="list-group">
+                                {% for number in recent_assignments %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="phone-number">{{ number.phone_number }}</span>
+                                        <span class="badge bg-primary">User #{{ number.assigned_to_user_id }}</span>
+                                    </div>
+                                    <small class="text-muted">Assigned: {{ number.assigned_at.strftime('%Y-%m-%d %H:%M') if number.assigned_at else 'N/A' }}</small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center py-3">No assignments yet</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Purchase Modal -->
+    <div class="modal fade" id="purchaseModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Purchase Phone Numbers</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Number of phones to purchase</label>
+                        <input type="number" class="form-control" id="purchase-count" min="1" max="50" value="20">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Area Code (optional)</label>
+                        <input type="text" class="form-control" id="purchase-area-code" placeholder="e.g., 631">
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Cost: $1/month per number
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmPurchase()">
+                        <i class="fas fa-shopping-cart"></i> Purchase
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="toast" class="toast hide" role="alert">
+            <div class="toast-header">
+                <strong class="me-auto">CallBunker Admin</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toast-message"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.className = `toast show bg-${type} text-white`;
+            new bootstrap.Toast(toast).show();
+        }
+
+        function refreshStatus() {
+            fetch('/admin/phones/api/status')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('total-count').textContent = data.total;
+                    document.getElementById('available-count').textContent = data.available;
+                    document.getElementById('assigned-count').textContent = data.assigned;
+                    document.getElementById('pool-status').textContent = data.status.toUpperCase();
+                    
+                    // Update status colors
+                    document.getElementById('available-count').className = `card-title status-${data.status}`;
+                    document.getElementById('pool-status').className = `card-title status-${data.status}`;
+                    
+                    showToast('Status refreshed', 'success');
+                });
+        }
+
+        function replenishPool() {
+            if (!confirm('Trigger automatic pool replenishment?')) return;
+            
+            showToast('Replenishing pool...', 'info');
+            
+            fetch('/admin/phones/api/replenish', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.replenished) {
+                        showToast(`Replenished ${data.purchased_count} numbers`, 'success');
+                        setTimeout(() => window.location.reload(), 2000);
+                    } else {
+                        showToast(data.reason || 'Pool is healthy', 'info');
+                    }
+                })
+                .catch(err => showToast('Replenishment failed: ' + err, 'danger'));
+        }
+
+        function showPurchaseModal() {
+            new bootstrap.Modal(document.getElementById('purchaseModal')).show();
+        }
+
+        function confirmPurchase() {
+            const count = document.getElementById('purchase-count').value;
+            const areaCode = document.getElementById('purchase-area-code').value;
+            
+            showToast(`Purchasing ${count} numbers...`, 'info');
+            
+            fetch('/admin/phones/api/purchase', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ count: parseInt(count), area_code: areaCode || null })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(`Purchased ${data.purchased_count} numbers`, 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('purchaseModal')).hide();
+                    setTimeout(() => window.location.reload(), 2000);
+                } else {
+                    showToast('Purchase failed: ' + (data.error || 'Unknown error'), 'danger');
+                }
+            })
+            .catch(err => showToast('Purchase failed: ' + err, 'danger'));
+        }
+
+        function configureWebhooks() {
+            if (!confirm('Configure webhooks for all numbers?')) return;
+            
+            showToast('Configuring webhooks...', 'info');
+            
+            fetch('/admin/phones/api/configure-webhooks', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    showToast(`Configured ${data.configured} of ${data.total} numbers`, 'success');
+                    setTimeout(() => window.location.reload(), 2000);
+                })
+                .catch(err => showToast('Configuration failed: ' + err, 'danger'));
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(refreshStatus, 30000);
+    </script>
+</body>
+</html>
