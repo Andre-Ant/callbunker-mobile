@@ -19,40 +19,14 @@ export default class CallBunkerNative {
     }
 
     /**
-     * Make a call using native device calling with caller ID spoofing
+     * Make a call using native device calling with CallBunker protection
+     * Uses React Native's built-in Linking API - no additional packages required
      * @param {string} targetNumber - Phone number to call
      * @returns {Promise<Object>} Call configuration and log ID
      */
     async makeCall(targetNumber) {
         try {
             console.log(`[CallBunker] Initiating call to ${targetNumber}`);
-            
-            // Simulation mode for web/testing
-            if (this.simulationMode) {
-                console.log('[CallBunker] Running in simulation mode');
-                
-                const callLogId = Date.now();
-                const callInfo = {
-                    callLogId,
-                    targetNumber: targetNumber,
-                    callerIdShown: 'Twilio Simulated',
-                    status: 'simulated',
-                    config: {
-                        target_number: targetNumber,
-                        twilio_caller_id: 'Twilio Simulated'
-                    }
-                };
-                
-                // Store simulated call
-                this.activeCalls.set(callLogId, {
-                    ...callInfo,
-                    startTime: Date.now(),
-                    status: 'initiating'
-                });
-                
-                console.log('[CallBunker] Simulated call setup:', callInfo);
-                return callInfo;
-            }
             
             // Get call configuration from CallBunker Multi-User API
             const response = await fetch(`${this.baseUrl}/multi/user/${this.userId}/call_direct`, {
@@ -73,6 +47,11 @@ export default class CallBunkerNative {
 
             console.log('[CallBunker] Call configuration received:', callData);
 
+            // Validate backend response format
+            if (!callData.target_number || !callData.twilio_caller_id) {
+                throw new Error('Invalid API response format - missing target_number or twilio_caller_id');
+            }
+
             // Store call info for tracking
             this.activeCalls.set(callData.call_log_id, {
                 ...callData,
@@ -80,39 +59,57 @@ export default class CallBunkerNative {
                 status: 'initiating'
             });
 
-            // Validate backend response format (updated for current API)
-            if (!callData.target_number || !callData.twilio_caller_id) {
-                throw new Error('Invalid API response format - missing target_number or twilio_caller_id');
-            }
-
-            // Use native calling with caller ID spoofing
-            if (CallManager) {
-                await CallManager.makeCall({
-                    number: callData.target_number,
-                    callerId: callData.twilio_caller_id
-                });
-            } else {
-                // Fallback for development/testing - open system dialer
-                const { Linking } = require('react-native');
-                const telUrl = `tel:${callData.target_number}`;
-                console.warn('[CallBunker] CallManager not available, opening system dialer:', telUrl);
-                await Linking.openURL(telUrl);
-            }
-
-            console.log('[CallBunker] Native call initiated successfully');
+            // Use React Native's built-in Linking API to make the call
+            // This works on both iOS and Android without any additional packages
+            const { Linking } = require('react-native');
+            const telUrl = `tel:${callData.target_number}`;
             
+            const canOpen = await Linking.canOpenURL(telUrl);
+            if (!canOpen) {
+                throw new Error('Device cannot make phone calls');
+            }
+
+            console.log('[CallBunker] Opening native dialer:', telUrl);
+            await Linking.openURL(telUrl);
+
+            console.log('[CallBunker] Call initiated successfully');
+            
+            // Return call info including CallBunker number for user reference
             return {
                 callLogId: callData.call_log_id,
                 targetNumber: callData.target_number,
                 callerIdShown: callData.twilio_caller_id,
                 twilioNumber: callData.twilio_caller_id,
-                config: callData
+                callbunkerNumber: callData.twilio_caller_id,
+                config: callData,
+                privacyNote: `Give them your CallBunker number ${this.formatPhoneDisplay(callData.twilio_caller_id)} for protected callbacks`
             };
 
         } catch (error) {
             console.error('[CallBunker] Call failed:', error);
             throw new Error(`Call failed: ${error.message}`);
         }
+    }
+
+    /**
+     * Format phone number for display
+     * @param {string} phoneNumber - Phone number to format
+     * @returns {string} Formatted phone number
+     */
+    formatPhoneDisplay(phoneNumber) {
+        if (!phoneNumber) return '';
+        
+        const cleaned = phoneNumber.replace(/\D/g, '');
+        
+        // US number formatting
+        if (cleaned.length === 11 && cleaned.startsWith('1')) {
+            const digits = cleaned.substring(1);
+            return `(${digits.substring(0, 3)}) ${digits.substring(3, 6)}-${digits.substring(6)}`;
+        } else if (cleaned.length === 10) {
+            return `(${cleaned.substring(0, 3)}) ${cleaned.substring(3, 6)}-${cleaned.substring(6)}`;
+        }
+        
+        return phoneNumber;
     }
 
     /**

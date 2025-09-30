@@ -68,10 +68,10 @@ function DialerScreen() {
               try {
                 const callInfo = await makeCall(phoneNumber);
                 
-                // Show success feedback
+                // Show success feedback with CallBunker number
                 Alert.alert(
-                  'Call Initiated',
-                  `Calling ${callInfo.targetNumber}\nCaller ID shown: ${callInfo.callerIdShown}`,
+                  '📞 Call Initiated',
+                  `Calling: ${callInfo.targetNumber}\n\n🛡️ For Protected Callbacks:\nGive them your CallBunker number:\n${callInfo.callbunkerNumber}\n\nAll incoming calls to this number are protected with your PIN/verbal code.`,
                   [
                     {
                       text: 'OK',
