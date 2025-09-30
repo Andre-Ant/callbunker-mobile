@@ -6,6 +6,7 @@ from flask import Blueprint, render_template, jsonify, request, flash, redirect,
 from models_multi_user import TwilioPhonePool, User
 from utils.phone_provisioning import phone_provisioning
 from app import db
+from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -100,3 +101,37 @@ def api_numbers():
         }
         for n in numbers
     ])
+
+@phone_admin_bp.route('/cron/auto-replenish', methods=['POST', 'GET'])
+def cron_auto_replenish():
+    """
+    Scheduled job endpoint for automatic pool replenishment
+    
+    Can be called by:
+    - Replit scheduled deployments
+    - External cron services (like cron-job.org)
+    - UptimeRobot monitoring
+    
+    Example cron schedule: Call every 4 hours
+    """
+    try:
+        logger.info("Automatic replenishment cron job triggered")
+        
+        result = phone_provisioning.check_and_replenish()
+        
+        response = {
+            'success': True,
+            'timestamp': datetime.utcnow().isoformat(),
+            'result': result
+        }
+        
+        logger.info(f"Cron job completed: {response}")
+        return jsonify(response)
+        
+    except Exception as e:
+        logger.error(f"Cron job failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'timestamp': datetime.utcnow().isoformat()
+        }), 500

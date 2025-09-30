@@ -69,7 +69,8 @@ class PhoneProvisioning:
             if area_code:
                 search_params['area_code'] = area_code
             
-            available_numbers = self.twilio_client.available_phone_numbers(country_code).local.list(**search_params, limit=1)
+            search_params['limit'] = 1
+            available_numbers = self.twilio_client.available_phone_numbers(country_code).local.list(**search_params)
             
             if not available_numbers:
                 logger.error(f"No available numbers found for area code {area_code}")
@@ -89,13 +90,12 @@ class PhoneProvisioning:
             logger.info(f"Purchased number: {purchased.phone_number}")
             
             # Add to pool
-            pool_entry = TwilioPhonePool(
-                phone_number=purchased.phone_number,
-                is_assigned=False,
-                monthly_cost=1.00,
-                webhook_configured=True,
-                created_at=datetime.utcnow()
-            )
+            pool_entry = TwilioPhonePool()
+            pool_entry.phone_number = purchased.phone_number
+            pool_entry.is_assigned = False
+            pool_entry.monthly_cost = 1.00
+            pool_entry.webhook_configured = True
+            pool_entry.created_at = datetime.utcnow()
             
             db.session.add(pool_entry)
             db.session.commit()
