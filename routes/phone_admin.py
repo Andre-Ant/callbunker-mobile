@@ -15,17 +15,48 @@ logger = logging.getLogger(__name__)
 
 phone_admin_bp = Blueprint('phone_admin', __name__, url_prefix='/admin/phones')
 
+@phone_admin_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    """Admin login page"""
+    if request.method == 'POST':
+        api_key = request.form.get('api_key')
+        admin_api_key = os.environ.get('ADMIN_API_KEY')
+        
+        if api_key and api_key == admin_api_key:
+            session['admin_authenticated'] = True
+            flash('Successfully logged in', 'success')
+            return redirect(url_for('phone_admin.dashboard'))
+        else:
+            return render_template('admin/login.html', error='Invalid API key')
+    
+    # If already authenticated, redirect to dashboard
+    if session.get('admin_authenticated'):
+        return redirect(url_for('phone_admin.dashboard'))
+    
+    return render_template('admin/login.html')
+
+@phone_admin_bp.route('/logout')
+def logout():
+    """Admin logout"""
+    session.pop('admin_authenticated', None)
+    flash('Logged out successfully', 'info')
+    return redirect(url_for('phone_admin.login'))
+
 def require_admin_auth(f):
     """Decorator to require admin authentication"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         # Check for admin session
         if not session.get('admin_authenticated'):
-            # Check for API key in header or query param
+            # Check for API key in header or query param (for API calls)
             api_key = request.headers.get('X-Admin-API-Key') or request.args.get('api_key')
             admin_api_key = os.environ.get('ADMIN_API_KEY')
             
             if not admin_api_key or api_key != admin_api_key:
+                # For browser requests, redirect to login
+                if request.accept_mimetypes.accept_html:
+                    return redirect(url_for('phone_admin.login'))
+                # For API requests, return 401
                 return jsonify({'error': 'Unauthorized - Admin authentication required'}), 401
         
         return f(*args, **kwargs)
