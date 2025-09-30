@@ -2,18 +2,37 @@
 CallBunker Phone Pool Admin Dashboard
 Monitor and manage phone number provisioning
 """
-from flask import Blueprint, render_template, jsonify, request, flash, redirect, url_for
+from flask import Blueprint, render_template, jsonify, request, flash, redirect, url_for, session
 from models_multi_user import TwilioPhonePool, User
 from utils.phone_provisioning import phone_provisioning
 from app import db
 from datetime import datetime
+from functools import wraps
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 phone_admin_bp = Blueprint('phone_admin', __name__, url_prefix='/admin/phones')
 
+def require_admin_auth(f):
+    """Decorator to require admin authentication"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Check for admin session
+        if not session.get('admin_authenticated'):
+            # Check for API key in header or query param
+            api_key = request.headers.get('X-Admin-API-Key') or request.args.get('api_key')
+            admin_api_key = os.environ.get('ADMIN_API_KEY')
+            
+            if not admin_api_key or api_key != admin_api_key:
+                return jsonify({'error': 'Unauthorized - Admin authentication required'}), 401
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
 @phone_admin_bp.route('/dashboard')
+@require_admin_auth
 def dashboard():
     """Phone pool monitoring dashboard"""
     pool_status = phone_provisioning.get_pool_status()
@@ -34,12 +53,14 @@ def dashboard():
                          available_numbers=available_numbers)
 
 @phone_admin_bp.route('/api/status')
+@require_admin_auth
 def api_status():
     """Get pool status as JSON"""
     pool_status = phone_provisioning.get_pool_status()
     return jsonify(pool_status)
 
 @phone_admin_bp.route('/api/purchase', methods=['POST'])
+@require_admin_auth
 def api_purchase():
     """Purchase phone numbers"""
     data = request.get_json() or {}
@@ -65,6 +86,7 @@ def api_purchase():
         return jsonify({'error': str(e)}), 500
 
 @phone_admin_bp.route('/api/replenish', methods=['POST'])
+@require_admin_auth
 def api_replenish():
     """Trigger pool replenishment"""
     try:
@@ -75,6 +97,7 @@ def api_replenish():
         return jsonify({'error': str(e)}), 500
 
 @phone_admin_bp.route('/api/configure-webhooks', methods=['POST'])
+@require_admin_auth
 def api_configure_webhooks():
     """Configure webhooks for all numbers"""
     try:
@@ -85,6 +108,7 @@ def api_configure_webhooks():
         return jsonify({'error': str(e)}), 500
 
 @phone_admin_bp.route('/api/numbers')
+@require_admin_auth
 def api_numbers():
     """Get all phone numbers in pool"""
     numbers = TwilioPhonePool.query.order_by(TwilioPhonePool.created_at.desc()).all()
@@ -103,6 +127,7 @@ def api_numbers():
     ])
 
 @phone_admin_bp.route('/cron/auto-replenish', methods=['POST', 'GET'])
+@require_admin_auth
 def cron_auto_replenish():
     """
     Scheduled job endpoint for automatic pool replenishment

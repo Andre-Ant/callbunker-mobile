@@ -138,37 +138,62 @@ class PhoneProvisioning:
     def check_and_replenish(self):
         """
         Check pool status and replenish if below threshold
+        Uses database advisory lock to prevent concurrent replenishment
         
         Returns:
             Dict with replenishment results
         """
-        status = self.get_pool_status()
+        # Use PostgreSQL advisory lock to prevent concurrent replenishment
+        # Lock ID: 12345 (arbitrary but consistent)
+        lock_acquired = False
         
-        if status['available'] > POOL_THRESHOLD_LOW:
-            logger.info(f"Pool healthy: {status['available']} available")
+        try:
+            # Try to acquire advisory lock (non-blocking)
+            result = db.session.execute(db.text("SELECT pg_try_advisory_lock(12345) AS acquired"))
+            lock_acquired = result.fetchone()[0]
+            
+            if not lock_acquired:
+                logger.info("Replenishment already in progress (lock held by another process)")
+                return {
+                    'replenished': False,
+                    'reason': 'concurrent_replenishment_in_progress',
+                    'status': self.get_pool_status()
+                }
+            
+            # Check status within lock
+            status = self.get_pool_status()
+            
+            if status['available'] > POOL_THRESHOLD_LOW:
+                logger.info(f"Pool healthy: {status['available']} available")
+                return {
+                    'replenished': False,
+                    'reason': 'pool_healthy',
+                    'status': status
+                }
+            
+            # Calculate how many to purchase
+            target_count = POOL_THRESHOLD_LOW + REPLENISHMENT_BATCH_SIZE
+            needed = target_count - status['available']
+            
+            logger.warning(f"Pool below threshold ({status['available']} < {POOL_THRESHOLD_LOW}). Replenishing {needed} numbers...")
+            
+            purchased = self.purchase_batch(count=needed)
+            
+            new_status = self.get_pool_status()
+            
             return {
-                'replenished': False,
-                'reason': 'pool_healthy',
-                'status': status
+                'replenished': True,
+                'purchased_count': len(purchased),
+                'previous_status': status,
+                'new_status': new_status,
+                'purchased_numbers': [p.phone_number for p in purchased]
             }
-        
-        # Calculate how many to purchase
-        target_count = POOL_THRESHOLD_LOW + REPLENISHMENT_BATCH_SIZE
-        needed = target_count - status['available']
-        
-        logger.warning(f"Pool below threshold ({status['available']} < {POOL_THRESHOLD_LOW}). Replenishing {needed} numbers...")
-        
-        purchased = self.purchase_batch(count=needed)
-        
-        new_status = self.get_pool_status()
-        
-        return {
-            'replenished': True,
-            'purchased_count': len(purchased),
-            'previous_status': status,
-            'new_status': new_status,
-            'purchased_numbers': [p.phone_number for p in purchased]
-        }
+            
+        finally:
+            # Always release lock if acquired
+            if lock_acquired:
+                db.session.execute(db.text("SELECT pg_advisory_unlock(12345)"))
+                logger.debug("Released replenishment advisory lock")
     
     def configure_webhook(self, phone_number):
         """
