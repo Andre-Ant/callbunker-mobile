@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "CallBunker",
+    "slug": "callbunker-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F8F9FA"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.callbunker.mobile",
+      "infoPlist": {
+        "NSContactsUsageDescription": "CallBunker needs access to contacts for secure calling",
+        "NSMicrophoneUsageDescription": "CallBunker needs microphone access for phone calls",
+        "NSTelephonyUsageDescription": "CallBunker provides secure calling services"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F8F9FA"
+      },
+      "package": "com.callbunker.mobile",
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.CALL_PHONE",
+        "android.permission.MANAGE_OWN_CALLS",
+        "android.permission.READ_PHONE_STATE",
+        "android.permission.USE_SIP"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": []
+  }
+}
