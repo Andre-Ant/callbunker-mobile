@@ -26,6 +26,11 @@ export default class CallBunkerNative {
      */
     async makeCall(targetNumber) {
         try {
+            // Validate user ID
+            if (!this.userId) {
+                throw new Error('User not authenticated. Please log in first.');
+            }
+
             console.log(`[CallBunker] Initiating call to ${targetNumber}`);
             
             // Get call configuration from CallBunker Multi-User API
@@ -120,6 +125,12 @@ export default class CallBunkerNative {
      */
     async completeCall(callLogId, durationSeconds = 0, status = 'completed') {
         try {
+            // Validate user ID
+            if (!this.userId) {
+                console.warn('[CallBunker] Cannot complete call - user not authenticated');
+                return;
+            }
+
             console.log(`[CallBunker] Completing call ${callLogId}, duration: ${durationSeconds}s`);
 
             const response = await fetch(`${this.baseUrl}/multi/user/${this.userId}/calls/${callLogId}/complete`, {
@@ -172,6 +183,12 @@ export default class CallBunkerNative {
      */
     async getCallHistory(limit = 50, offset = 0) {
         try {
+            // Validate user ID
+            if (!this.userId) {
+                console.warn('[CallBunker] Cannot fetch call history - user not authenticated');
+                return [];
+            }
+
             const response = await fetch(`${this.baseUrl}/multi/user/${this.userId}/calls?limit=${limit}&offset=${offset}`);
             
             if (response.ok) {

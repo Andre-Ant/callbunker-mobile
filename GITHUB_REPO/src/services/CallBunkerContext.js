@@ -4,14 +4,25 @@ import CallBunkerNative from './CallBunkerNative';
 
 const CallBunkerContext = createContext();
 
+//=============================================================================
+// ⚠️  CONFIGURATION REQUIRED - UPDATE BEFORE BUILDING APK
+//=============================================================================
+// Set this to your deployed CallBunker backend URL:
+const API_BASE_URL = 'http://localhost:5000';
+
+// PRODUCTION EXAMPLE:
+// const API_BASE_URL = 'https://your-callbunker-backend.repl.co';
+//
+// For Replit deployments, use your Replit app URL
+// For custom domains, use: https://api.yourdomain.com
+//=============================================================================
+
 const initialState = {
   // Authentication state
   isAuthenticated: false,
   user: null,
-  
-  // Configuration
-  apiUrl: 'https://d8e17dc1-d8d1-4de1-8b8d-ef7f765bc52f-00-3stkuqyoiccx9.spock.replit.dev',
-  userId: 13, // Test user ID
+  userId: null,
+  defenseNumber: null,
   
   // App state
   isLoading: false,
@@ -38,7 +49,12 @@ function appReducer(state, action) {
     case 'SET_AUTHENTICATED':
       return { ...state, isAuthenticated: action.payload };
     case 'SET_USER':
-      return { ...state, user: action.payload };
+      return { 
+        ...state, 
+        user: action.payload,
+        userId: action.payload?.id || null,
+        defenseNumber: action.payload?.defenseNumber || null
+      };
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
     case 'SET_ERROR':
@@ -72,7 +88,7 @@ function appReducer(state, action) {
       return {
         ...state,
         trustedContacts: state.trustedContacts.filter(contact => 
-          contact.phoneNumber !== action.payload.phoneNumber
+          contact.id !== action.payload
         )
       };
     case 'SET_TRUSTED_CONTACTS':
@@ -82,6 +98,8 @@ function appReducer(state, action) {
         ...state, 
         settings: { ...state.settings, ...action.payload } 
       };
+    case 'LOGOUT':
+      return initialState;
     default:
       return state;
   }
@@ -90,16 +108,31 @@ function appReducer(state, action) {
 export function CallBunkerProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // Initialize CallBunker Native service
-  const callBunker = new CallBunkerNative(state.apiUrl, state.userId);
-
   useEffect(() => {
     // Load saved settings and auth state on app start
     loadSavedData();
   }, []);
 
+  // Create CallBunker Native instance with current userId
+  const getCallBunkerInstance = () => {
+    return new CallBunkerNative(API_BASE_URL, state.userId);
+  };
+
   const loadSavedData = async () => {
     try {
+      // Load auth state first
+      const authState = await AsyncStorage.getItem('callbunker_auth');
+      let authenticatedUserId = null;
+      
+      if (authState) {
+        const userData = JSON.parse(authState);
+        if (userData && userData.id) {
+          authenticatedUserId = userData.id;
+          dispatch({type: 'SET_AUTHENTICATED', payload: true});
+          dispatch({type: 'SET_USER', payload: userData});
+        }
+      }
+
       // Load settings
       const savedSettings = await AsyncStorage.getItem('callbunker_settings');
       if (savedSettings) {
@@ -107,54 +140,145 @@ export function CallBunkerProvider({ children }) {
         dispatch({type: 'UPDATE_SETTINGS', payload: settings});
       }
 
-      // Load auth state
-      const authState = await AsyncStorage.getItem('callbunker_auth');
-      if (authState) {
-        const { isAuthenticated, user } = JSON.parse(authState);
-        dispatch({type: 'SET_AUTHENTICATED', payload: isAuthenticated});
-        dispatch({type: 'SET_USER', payload: user});
-      }
+      // Load contacts and call history if authenticated
+      // Use the authenticatedUserId from storage, not state (timing issue fix)
+      if (authenticatedUserId) {
+        // Create temporary CallBunker instance with authenticated user ID
+        const tempCallBunker = new CallBunkerNative(API_BASE_URL, authenticatedUserId);
+        
+        try {
+          const contacts = await fetch(`${API_BASE_URL}/multi/user/${authenticatedUserId}/contacts`);
+          if (contacts.ok) {
+            const data = await contacts.json();
+            dispatch({type: 'SET_TRUSTED_CONTACTS', payload: data.contacts || []});
+          }
+        } catch (error) {
+          console.error('Error loading contacts on startup:', error);
+        }
 
-      // Load contacts and call history
-      await loadContacts();
-      await loadCallHistory();
+        try {
+          const history = await tempCallBunker.getCallHistory();
+          dispatch({type: 'SET_CALL_HISTORY', payload: history});
+        } catch (error) {
+          console.error('Error loading call history on startup:', error);
+        }
+      }
 
     } catch (error) {
       console.error('Error loading saved data:', error);
     }
   };
 
+  const signupUser = async (userData) => {
+    try {
+      dispatch({type: 'SET_LOADING', payload: true});
+      dispatch({type: 'SET_ERROR', payload: null});
+      
+      // Validate required fields
+      if (!userData.name || !userData.email || !userData.pin || !userData.verbalCode) {
+        throw new Error('All fields are required');
+      }
+
+      // Validate PIN (must be 4 digits)
+      if (!/^\d{4}$/.test(userData.pin)) {
+        throw new Error('PIN must be 4 digits');
+      }
+
+      // Validate verbal code (not empty)
+      if (userData.verbalCode.trim().length < 3) {
+        throw new Error('Verbal code must be at least 3 characters');
+      }
+      
+      const realPhoneNumber = userData.realPhoneNumber ? userData.realPhoneNumber.replace(/\D/g, '') : '';
+      
+      const response = await fetch(`${API_BASE_URL}/multi/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          name: userData.name,
+          email: userData.email,
+          real_phone_number: realPhoneNumber,
+          pin: userData.pin,
+          verbal_code: userData.verbalCode,
+        }),
+      });
+
+      const responseText = await response.text();
+      console.log('Signup response:', responseText);
+
+      if (response.ok && (responseText.includes('Account created') || responseText.includes('Defense Number'))) {
+        // Extract defense number and user ID from response
+        const defenseNumberMatch = responseText.match(/(\+?\d{1,3}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})/);
+        const defenseNumber = defenseNumberMatch ? defenseNumberMatch[0] : null;
+        
+        // Extract user ID if available in response
+        const userIdMatch = responseText.match(/user_id[:\s]+(\d+)/i);
+        const userId = userIdMatch ? parseInt(userIdMatch[1]) : Date.now(); // Fallback to timestamp
+        
+        const user = {
+          id: userId,
+          name: userData.name,
+          email: userData.email,
+          defenseNumber: defenseNumber
+        };
+        
+        // Save auth state
+        await AsyncStorage.setItem('callbunker_auth', JSON.stringify(user));
+        
+        dispatch({type: 'SET_AUTHENTICATED', payload: true});
+        dispatch({type: 'SET_USER', payload: user});
+        
+        return { success: true, defenseNumber };
+      }
+      
+      throw new Error(responseText || 'Signup failed - please check your information');
+      
+    } catch (error) {
+      console.error('Signup error:', error);
+      dispatch({type: 'SET_ERROR', payload: error.message});
+      throw error;
+    } finally {
+      dispatch({type: 'SET_LOADING', payload: false});
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await AsyncStorage.removeItem('callbunker_auth');
+      await AsyncStorage.removeItem('callbunker_contacts');
+      dispatch({type: 'LOGOUT'});
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   const makeCall = async (phoneNumber) => {
     try {
+      if (!state.userId) {
+        throw new Error('User not authenticated');
+      }
+
       dispatch({type: 'SET_LOADING', payload: true});
       dispatch({type: 'SET_ERROR', payload: null});
       
       console.log(`[CallBunkerProvider] Initiating call to ${phoneNumber}`);
       
-      // Add to active calls immediately
-      const tempCall = {
-        id: Date.now(),
-        phoneNumber,
-        status: 'initiating',
-        startTime: new Date(),
-      };
-      
-      dispatch({type: 'ADD_CALL', payload: tempCall});
-      
-      // Use CallBunker Native service
+      const callBunker = getCallBunkerInstance();
       const result = await callBunker.makeCall(phoneNumber);
       
-      // Update with real call data
+      // Add to call history
       const callInfo = {
         id: result.callLogId,
         phoneNumber: result.targetNumber,
-        callerIdShown: result.callerIdShown,
-        status: 'connected',
-        startTime: new Date(),
-        config: result.config
+        callerIdShown: result.callerIdShown || state.defenseNumber,
+        status: 'completed',
+        timestamp: new Date().toISOString(),
+        direction: 'outbound'
       };
       
-      dispatch({type: 'UPDATE_CALL', payload: callInfo});
+      dispatch({type: 'ADD_CALL', payload: callInfo});
       
       console.log('[CallBunkerProvider] Call initiated successfully:', result);
       return result;
@@ -170,107 +294,135 @@ export function CallBunkerProvider({ children }) {
 
   const completeCall = async (callId, duration = 0, status = 'completed') => {
     try {
-      // Find the call in active calls
-      const call = state.activeCalls.find(c => c.id === callId);
-      if (!call) {
-        console.warn(`[CallBunkerProvider] Call ${callId} not found in active calls`);
-        return;
-      }
+      if (!state.userId) return;
 
-      // Complete via CallBunker Native service
+      const callBunker = getCallBunkerInstance();
       await callBunker.completeCall(callId, duration, status);
-      
-      // Move to call history
-      const completedCall = {
-        ...call,
-        status,
-        duration,
-        endTime: new Date(),
-      };
-      
-      dispatch({type: 'COMPLETE_CALL', payload: completedCall});
       
       console.log(`[CallBunkerProvider] Call ${callId} completed`);
       
     } catch (error) {
       console.error('[CallBunkerProvider] Error completing call:', error);
-      dispatch({type: 'SET_ERROR', payload: 'Failed to complete call'});
     }
   };
 
   const loadCallHistory = async () => {
     try {
+      if (!state.userId) return;
+
+      const callBunker = getCallBunkerInstance();
       const history = await callBunker.getCallHistory();
       dispatch({type: 'SET_CALL_HISTORY', payload: history});
     } catch (error) {
       console.error('Error loading call history:', error);
-      // Load mock data for development
-      const mockHistory = [
-        {
-          id: 1,
-          phoneNumber: '+15551234567',
-          callerIdShown: 'CallBunker Protected',
-          direction: 'outbound',
-          status: 'completed',
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          duration: 245,
-        },
-        {
-          id: 2,
-          phoneNumber: '+15559876543',
-          callerIdShown: 'CallBunker Protected',
-          direction: 'outbound',
-          status: 'completed',
-          timestamp: new Date(Date.now() - 7200000).toISOString(),
-          duration: 89,
-        },
-      ];
-      dispatch({type: 'SET_CALL_HISTORY', payload: mockHistory});
+      dispatch({type: 'SET_CALL_HISTORY', payload: []});
     }
   };
 
   const loadContacts = async () => {
     try {
-      // Load contacts from AsyncStorage
-      const savedContacts = await AsyncStorage.getItem('callbunker_contacts');
-      if (savedContacts) {
-        const contacts = JSON.parse(savedContacts);
-        dispatch({type: 'SET_TRUSTED_CONTACTS', payload: contacts});
+      if (!state.userId) return;
+
+      const response = await fetch(`${API_BASE_URL}/multi/user/${state.userId}/contacts`);
+      if (response.ok) {
+        const data = await response.json();
+        dispatch({type: 'SET_TRUSTED_CONTACTS', payload: data.contacts || []});
       }
     } catch (error) {
       console.error('Error loading contacts:', error);
+      dispatch({type: 'SET_TRUSTED_CONTACTS', payload: []});
     }
   };
 
   const addTrustedContact = async (contact) => {
     try {
-      const newContacts = [...state.trustedContacts, contact];
-      
-      // Save to AsyncStorage
-      await AsyncStorage.setItem('callbunker_contacts', JSON.stringify(newContacts));
-      
-      dispatch({type: 'ADD_TRUSTED_CONTACT', payload: contact});
+      if (!state.userId) {
+        throw new Error('User not authenticated');
+      }
+
+      const response = await fetch(`${API_BASE_URL}/multi/user/${state.userId}/contacts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone_number: contact.phone_number,
+          name: contact.name,
+          custom_pin: contact.custom_pin || null
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        await loadContacts(); // Reload contacts to get updated list
+        return data;
+      } else {
+        throw new Error('Failed to add contact');
+      }
       
     } catch (error) {
       console.error('Error adding contact:', error);
       dispatch({type: 'SET_ERROR', payload: 'Failed to add contact'});
+      throw error;
     }
   };
 
-  const removeTrustedContact = async (contact) => {
+  const removeTrustedContact = async (contactId) => {
     try {
-      const newContacts = state.trustedContacts.filter(c => 
-        c.phoneNumber !== contact.phoneNumber
-      );
-      
-      // Save to AsyncStorage
-      await AsyncStorage.setItem('callbunker_contacts', JSON.stringify(newContacts));
-      
-      dispatch({type: 'REMOVE_TRUSTED_CONTACT', payload: contact});
+      if (!state.userId) {
+        throw new Error('User not authenticated');
+      }
+
+      const response = await fetch(`${API_BASE_URL}/multi/user/${state.userId}/contacts/${contactId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        dispatch({type: 'REMOVE_TRUSTED_CONTACT', payload: contactId});
+      } else {
+        throw new Error('Failed to remove contact');
+      }
       
     } catch (error) {
       console.error('Error removing contact:', error);
       dispatch({type: 'SET_ERROR', payload: 'Failed to remove contact'});
+      throw error;
+    }
+  };
+
+  const sendMessage = async (toNumber, message) => {
+    try {
+      if (!state.userId) {
+        throw new Error('User not authenticated');
+      }
+
+      dispatch({type: 'SET_LOADING', payload: true});
+      
+      const response = await fetch(`${API_BASE_URL}/multi/user/${state.userId}/send_message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to_number: toNumber,
+          message: message
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data;
+      } else {
+        const error = await response.text();
+        throw new Error(error || 'Failed to send message');
+      }
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      dispatch({type: 'SET_ERROR', payload: error.message});
+      throw error;
+    } finally {
+      dispatch({type: 'SET_LOADING', payload: false});
     }
   };
 
@@ -293,79 +445,20 @@ export function CallBunkerProvider({ children }) {
     dispatch({type: 'SET_ERROR', payload: null});
   };
 
-  const signupUser = async (userData) => {
-    try {
-      dispatch({type: 'SET_LOADING', payload: true});
-      dispatch({type: 'SET_ERROR', payload: null});
-      
-      // Safely handle phone number formatting with null checks
-      const realPhoneNumber = userData.realPhoneNumber ? userData.realPhoneNumber.replace(/\D/g, '') : '';
-      
-      const response = await fetch(`${state.apiUrl}/multi/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          name: userData.name || '',
-          email: userData.email || '',
-          real_phone_number: realPhoneNumber,
-          pin: userData.pin || '1122',
-          verbal_code: userData.verbalCode || 'open sesame',
-        }),
-      });
-
-      if (response.ok) {
-        const responseText = await response.text();
-        console.log('Signup response:', responseText);
-        
-        if (responseText.includes('Account created') || responseText.includes('Defense Number')) {
-          // Extract defense number from response if possible
-          const defenseNumberMatch = responseText.match(/(\+?\d{1,3}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})/);
-          const defenseNumber = defenseNumberMatch ? defenseNumberMatch[0] : null;
-          
-          const user = {
-            name: userData.name,
-            email: userData.email,
-            defenseNumber: defenseNumber
-          };
-          
-          dispatch({type: 'SET_AUTHENTICATED', payload: true});
-          dispatch({type: 'SET_USER', payload: user});
-          
-          // Save auth state
-          await AsyncStorage.setItem('callbunker_auth', JSON.stringify({
-            isAuthenticated: true,
-            user: user
-          }));
-          
-          return true;
-        }
-      }
-      
-      throw new Error('Signup failed - please check your information');
-      
-    } catch (error) {
-      console.error('Signup error:', error);
-      dispatch({type: 'SET_ERROR', payload: error.message});
-      throw error;
-    } finally {
-      dispatch({type: 'SET_LOADING', payload: false});
-    }
-  };
-
   const contextValue = {
     ...state,
-    callBunker,
+    apiUrl: API_BASE_URL,
+    signupUser,
+    logout,
     makeCall,
     completeCall,
     addTrustedContact,
     removeTrustedContact,
+    sendMessage,
     updateSettings,
     loadCallHistory,
     loadContacts,
     clearError,
-    signupUser,
   };
 
   return (

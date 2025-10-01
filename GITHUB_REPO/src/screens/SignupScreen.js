@@ -18,17 +18,16 @@ import {
 import { useCallBunker } from '../services/CallBunkerContext';
 
 export default function SignupScreen({ navigation }) {
-  const { state, signupUser } = useCallBunker();
+  const { signupUser, isLoading } = useCallBunker();
   
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     realPhoneNumber: '',
-    pin: '1122',
-    verbalCode: 'open sesame',
+    pin: '',
+    verbalCode: '',
   });
   
-  const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [assignedDefenseNumber, setAssignedDefenseNumber] = useState('');
 
@@ -40,7 +39,6 @@ export default function SignupScreen({ navigation }) {
   };
 
   const formatPhoneNumber = (text) => {
-    // Safe phone number formatting with null checks
     if (!text) return text;
     
     const cleaned = text.replace(/\D/g, '');
@@ -57,20 +55,46 @@ export default function SignupScreen({ navigation }) {
   };
 
   const validateForm = () => {
-    const { name, email, realPhoneNumber } = formData;
+    const { name, email, realPhoneNumber, pin, verbalCode } = formData;
     
     if (!name || !name.trim()) {
-      Alert.alert('Error', 'Please enter your name');
+      Alert.alert('Required Field', 'Please enter your full name');
       return false;
     }
     
     if (!email || !email.trim() || !email.includes('@')) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      Alert.alert('Required Field', 'Please enter a valid email address');
       return false;
     }
     
     if (!realPhoneNumber || !realPhoneNumber.trim()) {
-      Alert.alert('Error', 'Please enter your real phone number');
+      Alert.alert('Required Field', 'Please enter your real phone number');
+      return false;
+    }
+
+    const cleanedPhone = realPhoneNumber.replace(/\D/g, '');
+    if (cleanedPhone.length < 10) {
+      Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number');
+      return false;
+    }
+    
+    if (!pin || !pin.trim()) {
+      Alert.alert('Required Field', 'Please create a 4-digit security PIN');
+      return false;
+    }
+
+    if (!/^\d{4}$/.test(pin)) {
+      Alert.alert('Invalid PIN', 'PIN must be exactly 4 digits (numbers only)');
+      return false;
+    }
+
+    if (!verbalCode || !verbalCode.trim()) {
+      Alert.alert('Required Field', 'Please create a verbal security code');
+      return false;
+    }
+
+    if (verbalCode.trim().length < 3) {
+      Alert.alert('Invalid Verbal Code', 'Verbal code must be at least 3 characters long');
       return false;
     }
     
@@ -81,13 +105,10 @@ export default function SignupScreen({ navigation }) {
     if (!validateForm()) return;
     
     try {
-      setIsLoading(true);
+      const result = await signupUser(formData);
       
-      const success = await signupUser(formData);
-      
-      if (success) {
-        // Get the assigned defense number from the response
-        const defenseNumber = state.user?.defenseNumber || 'Your assigned CallBunker number';
+      if (result && result.success) {
+        const defenseNumber = result.defenseNumber || 'Your assigned CallBunker number';
         setAssignedDefenseNumber(defenseNumber);
         setShowSuccessModal(true);
       }
@@ -95,8 +116,6 @@ export default function SignupScreen({ navigation }) {
     } catch (error) {
       console.error('Signup error:', error);
       Alert.alert('Signup Failed', error.message || 'Please try again');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -110,59 +129,75 @@ export default function SignupScreen({ navigation }) {
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Full Name</Text>
+            <Text style={styles.label}>Full Name *</Text>
             <TextInput
               style={styles.input}
               value={formData.name}
               onChangeText={(text) => handleInputChange('name', text)}
               placeholder="Enter your full name"
+              placeholderTextColor="#8E8E93"
               autoCapitalize="words"
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email Address</Text>
+            <Text style={styles.label}>Email Address *</Text>
             <TextInput
               style={styles.input}
               value={formData.email}
               onChangeText={(text) => handleInputChange('email', text)}
               placeholder="your.email@example.com"
+              placeholderTextColor="#8E8E93"
               keyboardType="email-address"
               autoCapitalize="none"
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Real Phone Number</Text>
+            <Text style={styles.label}>Real Phone Number *</Text>
             <TextInput
               style={styles.input}
               value={formData.realPhoneNumber}
               onChangeText={(text) => handlePhoneChange('realPhoneNumber', text)}
               placeholder="(555) 987-6543"
+              placeholderTextColor="#8E8E93"
               keyboardType="phone-pad"
             />
+            <Text style={styles.helpText}>
+              This will be kept private - only you can see it
+            </Text>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Security PIN (4 digits)</Text>
+            <Text style={styles.label}>Security PIN (4 digits) *</Text>
             <TextInput
               style={styles.input}
               value={formData.pin}
-              onChangeText={(text) => handleInputChange('pin', text)}
-              placeholder="1122"
+              onChangeText={(text) => handleInputChange('pin', text.replace(/\D/g, ''))}
+              placeholder="Create a 4-digit PIN"
+              placeholderTextColor="#8E8E93"
               keyboardType="numeric"
               maxLength={4}
+              secureTextEntry
             />
+            <Text style={styles.helpText}>
+              Used for call screening - callers must enter this to reach you
+            </Text>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Verbal Code</Text>
+            <Text style={styles.label}>Verbal Code *</Text>
             <TextInput
               style={styles.input}
               value={formData.verbalCode}
               onChangeText={(text) => handleInputChange('verbalCode', text)}
-              placeholder="open sesame"
+              placeholder="Create a verbal code (e.g., 'blue sky')"
+              placeholderTextColor="#8E8E93"
+              autoCapitalize="none"
             />
+            <Text style={styles.helpText}>
+              Alternative authentication method - callers can say this phrase
+            </Text>
           </View>
 
           <TouchableOpacity 
@@ -179,10 +214,10 @@ export default function SignupScreen({ navigation }) {
 
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>
-              🛡️ You'll receive your own unique CallBunker Defense Number
+              🛡️ Get your own unique CallBunker Defense Number
             </Text>
             <Text style={styles.infoText}>
-              📱 Direct calling with complete privacy protection
+              📱 Make calls with complete privacy protection
             </Text>
             <Text style={styles.infoText}>
               🔒 Your real number stays completely hidden
@@ -201,11 +236,12 @@ export default function SignupScreen({ navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.successModal}>
             <Text style={styles.successIcon}>🎉</Text>
-            <Text style={styles.successTitle}>Account Created Successfully!</Text>
+            <Text style={styles.successTitle}>Account Created!</Text>
             <Text style={styles.successMessage}>
-              Your CallBunker Defense Number is:{'\n'}
-              <Text style={styles.defenseNumber}>{assignedDefenseNumber}</Text>{'\n\n'}
-              You can now make calls with complete privacy protection using your Defense Number.
+              Your CallBunker Defense Number:{'\n'}
+              <Text style={styles.defenseNumber}>{assignedDefenseNumber}</Text>
+              {'\n\n'}
+              You can now make calls with complete privacy protection.
             </Text>
             <TouchableOpacity 
               style={styles.successButton}
@@ -226,7 +262,7 @@ export default function SignupScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#F8F9FA',
   },
   content: {
     padding: 20,
@@ -260,16 +296,23 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#1C1C1E',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#E5E5EA',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#F2F2F7',
+    color: '#1C1C1E',
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 4,
+    fontStyle: 'italic',
   },
   signupButton: {
     backgroundColor: '#007AFF',
@@ -279,7 +322,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   buttonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#C7C7CC',
   },
   signupButtonText: {
     color: 'white',
@@ -287,14 +330,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   infoBox: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: '#E3F2FD',
     borderRadius: 8,
     padding: 15,
     marginTop: 20,
   },
   infoText: {
     fontSize: 14,
-    color: '#1976d2',
+    color: '#1976D2',
     marginBottom: 5,
   },
   modalOverlay: {
@@ -302,11 +345,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   successModal: {
     backgroundColor: 'white',
     padding: 30,
     borderRadius: 12,
+    width: '100%',
     maxWidth: 400,
     alignItems: 'center',
     shadowColor: '#000',
@@ -320,28 +365,29 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   successTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#28a745',
-    marginBottom: 10,
+    color: '#28A745',
+    marginBottom: 16,
     textAlign: 'center',
   },
   successMessage: {
+    fontSize: 16,
     color: '#666',
-    marginBottom: 20,
-    lineHeight: 22,
+    marginBottom: 24,
+    lineHeight: 24,
     textAlign: 'center',
   },
   defenseNumber: {
-    fontSize: 18,
+    fontSize: 20,
     color: '#007AFF',
     fontWeight: 'bold',
   },
   successButton: {
     backgroundColor: '#007AFF',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 6,
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 8,
   },
   successButtonText: {
     color: 'white',

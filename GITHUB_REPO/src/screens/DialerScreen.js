@@ -18,10 +18,19 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useCallBunker} from '../services/CallBunkerContext';
 
-function DialerScreen() {
-  const [phoneNumber, setPhoneNumber] = useState('');
+function DialerScreen({ route }) {
+  // Get prefilled number from navigation params (if coming from Contacts)
+  const prefillNumber = route?.params?.prefillNumber || '';
+  const [phoneNumber, setPhoneNumber] = useState(prefillNumber);
   const [isDialing, setIsDialing] = useState(false);
   const {makeCall, isLoading, error, clearError} = useCallBunker();
+
+  useEffect(() => {
+    // Update phone number if prefill number changes
+    if (prefillNumber) {
+      setPhoneNumber(prefillNumber);
+    }
+  }, [prefillNumber]);
 
   useEffect(() => {
     if (error) {

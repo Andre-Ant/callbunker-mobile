@@ -14,13 +14,14 @@ import {
   TextInput,
   Modal,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useCallBunker} from '../services/CallBunkerContext';
 
-function ContactsScreen() {
+function ContactsScreen({ navigation }) {
   const {
-    contacts,
+    trustedContacts,
     isLoading,
     error,
     addTrustedContact,
@@ -32,6 +33,7 @@ function ContactsScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newContactName, setNewContactName] = useState('');
   const [newContactPhone, setNewContactPhone] = useState('');
+  const [newContactPin, setNewContactPin] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -55,6 +57,20 @@ function ContactsScreen() {
     }
   };
 
+  const formatPhoneNumber = (text) => {
+    const cleaned = text.replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+      return `(${match[1]}) ${match[2]}-${match[3]}`;
+    }
+    return text;
+  };
+
+  const handlePhoneChange = (text) => {
+    const formatted = formatPhoneNumber(text);
+    setNewContactPhone(formatted);
+  };
+
   const handleAddContact = async () => {
     if (!newContactName.trim() || !newContactPhone.trim()) {
       Alert.alert('Missing Information', 'Please enter both name and phone number');
@@ -68,33 +84,51 @@ function ContactsScreen() {
       return;
     }
 
+    // Validate PIN if provided
+    if (newContactPin && !/^\d{4}$/.test(newContactPin)) {
+      Alert.alert('Invalid PIN', 'PIN must be exactly 4 digits');
+      return;
+    }
+
     try {
+      const cleanedPhone = newContactPhone.replace(/\D/g, '');
+      const formattedPhone = cleanedPhone.length === 10 ? `+1${cleanedPhone}` : `+${cleanedPhone}`;
+
       await addTrustedContact({
         name: newContactName.trim(),
-        phone_number: newContactPhone.trim(),
-        auto_whitelisted: false,
+        phone_number: formattedPhone,
+        custom_pin: newContactPin || null,
       });
       
       setNewContactName('');
       setNewContactPhone('');
+      setNewContactPin('');
       setShowAddModal(false);
       
       Alert.alert('Success', `${newContactName} added to trusted contacts`);
     } catch (error) {
       console.error('Failed to add contact:', error);
+      Alert.alert('Error', error.message || 'Failed to add contact');
     }
   };
 
   const handleRemoveContact = (contact) => {
     Alert.alert(
       'Remove Contact',
-      `Remove ${contact.name} from trusted contacts?`,
+      `Remove ${contact.name} from trusted contacts?\n\nThis contact will need to authenticate on future calls.`,
       [
         {text: 'Cancel', style: 'cancel'},
         {
           text: 'Remove',
           style: 'destructive',
-          onPress: () => removeTrustedContact(contact.id),
+          onPress: async () => {
+            try {
+              await removeTrustedContact(contact.id);
+              Alert.alert('Removed', `${contact.name} removed from trusted contacts`);
+            } catch (error) {
+              Alert.alert('Error', 'Failed to remove contact');
+            }
+          },
         },
       ]
     );
@@ -103,18 +137,30 @@ function ContactsScreen() {
   const handleCallContact = (contact) => {
     Alert.alert(
       'Protected Call',
-      `Call ${contact.name} (${contact.phone_number})?\n\nThis will be a privacy-protected call.`,
+      `Call ${contact.name}?\n\nThis will be a privacy-protected call using your CallBunker number.`,
       [
         {text: 'Cancel', style: 'cancel'},
         {
-          text: 'Call',
+          text: 'Call Now',
           onPress: () => {
-            // Navigate to dialer with number pre-filled
-            console.log('Calling:', contact.phone_number);
+            // Navigate to Dialer with phone number pre-filled
+            navigation.navigate('Dialer', { 
+              prefillNumber: contact.phone_number 
+            });
           },
         },
       ]
     );
+  };
+
+  const formatPhoneDisplay = (phoneNumber) => {
+    if (!phoneNumber) return '';
+    const cleaned = phoneNumber.replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{1})(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+      return `+${match[1]} (${match[2]}) ${match[3]}-${match[4]}`;
+    }
+    return phoneNumber;
   };
 
   const renderContact = ({item: contact}) => (
@@ -127,15 +173,15 @@ function ContactsScreen() {
       
       <View style={styles.contactInfo}>
         <Text style={styles.contactName}>{contact.name}</Text>
-        <Text style={styles.contactPhone}>{contact.phone_number}</Text>
+        <Text style={styles.contactPhone}>{formatPhoneDisplay(contact.phone_number)}</Text>
         <View style={styles.contactStatus}>
           <Icon 
-            name={contact.auto_whitelisted ? 'verified' : 'verified-user'} 
+            name={contact.auto_whitelisted ? 'auto-awesome' : 'verified-user'} 
             size={14} 
             color={contact.auto_whitelisted ? '#4CAF50' : '#007AFF'} 
           />
           <Text style={styles.contactStatusText}>
-            {contact.auto_whitelisted ? 'Auto-whitelisted' : 'Manual whitelist'}
+            {contact.auto_whitelisted ? 'Auto-added after auth' : 'Manually added'}
           </Text>
         </View>
       </View>
@@ -167,46 +213,69 @@ function ContactsScreen() {
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalHeader}>
-          <TouchableOpacity onPress={() => setShowAddModal(false)}>
+          <TouchableOpacity onPress={() => {
+            setShowAddModal(false);
+            setNewContactName('');
+            setNewContactPhone('');
+            setNewContactPin('');
+          }}>
             <Text style={styles.modalCancelButton}>Cancel</Text>
           </TouchableOpacity>
-          <Text style={styles.modalTitle}>Add Contact</Text>
+          <Text style={styles.modalTitle}>Add Trusted Contact</Text>
           <TouchableOpacity onPress={handleAddContact}>
             <Text style={styles.modalSaveButton}>Save</Text>
           </TouchableOpacity>
         </View>
         
-        <View style={styles.modalContent}>
+        <ScrollView style={styles.modalContent}>
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Name</Text>
+            <Text style={styles.inputLabel}>Name *</Text>
             <TextInput
               style={styles.textInput}
               value={newContactName}
               onChangeText={setNewContactName}
               placeholder="Enter contact name"
               placeholderTextColor="#8E8E93"
+              autoFocus
             />
           </View>
           
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Phone Number</Text>
+            <Text style={styles.inputLabel}>Phone Number *</Text>
             <TextInput
               style={styles.textInput}
               value={newContactPhone}
-              onChangeText={setNewContactPhone}
-              placeholder="Enter phone number"
+              onChangeText={handlePhoneChange}
+              placeholder="(555) 123-4567"
               placeholderTextColor="#8E8E93"
               keyboardType="phone-pad"
             />
           </View>
-          
-          <View style={styles.helpText}>
-            <Icon name="info" size={16} color="#8E8E93" />
-            <Text style={styles.helpTextContent}>
-              Trusted contacts can bypass call screening and reach you directly
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Custom PIN (Optional)</Text>
+            <TextInput
+              style={styles.textInput}
+              value={newContactPin}
+              onChangeText={(text) => setNewContactPin(text.replace(/\D/g, ''))}
+              placeholder="4-digit PIN (optional)"
+              placeholderTextColor="#8E8E93"
+              keyboardType="numeric"
+              maxLength={4}
+              secureTextEntry
+            />
+            <Text style={styles.helpText}>
+              Leave empty to use your default PIN
             </Text>
           </View>
-        </View>
+          
+          <View style={styles.helpBox}>
+            <Icon name="info" size={20} color="#007AFF" />
+            <Text style={styles.helpTextContent}>
+              Trusted contacts can bypass call screening and reach you directly without authentication
+            </Text>
+          </View>
+        </ScrollView>
       </View>
     </Modal>
   );
@@ -233,15 +302,20 @@ function ContactsScreen() {
       </View>
 
       {/* Contacts List */}
-      {contacts.length > 0 ? (
+      {trustedContacts && trustedContacts.length > 0 ? (
         <FlatList
-          data={contacts}
+          data={trustedContacts}
           renderItem={renderContact}
           keyExtractor={item => item.id?.toString() || item.phone_number}
           style={styles.contactsList}
           contentContainerStyle={styles.contactsListContent}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={handleRefresh}
+              colors={['#007AFF']}
+              tintColor="#007AFF"
+            />
           }
         />
       ) : (
@@ -249,7 +323,7 @@ function ContactsScreen() {
           <Icon name="contacts" size={64} color="#C7C7CC" />
           <Text style={styles.emptyStateTitle}>No Trusted Contacts</Text>
           <Text style={styles.emptyStateSubtitle}>
-            Add contacts who can bypass call screening
+            Add contacts who can bypass call screening and reach you directly
           </Text>
           <TouchableOpacity
             style={styles.emptyStateButton}
@@ -396,6 +470,7 @@ const styles = StyleSheet.create({
     color: '#C7C7CC',
     textAlign: 'center',
     marginBottom: 24,
+    lineHeight: 22,
   },
   emptyStateButton: {
     backgroundColor: '#007AFF',
@@ -457,400 +532,24 @@ const styles = StyleSheet.create({
     color: '#1C1C1E',
   },
   helpText: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  helpBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#E3F2FD',
     padding: 12,
     borderRadius: 8,
+    marginTop: 8,
   },
   helpTextContent: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#1565C0',
     marginLeft: 8,
     flex: 1,
-    lineHeight: 20,
-  },
-});
-
-export default ContactsScreen;
-      setNewContactPhone('');
-      setShowAddModal(false);
-      
-      Alert.alert('Success', 'Contact added to trusted list');
-    } catch (error) {
-      console.error('Failed to add contact:', error);
-    }
-  };
-
-  const handleRemoveContact = (contact) => {
-    Alert.alert(
-      'Remove Contact',
-      `Remove ${contact.name} from trusted contacts?\n\nThis contact will need to authenticate on future calls.`,
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => removeTrustedContact(contact.id),
-        },
-      ]
-    );
-  };
-
-  const renderContactItem = ({item: contact}) => (
-    <View style={styles.contactItem}>
-      <View style={styles.contactAvatar}>
-        <Text style={styles.contactInitial}>
-          {contact.name.charAt(0).toUpperCase()}
-        </Text>
-      </View>
-      
-      <View style={styles.contactContent}>
-        <Text style={styles.contactName}>{contact.name}</Text>
-        <Text style={styles.contactPhone}>{formatPhoneNumber(contact.phone_number)}</Text>
-        {contact.auto_whitelisted && (
-          <View style={styles.autoWhitelistBadge}>
-            <Icon name="auto-awesome" size={12} color="#4CAF50" />
-            <Text style={styles.autoWhitelistText}>Auto-added</Text>
-          </View>
-        )}
-      </View>
-      
-      <TouchableOpacity
-        style={styles.removeButton}
-        onPress={() => handleRemoveContact(contact)}
-      >
-        <Icon name="remove-circle-outline" size={24} color="#FF5722" />
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Icon name="group-add" size={64} color="#C7C7CC" />
-      <Text style={styles.emptyStateTitle}>No Trusted Contacts</Text>
-      <Text style={styles.emptyStateText}>
-        Add contacts who can bypass call screening{'\n'}
-        They won't need to enter a PIN to reach you
-      </Text>
-      <TouchableOpacity
-        style={styles.emptyStateButton}
-        onPress={() => setShowAddModal(true)}
-      >
-        <Text style={styles.emptyStateButtonText}>Add First Contact</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <View style={styles.headerContent}>
-        <Text style={styles.headerTitle}>Trusted Contacts</Text>
-        <Text style={styles.headerSubtitle}>
-          These contacts bypass call screening
-        </Text>
-      </View>
-      
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setShowAddModal(true)}
-      >
-        <Icon name="add" size={24} color="#007AFF" />
-      </TouchableOpacity>
-    </View>
-  );
-
-  return (
-    <View style={styles.container}>
-      {renderHeader()}
-      
-      {contacts.length === 0 && !isLoading ? (
-        renderEmptyState()
-      ) : (
-        <FlatList
-          data={contacts}
-          renderItem={renderContactItem}
-          keyExtractor={(item) => item.id.toString()}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              colors={['#007AFF']}
-              tintColor="#007AFF"
-            />
-          }
-          contentContainerStyle={contacts.length === 0 ? styles.emptyContainer : styles.listContainer}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-
-      {/* Add Contact Modal */}
-      <Modal
-        visible={showAddModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => {
-                setShowAddModal(false);
-                setNewContactName('');
-                setNewContactPhone('');
-              }}
-            >
-              <Text style={styles.modalButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            
-            <Text style={styles.modalTitle}>Add Trusted Contact</Text>
-            
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={handleAddContact}
-            >
-              <Text style={[styles.modalButtonText, styles.modalSaveButton]}>Save</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.modalContent}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Name</Text>
-              <TextInput
-                style={styles.textInput}
-                value={newContactName}
-                onChangeText={setNewContactName}
-                placeholder="Enter contact name"
-                autoFocus
-              />
-            </View>
-            
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Phone Number</Text>
-              <TextInput
-                style={styles.textInput}
-                value={newContactPhone}
-                onChangeText={setNewContactPhone}
-                placeholder="+1 (555) 123-4567"
-                keyboardType="phone-pad"
-              />
-            </View>
-            
-            <View style={styles.infoBox}>
-              <Icon name="info-outline" size={20} color="#007AFF" />
-              <Text style={styles.infoText}>
-                This contact will bypass call screening and connect directly to you without entering a PIN.
-              </Text>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </View>
-  );
-}
-
-// Helper functions
-function formatPhoneNumber(phoneNumber) {
-  if (!phoneNumber) return '';
-  const cleaned = phoneNumber.replace(/\D/g, '');
-  const match = cleaned.match(/^(\d{1})(\d{3})(\d{3})(\d{4})$/);
-  if (match) {
-    return `+${match[1]} (${match[2]}) ${match[3]}-${match[4]}`;
-  }
-  return phoneNumber;
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  headerContent: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#1C1C1E',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#E3F2FD',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  listContainer: {
-    paddingVertical: 8,
-  },
-  emptyContainer: {
-    flex: 1,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  emptyStateTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#8E8E93',
-    marginTop: 20,
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: '#C7C7CC',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 30,
-  },
-  emptyStateButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  emptyStateButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  contactItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
-  },
-  contactAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  contactInitial: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  contactContent: {
-    flex: 1,
-  },
-  contactName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1C1C1E',
-    marginBottom: 4,
-  },
-  contactPhone: {
-    fontSize: 14,
-    color: '#8E8E93',
-    marginBottom: 4,
-  },
-  autoWhitelistBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E8F5E8',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-  },
-  autoWhitelistText: {
-    fontSize: 11,
-    color: '#4CAF50',
-    fontWeight: '500',
-    marginLeft: 4,
-  },
-  removeButton: {
-    padding: 8,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
-  },
-  modalButton: {
-    minWidth: 60,
-  },
-  modalButtonText: {
-    fontSize: 16,
-    color: '#007AFF',
-  },
-  modalSaveButton: {
-    fontWeight: '600',
-  },
-  modalContent: {
-    padding: 16,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1C1C1E',
-    marginBottom: 8,
-  },
-  textInput: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#1C1C1E',
-  },
-  infoBox: {
-    flexDirection: 'row',
-    backgroundColor: '#E3F2FD',
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#007AFF',
-    marginLeft: 12,
     lineHeight: 20,
   },
 });
