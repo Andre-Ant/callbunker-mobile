@@ -31,6 +31,7 @@ const initialState = {
   // Call state
   activeCalls: [],
   callHistory: [],
+  voiceReady: false, // Tracks if Twilio system is ready for outgoing calls
   
   // Contacts
   trustedContacts: [],
@@ -98,6 +99,8 @@ function appReducer(state, action) {
         ...state, 
         settings: { ...state.settings, ...action.payload } 
       };
+    case 'SET_VOICE_READY':
+      return { ...state, voiceReady: action.payload };
     case 'LOGOUT':
       return initialState;
     default:
@@ -441,6 +444,29 @@ export function CallBunkerProvider({ children }) {
     }
   };
 
+  const checkVoiceReady = async () => {
+    try {
+      if (!state.userId) {
+        console.warn('[CallBunker] Cannot check voice ready - user not authenticated');
+        return false;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/multi/user/${state.userId}/settings`);
+      
+      if (response.ok) {
+        const settings = await response.json();
+        const isReady = settings.twilio_number_configured === true;
+        dispatch({type: 'SET_VOICE_READY', payload: isReady});
+        return isReady;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error checking voice ready status:', error);
+      return false;
+    }
+  };
+
   const clearError = () => {
     dispatch({type: 'SET_ERROR', payload: null});
   };
@@ -458,6 +484,7 @@ export function CallBunkerProvider({ children }) {
     updateSettings,
     loadCallHistory,
     loadContacts,
+    checkVoiceReady,
     clearError,
   };
 

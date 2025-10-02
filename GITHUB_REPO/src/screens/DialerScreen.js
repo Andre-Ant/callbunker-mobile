@@ -14,6 +14,7 @@ import {
   Alert,
   ActivityIndicator,
   StatusBar,
+  Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useCallBunker} from '../services/CallBunkerContext';
@@ -23,7 +24,8 @@ function DialerScreen({ route }) {
   const prefillNumber = route?.params?.prefillNumber || '';
   const [phoneNumber, setPhoneNumber] = useState(prefillNumber);
   const [isDialing, setIsDialing] = useState(false);
-  const {makeCall, isLoading, error, clearError} = useCallBunker();
+  const [showVoiceReadyModal, setShowVoiceReadyModal] = useState(false);
+  const {makeCall, isLoading, error, clearError, voiceReady, checkVoiceReady} = useCallBunker();
 
   useEffect(() => {
     // Update phone number if prefill number changes
@@ -31,6 +33,18 @@ function DialerScreen({ route }) {
       setPhoneNumber(prefillNumber);
     }
   }, [prefillNumber]);
+
+  useEffect(() => {
+    // Check voice ready status when screen loads
+    const checkStatus = async () => {
+      const isReady = await checkVoiceReady();
+      if (isReady && !voiceReady) {
+        // Show modal if system just became ready
+        setShowVoiceReadyModal(true);
+      }
+    };
+    checkStatus();
+  }, []);
 
   useEffect(() => {
     if (error) {
@@ -55,6 +69,18 @@ function DialerScreen({ route }) {
   const handleCall = async () => {
     if (!phoneNumber || phoneNumber.length < 3) {
       Alert.alert('Invalid Number', 'Please enter a valid phone number');
+      return;
+    }
+
+    // Check if voice system is ready
+    if (!voiceReady) {
+      Alert.alert(
+        'System Not Ready',
+        'CallBunker calling system is initializing. Please wait a moment and try again.',
+        [{text: 'OK'}]
+      );
+      // Recheck status
+      checkVoiceReady();
       return;
     }
 
@@ -140,6 +166,9 @@ function DialerScreen({ route }) {
         <View style={styles.privacyIndicator}>
           <Icon name="security" size={16} color="#4CAF50" />
           <Text style={styles.privacyText}>Privacy Protected</Text>
+          <Text style={styles.voiceReadyIndicator}>
+            {voiceReady ? '✓ Voice Ready' : '⏳ Initializing...'}
+          </Text>
         </View>
       </View>
 
@@ -216,6 +245,33 @@ function DialerScreen({ route }) {
           <Text style={styles.featureText}>Twilio privacy protection</Text>
         </View>
       </View>
+
+      {/* Voice Ready Modal */}
+      <Modal
+        visible={showVoiceReadyModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowVoiceReadyModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalIcon}>
+              <Icon name="check-circle" size={64} color="#4CAF50" />
+            </View>
+            <Text style={styles.modalTitle}>Voice Ready</Text>
+            <Text style={styles.modalMessage}>
+              CallBunker no-callback calling is ready!{'\n'}
+              Only target phones will ring.
+            </Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setShowVoiceReadyModal(false)}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -262,12 +318,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+    gap: 8,
   },
   privacyText: {
     fontSize: 12,
     color: '#4CAF50',
     fontWeight: '500',
     marginLeft: 4,
+  },
+  voiceReadyIndicator: {
+    fontSize: 11,
+    color: '#007AFF',
+    fontWeight: '600',
+    marginLeft: 8,
   },
   dialpad: {
     flex: 1,
@@ -361,6 +424,55 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#8E8E93',
     marginTop: 4,
+    textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 340,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalIcon: {
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 12,
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#8E8E93',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  modalButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 48,
+    paddingVertical: 14,
+    borderRadius: 10,
+    minWidth: 120,
+  },
+  modalButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
     textAlign: 'center',
   },
 });
